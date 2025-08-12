@@ -280,10 +280,12 @@
         // API Helper functions
         async function apiRequest(endpoint, options = {}) {
             const url = API_BASE + endpoint;
+            const token = localStorage.getItem('authToken');
+            
             const config = {
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
                     ...options.headers,
                 },
                 ...options,
@@ -294,6 +296,12 @@
                 const data = await response.json();
                 
                 if (!response.ok) {
+                    // Se token expirou, limpar localStorage e redirecionar para login
+                    if (response.status === 401 && token) {
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('currentUser');
+                        showLoginScreen();
+                    }
                     throw new Error(data.error || 'HTTP error! status: ' + response.status);
                 }
                 
@@ -317,7 +325,11 @@
                     body: JSON.stringify({ email, password }),
                 });
                 
+                // Armazenar token e usuário no localStorage
+                localStorage.setItem('authToken', response.token);
+                localStorage.setItem('currentUser', JSON.stringify(response.user));
                 currentUser = response.user;
+                
                 return { success: true, user: response.user };
             } catch (error) {
                 return { success: false, error: error.message };
@@ -330,6 +342,9 @@
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
+                // Limpar localStorage
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
                 currentUser = null;
                 showLoginScreen();
             }
@@ -593,9 +608,28 @@
         });
 
         // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            showLoginScreen();
+            
+            // Verificar se há token armazenado
+            const token = localStorage.getItem('authToken');
+            const storedUser = localStorage.getItem('currentUser');
+            
+            if (token && storedUser) {
+                try {
+                    // Verificar se o token ainda é válido
+                    const response = await apiRequest('/auth/me');
+                    currentUser = response.user;
+                    showMainApp();
+                } catch (error) {
+                    // Token inválido, limpar localStorage
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    showLoginScreen();
+                }
+            } else {
+                showLoginScreen();
+            }
         });
     </script>
 </body>

@@ -23,7 +23,11 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # CORS para permitir requisições do frontend
-CORS(app, supports_credentials=True)
+CORS(app, 
+     supports_credentials=True,
+     origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'null'],  # null para file://
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
 # Registrar blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')

@@ -40,13 +40,13 @@ git --version
 ### Opção 1: Script de Instalação Rápida (Recomendado)
 ```bash
 # Download e execução em uma linha
-curl -sSL https://raw.githubusercontent.com/SEU_USUARIO/ki-aikido-system/main/scripts/quick-install.sh | bash
+curl -sSL https://raw.githubusercontent.com/d2monteblanco/ki-aikido-system/main/scripts/quick-install.sh | bash
 ```
 
 ### Opção 2: Clone + Instalação
 ```bash
 # 1. Clonar repositório
-git clone https://github.com/SEU_USUARIO/ki-aikido-system.git
+git clone https://github.com/d2monteblanco/ki-aikido-system.git
 cd ki-aikido-system
 
 # 2. Executar instalação
@@ -92,7 +92,7 @@ sudo apt install -y \
 cd $HOME
 
 # Clonar projeto
-git clone https://github.com/SEU_USUARIO/ki-aikido-system.git
+git clone https://github.com/d2monteblanco/ki-aikido-system.git
 cd ki-aikido-system
 ```
 

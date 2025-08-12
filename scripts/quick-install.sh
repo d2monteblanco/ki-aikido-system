@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de Instalação Rápida do Sistema Ki Aikido
-# Para usar: curl -sSL https://raw.githubusercontent.com/SEU_USUARIO/ki-aikido-system/main/scripts/quick-install.sh | bash
+# Para usar: curl -sSL https://raw.githubusercontent.com/d2monteblanco/ki-aikido-system/main/scripts/quick-install.sh | bash
 
 set -e
 
@@ -23,7 +23,7 @@ if [ -d "$INSTALL_DIR" ]; then
     git pull
 else
     echo "📥 Clonando repositório..."
-    git clone https://github.com/SEU_USUARIO/ki-aikido-system.git "$INSTALL_DIR"
+    git clone https://github.com/d2monteblanco/ki-aikido-system.git "$INSTALL_DIR"
     cd "$INSTALL_DIR"
 fi
 

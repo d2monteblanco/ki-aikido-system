@@ -48,13 +48,13 @@ Sistema completo para gestão centralizada de academias de Ki Aikido no Brasil, 
 
 ### Opção 1: Script de Instalação Automática
 ```bash
-curl -sSL https://raw.githubusercontent.com/SEU_USUARIO/ki-aikido-system/main/scripts/quick-install.sh | bash
+curl -sSL https://raw.githubusercontent.com/d2monteblanco/ki-aikido-system/main/scripts/quick-install.sh | bash
 ```
 
 ### Opção 2: Clone Manual
 ```bash
 # 1. Clonar repositório
-git clone https://github.com/SEU_USUARIO/ki-aikido-system.git
+git clone https://github.com/d2monteblanco/ki-aikido-system.git
 cd ki-aikido-system
 
 # 2. Executar instalação
@@ -80,7 +80,7 @@ sudo apt install -y python3 python3-pip python3-venv git sqlite3 curl wget
 ### Configuração
 ```bash
 # 1. Clonar repositório
-git clone https://github.com/SEU_USUARIO/ki-aikido-system.git
+git clone https://github.com/d2monteblanco/ki-aikido-system.git
 cd ki-aikido-system
 
 # 2. Criar ambiente virtual

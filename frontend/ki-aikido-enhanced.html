@@ -566,7 +566,7 @@
         let currentTab = 'dashboard';
 
         // API Base URL
-        const API_BASE = 'http://localhost:5001/api';
+        const API_BASE = 'https://5000-izgjrvq6mcow7rda4z9gz-53bb438c.manus.computer/api';
 
         // Initialize Lucide icons
         lucide.createIcons();
@@ -579,6 +579,7 @@
                 credentials: 'include', // Para enviar cookies de sessão
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
                     ...options.headers,
                 },
                 ...options,
@@ -641,6 +642,7 @@
                 });
                 
                 currentUser = response.user;
+                localStorage.setItem("jwt_token", response.token);
                 return { success: true, user: response.user };
             } catch (error) {
                 return { success: false, error: error.message };
@@ -654,6 +656,7 @@
                 console.error('Logout error:', error);
             } finally {
                 currentUser = null;
+                localStorage.removeItem("jwt_token");
                 showLoginScreen();
             }
         }

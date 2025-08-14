@@ -1,14 +1,16 @@
-import os
 import sys
+import os
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
-from src.models import db, User, Dojo, Student
+from src.models import db, User, Dojo, Student, MemberStatus, MemberGraduation, MemberQualification
 from src.routes.auth import auth_bp
 from src.routes.students import students_bp
 from src.routes.dojos import dojos_bp
+from src.routes.member_status import member_status_bp
+from src.routes.member_graduations import member_graduations_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -33,6 +35,8 @@ CORS(app,
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(students_bp, url_prefix='/api')
 app.register_blueprint(dojos_bp, url_prefix='/api')
+app.register_blueprint(member_status_bp, url_prefix='/api')
+app.register_blueprint(member_graduations_bp, url_prefix='/api')
 
 # Inicializar banco de dados
 db.init_app(app)

@@ -1,0 +1,216 @@
+from flask import Blueprint, request, jsonify, session
+from src.models import db, Student, MemberStatus, MemberGraduation, MemberQualification
+from datetime import datetime
+
+member_status_bp = Blueprint('member_status', __name__)
+
+def require_auth():
+    """Verifica se o usuário está autenticado"""
+    if 'user_id' not in session:
+        return False
+    return True
+
+def get_user_dojos():
+    """Retorna os dojos que o usuário pode acessar"""
+    from src.models import User
+    user = User.query.get(session['user_id'])
+    if user.role == 'admin':
+        return None  # Admin pode ver todos
+    return [user.dojo_id] if user.dojo_id else []
+
+@member_status_bp.route('/member-status', methods=['GET'])
+def list_member_status():
+    """Lista todos os status de membros com paginação e filtros"""
+    if not require_auth():
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    # Parâmetros de paginação
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 20, type=int), 100)
+    
+    # Filtros
+    search = request.args.get('search', '').strip()
+    member_type = request.args.get('member_type', '').strip()
+    current_status = request.args.get('current_status', '').strip()
+    dojo_id = request.args.get('dojo_id', type=int)
+    
+    # Query base
+    query = db.session.query(MemberStatus).join(Student)
+    
+    # Filtro por dojos permitidos
+    allowed_dojos = get_user_dojos()
+    if allowed_dojos is not None:
+        query = query.filter(Student.dojo_id.in_(allowed_dojos))
+    
+    # Aplicar filtros
+    if search:
+        query = query.filter(
+            db.or_(
+                Student.name.ilike(f'%{search}%'),
+                MemberStatus.registered_number.ilike(f'%{search}%')
+            )
+        )
+    
+    if member_type:
+        query = query.filter(MemberStatus.member_type == member_type)
+    
+    if current_status:
+        query = query.filter(MemberStatus.current_status == current_status)
+    
+    if dojo_id:
+        query = query.filter(Student.dojo_id == dojo_id)
+    
+    # Ordenação
+    query = query.order_by(Student.name)
+    
+    # Paginação
+    pagination = query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return jsonify({
+        'member_status': [ms.to_summary() for ms in pagination.items],
+        'pagination': {
+            'page': page,
+            'per_page': per_page,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'has_next': pagination.has_next,
+            'has_prev': pagination.has_prev
+        }
+    })
+
+@member_status_bp.route('/member-status/<int:id>', methods=['GET'])
+def get_member_status(id):
+    """Retorna detalhes de um status de membro específico"""
+    if not require_auth():
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    member_status = MemberStatus.query.get_or_404(id)
+    
+    # Verificar permissão
+    allowed_dojos = get_user_dojos()
+    if allowed_dojos is not None and member_status.student.dojo_id not in allowed_dojos:
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    return jsonify(member_status.to_dict())
+
+@member_status_bp.route('/member-status', methods=['POST'])
+def create_member_status():
+    """Cria um novo status de membro"""
+    if not require_auth():
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    data = request.get_json()
+    
+    # Validações
+    if not data.get('student_id'):
+        return jsonify({'error': 'student_id é obrigatório'}), 400
+    
+    student = Student.query.get(data['student_id'])
+    if not student:
+        return jsonify({'error': 'Estudante não encontrado'}), 404
+    
+    # Verificar permissão
+    allowed_dojos = get_user_dojos()
+    if allowed_dojos is not None and student.dojo_id not in allowed_dojos:
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    # Verificar se já existe status para este estudante
+    existing = MemberStatus.query.filter_by(student_id=data['student_id']).first()
+    if existing:
+        return jsonify({'error': 'Estudante já possui status de membro'}), 400
+    
+    try:
+        member_status = MemberStatus(
+            student_id=data['student_id'],
+            registered_number=data.get('registered_number'),
+            membership_date=datetime.strptime(data['membership_date'], '%Y-%m-%d').date() if data.get('membership_date') else None,
+            member_type=data.get('member_type', 'student'),
+            current_status=data.get('current_status', 'active'),
+            last_activity_year=data.get('last_activity_year')
+        )
+        
+        db.session.add(member_status)
+        db.session.commit()
+        
+        return jsonify(member_status.to_dict()), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Erro ao criar status de membro: {str(e)}'}), 500
+
+@member_status_bp.route('/member-status/<int:id>', methods=['PUT'])
+def update_member_status(id):
+    """Atualiza um status de membro"""
+    if not require_auth():
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    member_status = MemberStatus.query.get_or_404(id)
+    
+    # Verificar permissão
+    allowed_dojos = get_user_dojos()
+    if allowed_dojos is not None and member_status.student.dojo_id not in allowed_dojos:
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    data = request.get_json()
+    
+    try:
+        # Atualizar campos
+        if 'registered_number' in data:
+            member_status.registered_number = data['registered_number']
+        if 'membership_date' in data:
+            member_status.membership_date = datetime.strptime(data['membership_date'], '%Y-%m-%d').date() if data['membership_date'] else None
+        if 'member_type' in data:
+            member_status.member_type = data['member_type']
+        if 'current_status' in data:
+            member_status.current_status = data['current_status']
+        if 'last_activity_year' in data:
+            member_status.last_activity_year = data['last_activity_year']
+        
+        member_status.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify(member_status.to_dict())
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Erro ao atualizar status de membro: {str(e)}'}), 500
+
+@member_status_bp.route('/member-status/<int:id>', methods=['DELETE'])
+def delete_member_status(id):
+    """Remove um status de membro"""
+    if not require_auth():
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    member_status = MemberStatus.query.get_or_404(id)
+    
+    # Verificar permissão
+    allowed_dojos = get_user_dojos()
+    if allowed_dojos is not None and member_status.student.dojo_id not in allowed_dojos:
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    try:
+        db.session.delete(member_status)
+        db.session.commit()
+        return jsonify({'message': 'Status de membro removido com sucesso'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Erro ao remover status de membro: {str(e)}'}), 500
+
+@member_status_bp.route('/member-status/constants', methods=['GET'])
+def get_constants():
+    """Retorna constantes para formulários"""
+    return jsonify({
+        'member_types': MemberStatus.MEMBER_TYPES,
+        'status_types': MemberStatus.STATUS_TYPES,
+        'disciplines': MemberGraduation.DISCIPLINES,
+        'toitsudo_ranks': MemberGraduation.TOITSUDO_RANKS,
+        'aikido_ranks': MemberGraduation.AIKIDO_RANKS,
+        'qualification_types': MemberQualification.QUALIFICATION_TYPES,
+        'examiner_levels': MemberQualification.EXAMINER_LEVELS,
+        'lecturer_levels': MemberQualification.LECTURER_LEVELS,
+        'certificate_status': MemberGraduation.CERTIFICATE_STATUS
+    })
+

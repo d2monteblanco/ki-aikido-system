@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Ki Aikido - Gestão Completa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .hidden { display: none; }
+        .loading { opacity: 0.5; pointer-events: none; }
+        .tab-active { 
+            border-bottom: 2px solid #2563eb; 
+            color: #2563eb; 
+            background-color: #eff6ff;
+        }
+        .tab-inactive { 
+            color: #6b7280; 
+            border-bottom: 2px solid transparent;
+        }
+        .tab-inactive:hover { 
+            color: #374151; 
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full space-y-8">
+            <div class="text-center">
+                <div class="flex justify-center">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 shadow-lg">
+                        <i data-lucide="zap" class="h-8 w-8 text-white"></i>
+                    </div>
+                </div>
+                <h2 class="mt-6 text-3xl font-bold text-gray-900">Sistema Ki Aikido</h2>
+                <p class="mt-2 text-sm text-gray-600">Gestão Completa das Academias</p>
+            </div>
+
+            <div class="bg-white shadow-xl rounded-lg p-8">
+                <h3 class="text-lg font-semibold mb-4">Entrar no Sistema</h3>
+                
+                <div id="loginError" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="h-4 w-4 mr-2"></i>
+                        <span id="loginErrorText"></span>
+                    </div>
+                </div>
+
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="loginEmail" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="seu@email.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <input type="password" id="loginPassword" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Sua senha">
+                    </div>
+                    
+                    <button type="submit" id="loginBtn"
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span id="loginBtnText">Entrar</span>
+                        <i data-lucide="loader-2" class="hidden h-4 w-4 animate-spin inline ml-2" id="loginSpinner"></i>
+                    </button>
+                </form>
+
+                <!-- Demo Credentials -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Credenciais de Demonstração:</h4>
+                    <div class="space-y-2 text-xs">
+                        <button type="button" onclick="fillLogin('admin@kiaikido.com')" 
+                                class="block w-full text-left p-2 hover:bg-gray-100 rounded">
+                            <div class="font-medium">admin@kiaikido.com</div>
+                            <div class="text-gray-500">Administrador (vê todos os dojos)</div>
+                        </button>
+                        <button type="button" onclick="fillLogin('florianopolis@kiaikido.com')" 
+                                class="block w-full text-left p-2 hover:bg-gray-100 rounded">
+                            <div class="font-medium">florianopolis@kiaikido.com</div>
+                            <div class="text-gray-500">Dojo Florianópolis</div>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Senha para todos: 123456</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                            <i data-lucide="zap" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-bold text-gray-900">Ki Aikido</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <span id="userInfo" class="text-sm text-gray-600"></span>
+                        <button onclick="logout()" class="text-sm text-gray-500 hover:text-gray-700">
+                            <i data-lucide="log-out" class="h-4 w-4 inline mr-1"></i>
+                            Sair
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8">
+                    <button onclick="showTab('dashboard')" id="tab-dashboard" 
+                            class="py-4 px-1 border-b-2 font-medium text-sm tab-active">
+                        <i data-lucide="home" class="h-4 w-4 inline mr-2"></i>
+                        Dashboard
+                    </button>
+                    <button onclick="showTab('students')" id="tab-students" 
+                            class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">
+                        <i data-lucide="users" class="h-4 w-4 inline mr-2"></i>
+                        Alunos
+                    </button>
+                    <button onclick="showTab('members')" id="tab-members" 
+                            class="py-4 px-1 border-b-2 font-medium text-sm tab-inactive">
+                        <i data-lucide="award" class="h-4 w-4 inline mr-2"></i>
+                        Status/Graduações
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Tab -->
+            <div id="content-dashboard" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
+                    <p class="text-gray-600 mb-6">Bem-vindo ao sistema Ki Aikido</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Total de Alunos</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="totalStudents">0</p>
+                                </div>
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <i data-lucide="users" class="h-6 w-6 text-blue-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Membros Ativos</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="activeMembers">0</p>
+                                </div>
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <i data-lucide="award" class="h-6 w-6 text-green-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Instrutores</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="totalInstructors">0</p>
+                                </div>
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <i data-lucide="graduation-cap" class="h-6 w-6 text-purple-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Dojos</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="totalDojos">0</p>
+                                </div>
+                                <div class="p-2 bg-orange-100 rounded-lg">
+                                    <i data-lucide="building-2" class="h-6 w-6 text-orange-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Tab -->
+            <div id="content-students" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">Gestão de Alunos</h3>
+                            <button onclick="showCreateStudentModal()" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <i data-lucide="plus" class="h-4 w-4 inline mr-2"></i>
+                                Novo Aluno
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div id="studentsLoading" class="text-center py-8">
+                            <i data-lucide="loader-2" class="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400"></i>
+                            <p class="text-gray-500">Carregando alunos...</p>
+                        </div>
+                        
+                        <div id="studentsEmpty" class="hidden text-center py-8">
+                            <i data-lucide="users" class="h-12 w-12 mx-auto mb-4 text-gray-400"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum aluno encontrado</h3>
+                            <p class="text-gray-500">Comece cadastrando o primeiro aluno.</p>
+                        </div>
+                        
+                        <div id="studentsList" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Students will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Tab -->
+            <div id="content-members" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">Status e Graduações dos Membros</h3>
+                            <button onclick="showCreateMemberModal()" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <i data-lucide="plus" class="h-4 w-4 inline mr-2"></i>
+                                Novo Status de Membro
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                                <input type="text" id="memberSearch" placeholder="Nome ou número de registro"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Membro</label>
+                                <select id="memberTypeFilter"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Todos os tipos</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select id="memberStatusFilter"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Todos os status</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="filterMembers()" 
+                                        class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                                    <i data-lucide="search" class="h-4 w-4 inline mr-2"></i>
+                                    Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div id="membersLoading" class="text-center py-8">
+                            <i data-lucide="loader-2" class="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400"></i>
+                            <p class="text-gray-500">Carregando membros...</p>
+                        </div>
+                        
+                        <div id="membersEmpty" class="hidden text-center py-8">
+                            <i data-lucide="award" class="h-12 w-12 mx-auto mb-4 text-gray-400"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum membro encontrado</h3>
+                            <p class="text-gray-500">Comece criando o primeiro status de membro.</p>
+                        </div>
+                        
+                        <div id="membersList" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Members will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- Create Student Modal -->
+    <div id="createStudentModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Cadastrar Novo Aluno</h3>
+                    <button onclick="hideCreateStudentModal()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <div id="createStudentError" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="h-4 w-4 mr-2"></i>
+                        <span id="createStudentErrorText"></span>
+                    </div>
+                </div>
+
+                <form id="createStudentForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+                            <input type="text" id="createStudentName" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <input type="email" id="createStudentEmail" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
+                            <input type="date" id="createStudentBirthDate" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dojo *</label>
+                            <select id="createStudentDojo" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione o dojo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Endereço Completo *</label>
+                        <textarea id="createStudentAddress" required rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="hideCreateStudentModal()"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="createStudentBtn"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <span id="createStudentBtnText">Salvar Aluno</span>
+                            <i data-lucide="loader-2" class="hidden h-4 w-4 animate-spin inline ml-2" id="createStudentSpinner"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Member Status Modal -->
+    <div id="createMemberModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Criar Status de Membro</h3>
+                    <button onclick="hideCreateMemberModal()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <div id="createMemberError" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="h-4 w-4 mr-2"></i>
+                        <span id="createMemberErrorText"></span>
+                    </div>
+                </div>
+
+                <form id="createMemberForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Aluno *</label>
+                            <select id="createMemberStudent" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione o aluno</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Registro</label>
+                            <input type="text" id="createMemberRegisteredNumber"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Ex: KIA-001-0001">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Filiação</label>
+                            <input type="date" id="createMemberMembershipDate"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Membro *</label>
+                            <select id="createMemberType" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione o tipo</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Atual *</label>
+                            <select id="createMemberStatus" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione o status</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Último Ano de Atividade</label>
+                            <input type="number" id="createMemberLastActivity" min="2000" max="2030"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Ex: 2024">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="hideCreateMemberModal()"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="createMemberBtn"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <span id="createMemberBtnText">Salvar Status</span>
+                            <i data-lucide="loader-2" class="hidden h-4 w-4 animate-spin inline ml-2" id="createMemberSpinner"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Details Modal -->
+    <div id="memberDetailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900" id="memberDetailsTitle">Detalhes do Membro</h3>
+                    <button onclick="hideMemberDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <div id="memberDetailsContent">
+                    <!-- Content will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Graduation Modal -->
+    <div id="addGraduationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Adicionar Graduação</h3>
+                    <button onclick="hideAddGraduationModal()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <div id="addGraduationError" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="h-4 w-4 mr-2"></i>
+                        <span id="addGraduationErrorText"></span>
+                    </div>
+                </div>
+
+                <form id="addGraduationForm" class="space-y-4">
+                    <input type="hidden" id="graduationMemberStatusId">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina *</label>
+                            <select id="graduationDiscipline" required onchange="updateRankOptions()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione a disciplina</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Graduação *</label>
+                            <select id="graduationRank" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione a graduação</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
+                            <input type="date" id="graduationExamDate"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
+                            <input type="text" id="graduationCertificateNumber"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Ex: CERT-2024-001">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
+                            <select id="graduationCertificateStatus"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="pending">Pendente</option>
+                                <option value="issued">Emitido</option>
+                                <option value="to-be-filed">A ser arquivado</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="graduationIsCurrent" 
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="graduationIsCurrent" class="ml-2 block text-sm text-gray-900">
+                                Graduação atual nesta disciplina
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="hideAddGraduationModal()"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="addGraduationBtn"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <span id="addGraduationBtnText">Salvar Graduação</span>
+                            <i data-lucide="loader-2" class="hidden h-4 w-4 animate-spin inline ml-2" id="addGraduationSpinner"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let students = [];
+        let members = [];
+        let dojos = [];
+        let constants = {};
+        let currentTab = 'dashboard';
+
+        // API Base URL
+        const API_BASE = 'http://localhost:5001/api';
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // API Helper functions
+        async function apiRequest(endpoint, options = {}) {
+            const url = API_BASE + endpoint;
+            
+            const config = {
+                credentials: 'include', // Para enviar cookies de sessão
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers,
+                },
+                ...options,
+            };
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        showLoginScreen();
+                    }
+                    throw new Error(data.error || 'HTTP error! status: ' + response.status);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        // Tab Management
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.className = tab.className.replace('tab-active', 'tab-inactive');
+            });
+            document.getElementById(`tab-${tabName}`).className = 
+                document.getElementById(`tab-${tabName}`).className.replace('tab-inactive', 'tab-active');
+
+            // Update content
+            document.querySelectorAll('[id^="content-"]').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+            currentTab = tabName;
+
+            // Load data for the tab
+            if (tabName === 'students') {
+                loadStudents();
+            } else if (tabName === 'members') {
+                loadMembers();
+            }
+        }
+
+        // Authentication functions
+        function fillLogin(email) {
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '123456';
+        }
+
+        async function login(email, password) {
+            try {
+                const response = await apiRequest('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                currentUser = response.user;
+                return { success: true, user: response.user };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function logout() {
+            try {
+                await apiRequest('/auth/logout', { method: 'POST' });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                currentUser = null;
+                showLoginScreen();
+            }
+        }
+
+        // UI functions
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateUserInfo();
+            loadInitialData();
+        }
+
+        function updateUserInfo() {
+            if (currentUser) {
+                const userInfo = currentUser.name + (currentUser.dojo_name ? ' - ' + currentUser.dojo_name : '');
+                document.getElementById('userInfo').textContent = userInfo;
+            }
+        }
+
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            const errorText = document.getElementById(elementId + 'Text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function hideError(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        function setLoading(buttonId, spinnerId, textId, loading, loadingText, originalText) {
+            const button = document.getElementById(buttonId);
+            const spinner = document.getElementById(spinnerId);
+            const text = document.getElementById(textId);
+            
+            if (loading) {
+                button.disabled = true;
+                spinner.classList.remove('hidden');
+                text.textContent = loadingText || 'Carregando...';
+            } else {
+                button.disabled = false;
+                spinner.classList.add('hidden');
+                text.textContent = originalText || 'Salvar';
+            }
+        }
+
+        // Data loading functions
+        async function loadInitialData() {
+            try {
+                // Load constants first
+                await loadConstants();
+                
+                // Load dojos
+                const dojosResponse = await apiRequest('/dojos');
+                dojos = dojosResponse.dojos;
+                populateDojoSelects();
+                
+                // Load stats
+                await loadStats();
+                
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        }
+
+        async function loadConstants() {
+            try {
+                constants = await apiRequest('/member-status/constants');
+                populateConstantSelects();
+            } catch (error) {
+                console.error('Error loading constants:', error);
+            }
+        }
+
+        async function loadStudents() {
+            try {
+                document.getElementById('studentsLoading').classList.remove('hidden');
+                document.getElementById('studentsEmpty').classList.add('hidden');
+                document.getElementById('studentsList').classList.add('hidden');
+                
+                const response = await apiRequest('/students');
+                students = response.students;
+                
+                if (students.length === 0) {
+                    document.getElementById('studentsLoading').classList.add('hidden');
+                    document.getElementById('studentsEmpty').classList.remove('hidden');
+                } else {
+                    renderStudents();
+                    document.getElementById('studentsLoading').classList.add('hidden');
+                    document.getElementById('studentsList').classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                document.getElementById('studentsLoading').classList.add('hidden');
+                document.getElementById('studentsEmpty').classList.remove('hidden');
+            }
+        }
+
+        async function loadMembers() {
+            try {
+                document.getElementById('membersLoading').classList.remove('hidden');
+                document.getElementById('membersEmpty').classList.add('hidden');
+                document.getElementById('membersList').classList.add('hidden');
+                
+                const response = await apiRequest('/member-status');
+                members = response.member_status;
+                
+                if (members.length === 0) {
+                    document.getElementById('membersLoading').classList.add('hidden');
+                    document.getElementById('membersEmpty').classList.remove('hidden');
+                } else {
+                    renderMembers();
+                    document.getElementById('membersLoading').classList.add('hidden');
+                    document.getElementById('membersList').classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error loading members:', error);
+                document.getElementById('membersLoading').classList.add('hidden');
+                document.getElementById('membersEmpty').classList.remove('hidden');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                // Load student stats
+                const studentResponse = await apiRequest('/students/stats');
+                const studentStats = studentResponse.stats;
+                
+                document.getElementById('totalStudents').textContent = studentStats.total || 0;
+                document.getElementById('totalDojos').textContent = dojos.length || 0;
+                
+                // Load member stats
+                try {
+                    const memberResponse = await apiRequest('/member-status');
+                    const memberStats = memberResponse.member_status || [];
+                    
+                    const activeMembers = memberStats.filter(m => m.current_status === 'active').length;
+                    const instructors = memberStats.filter(m => 
+                        m.member_type === 'instructor' || m.member_type === 'chief_instructor'
+                    ).length;
+                    
+                    document.getElementById('activeMembers').textContent = activeMembers;
+                    document.getElementById('totalInstructors').textContent = instructors;
+                } catch (error) {
+                    console.log('Member stats not available yet');
+                    document.getElementById('activeMembers').textContent = '0';
+                    document.getElementById('totalInstructors').textContent = '0';
+                }
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function populateDojoSelects() {
+            const selects = ['createStudentDojo'];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    select.innerHTML = '<option value="">Selecione o dojo</option>';
+                    
+                    dojos.forEach(dojo => {
+                        const option = document.createElement('option');
+                        option.value = dojo.id;
+                        option.textContent = dojo.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function populateConstantSelects() {
+            // Populate member type select
+            const memberTypeSelect = document.getElementById('createMemberType');
+            const memberTypeFilter = document.getElementById('memberTypeFilter');
+            
+            if (memberTypeSelect && constants.member_types) {
+                memberTypeSelect.innerHTML = '<option value="">Selecione o tipo</option>';
+                Object.entries(constants.member_types).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    memberTypeSelect.appendChild(option);
+                });
+            }
+            
+            if (memberTypeFilter && constants.member_types) {
+                memberTypeFilter.innerHTML = '<option value="">Todos os tipos</option>';
+                Object.entries(constants.member_types).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    memberTypeFilter.appendChild(option);
+                });
+            }
+
+            // Populate status select
+            const statusSelect = document.getElementById('createMemberStatus');
+            const statusFilter = document.getElementById('memberStatusFilter');
+            
+            if (statusSelect && constants.status_types) {
+                statusSelect.innerHTML = '<option value="">Selecione o status</option>';
+                Object.entries(constants.status_types).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    statusSelect.appendChild(option);
+                });
+            }
+            
+            if (statusFilter && constants.status_types) {
+                statusFilter.innerHTML = '<option value="">Todos os status</option>';
+                Object.entries(constants.status_types).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    statusFilter.appendChild(option);
+                });
+            }
+
+            // Populate discipline select
+            const disciplineSelect = document.getElementById('graduationDiscipline');
+            if (disciplineSelect && constants.disciplines) {
+                disciplineSelect.innerHTML = '<option value="">Selecione a disciplina</option>';
+                Object.entries(constants.disciplines).forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value;
+                    disciplineSelect.appendChild(option);
+                });
+            }
+        }
+
+        function updateRankOptions() {
+            const disciplineSelect = document.getElementById('graduationDiscipline');
+            const rankSelect = document.getElementById('graduationRank');
+            
+            if (!disciplineSelect || !rankSelect) return;
+            
+            const discipline = disciplineSelect.value;
+            rankSelect.innerHTML = '<option value="">Selecione a graduação</option>';
+            
+            let ranks = {};
+            if (discipline === 'Shinshin Toitsudo' && constants.toitsudo_ranks) {
+                ranks = constants.toitsudo_ranks;
+            } else if (discipline === 'Shinshin Toitsu Aikido' && constants.aikido_ranks) {
+                ranks = constants.aikido_ranks;
+            }
+            
+            Object.entries(ranks).forEach(([key, value]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value.display || key;
+                rankSelect.appendChild(option);
+            });
+        }
+
+        async function populateStudentSelect() {
+            const select = document.getElementById('createMemberStudent');
+            if (!select) return;
+            
+            try {
+                if (students.length === 0) {
+                    const response = await apiRequest('/students');
+                    students = response.students;
+                }
+                
+                select.innerHTML = '<option value="">Selecione o aluno</option>';
+                students.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student.id;
+                    option.textContent = `${student.name} (${student.registration_number})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading students for select:', error);
+            }
+        }
+
+        function renderStudents() {
+            const container = document.getElementById('studentsList');
+            container.innerHTML = '';
+            
+            students.forEach(student => {
+                const studentCard = createStudentCard(student);
+                container.appendChild(studentCard);
+            });
+        }
+
+        function renderMembers() {
+            const container = document.getElementById('membersList');
+            container.innerHTML = '';
+            
+            members.forEach(member => {
+                const memberCard = createMemberCard(member);
+                container.appendChild(memberCard);
+            });
+        }
+
+        function createStudentCard(student) {
+            const card = document.createElement('div');
+            card.className = 'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow';
+            
+            const statusColors = {
+                active: 'bg-green-100 text-green-800',
+                pending: 'bg-yellow-100 text-yellow-800',
+                inactive: 'bg-red-100 text-red-800'
+            };
+            
+            const statusLabels = {
+                active: 'Ativo',
+                pending: 'Pendente',
+                inactive: 'Inativo'
+            };
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-900">${student.name}</h4>
+                        <p class="text-sm text-gray-600 flex items-center mt-1">
+                            <i data-lucide="mail" class="h-3 w-3 mr-1"></i>
+                            ${student.email}
+                        </p>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColors[student.status] || statusColors.active}">
+                        ${statusLabels[student.status] || 'Ativo'}
+                    </span>
+                </div>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <div class="flex items-center">
+                        <span class="font-medium">Registro:</span>
+                        <span class="ml-2">${student.registration_number}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="font-medium">Dojo:</span>
+                        <span class="ml-2">${student.dojo_name}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i data-lucide="calendar" class="h-3 w-3 mr-1"></i>
+                        <span class="font-medium">Nascimento:</span>
+                        <span class="ml-2">${formatDate(student.birth_date)}</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i data-lucide="map-pin" class="h-3 w-3 mr-1 mt-0.5 flex-shrink-0"></i>
+                        <span class="text-xs">${student.address}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Re-initialize icons for this card
+            lucide.createIcons();
+            
+            return card;
+        }
+
+        function createMemberCard(member) {
+            const card = document.createElement('div');
+            card.className = 'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer';
+            card.onclick = () => showMemberDetails(member.id);
+            
+            const statusColors = {
+                active: 'bg-green-100 text-green-800',
+                pending: 'bg-yellow-100 text-yellow-800',
+                inactive: 'bg-red-100 text-red-800'
+            };
+            
+            const typeColors = {
+                student: 'bg-blue-100 text-blue-800',
+                assistant: 'bg-purple-100 text-purple-800',
+                instructor: 'bg-orange-100 text-orange-800',
+                chief_instructor: 'bg-red-100 text-red-800'
+            };
+            
+            // Build graduations display
+            let graduationsHtml = '';
+            if (member.current_graduations) {
+                Object.entries(member.current_graduations).forEach(([discipline, grad]) => {
+                    graduationsHtml += `
+                        <div class="text-xs bg-gray-100 px-2 py-1 rounded">
+                            <span class="font-medium">${discipline}:</span> ${grad.rank_name}
+                        </div>
+                    `;
+                });
+            }
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-900">${member.student_name}</h4>
+                        <p class="text-sm text-gray-600 mt-1">
+                            ${member.registered_number || 'Sem registro'}
+                        </p>
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColors[member.current_status] || statusColors.active}">
+                            ${member.current_status_display}
+                        </span>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${typeColors[member.member_type] || typeColors.student}">
+                            ${member.member_type_display}
+                        </span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Graduações Atuais:</span>
+                    </div>
+                    <div class="space-y-1">
+                        ${graduationsHtml || '<div class="text-xs text-gray-500">Nenhuma graduação registrada</div>'}
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-4">
+                        <span>Total: ${member.total_graduations} graduações</span>
+                        <span>Qualificações: ${member.total_qualifications}</span>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleDateString('pt-BR');
+        }
+
+        // Modal functions
+        function showCreateStudentModal() {
+            document.getElementById('createStudentModal').classList.remove('hidden');
+            document.getElementById('createStudentForm').reset();
+            hideError('createStudentError');
+        }
+
+        function hideCreateStudentModal() {
+            document.getElementById('createStudentModal').classList.add('hidden');
+        }
+
+        function showCreateMemberModal() {
+            document.getElementById('createMemberModal').classList.remove('hidden');
+            document.getElementById('createMemberForm').reset();
+            hideError('createMemberError');
+            populateStudentSelect();
+        }
+
+        function hideCreateMemberModal() {
+            document.getElementById('createMemberModal').classList.add('hidden');
+        }
+
+        function hideMemberDetailsModal() {
+            document.getElementById('memberDetailsModal').classList.add('hidden');
+        }
+
+        function showAddGraduationModal(memberStatusId) {
+            document.getElementById('addGraduationModal').classList.remove('hidden');
+            document.getElementById('addGraduationForm').reset();
+            document.getElementById('graduationMemberStatusId').value = memberStatusId;
+            hideError('addGraduationError');
+        }
+
+        function hideAddGraduationModal() {
+            document.getElementById('addGraduationModal').classList.add('hidden');
+        }
+
+        async function showMemberDetails(memberStatusId) {
+            try {
+                const member = await apiRequest(`/member-status/${memberStatusId}`);
+                const graduations = await apiRequest(`/member-status/${memberStatusId}/graduations`);
+                
+                document.getElementById('memberDetailsTitle').textContent = `${member.student_name} - Detalhes`;
+                
+                // Build graduations table
+                let graduationsTable = '';
+                if (graduations.length > 0) {
+                    graduationsTable = `
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disciplina</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Graduação</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data do Exame</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                    `;
+                    
+                    graduations.forEach(grad => {
+                        graduationsTable += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${grad.discipline}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-900">${grad.rank_display}</span>
+                                    ${grad.is_current ? '<span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Atual</span>' : ''}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(grad.examination_date)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${grad.certificate_number || '-'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${grad.certificate_status_display}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    graduationsTable += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    graduationsTable = '<p class="text-gray-500 text-center py-4">Nenhuma graduação registrada</p>';
+                }
+                
+                const content = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 mb-3">Informações do Membro</h4>
+                            <div class="space-y-2 text-sm">
+                                <div><span class="font-medium">Nome:</span> ${member.student_name}</div>
+                                <div><span class="font-medium">Número de Registro:</span> ${member.registered_number || 'Não informado'}</div>
+                                <div><span class="font-medium">Data de Filiação:</span> ${formatDate(member.membership_date)}</div>
+                                <div><span class="font-medium">Tipo:</span> ${member.member_type_display}</div>
+                                <div><span class="font-medium">Status:</span> ${member.current_status_display}</div>
+                                <div><span class="font-medium">Último Ano de Atividade:</span> ${member.last_activity_year || 'Não informado'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 mb-3">Estatísticas</h4>
+                            <div class="space-y-2 text-sm">
+                                <div><span class="font-medium">Total de Graduações:</span> ${member.total_graduations}</div>
+                                <div><span class="font-medium">Total de Qualificações:</span> ${member.total_qualifications}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-semibold text-gray-900">Histórico de Graduações</h4>
+                            <button onclick="showAddGraduationModal(${member.id})" 
+                                    class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                <i data-lucide="plus" class="h-3 w-3 inline mr-1"></i>
+                                Adicionar Graduação
+                            </button>
+                        </div>
+                        ${graduationsTable}
+                    </div>
+                `;
+                
+                document.getElementById('memberDetailsContent').innerHTML = content;
+                document.getElementById('memberDetailsModal').classList.remove('hidden');
+                
+                // Re-initialize icons
+                lucide.createIcons();
+                
+            } catch (error) {
+                console.error('Error loading member details:', error);
+                alert('Erro ao carregar detalhes do membro');
+            }
+        }
+
+        async function createStudent(formData) {
+            try {
+                const response = await apiRequest('/students', {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                });
+                
+                return { success: true, student: response.student };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function createMemberStatus(formData) {
+            try {
+                const response = await apiRequest('/member-status', {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                });
+                
+                return { success: true, member: response };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function addGraduation(memberStatusId, formData) {
+            try {
+                const response = await apiRequest(`/member-status/${memberStatusId}/graduations`, {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                });
+                
+                return { success: true, graduation: response };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function filterMembers() {
+            try {
+                const search = document.getElementById('memberSearch').value;
+                const memberType = document.getElementById('memberTypeFilter').value;
+                const currentStatus = document.getElementById('memberStatusFilter').value;
+                
+                const params = new URLSearchParams();
+                if (search) params.append('search', search);
+                if (memberType) params.append('member_type', memberType);
+                if (currentStatus) params.append('current_status', currentStatus);
+                
+                const response = await apiRequest(`/member-status?${params.toString()}`);
+                members = response.member_status;
+                
+                if (members.length === 0) {
+                    document.getElementById('membersEmpty').classList.remove('hidden');
+                    document.getElementById('membersList').classList.add('hidden');
+                } else {
+                    renderMembers();
+                    document.getElementById('membersEmpty').classList.add('hidden');
+                    document.getElementById('membersList').classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error filtering members:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            hideError('loginError');
+            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Entrando...', 'Entrar');
+            
+            const result = await login(email, password);
+            
+            if (result.success) {
+                showMainApp();
+            } else {
+                showError('loginError', result.error);
+            }
+            
+            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, '', 'Entrar');
+        });
+
+        document.getElementById('createStudentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('createStudentName').value,
+                email: document.getElementById('createStudentEmail').value,
+                birth_date: document.getElementById('createStudentBirthDate').value,
+                address: document.getElementById('createStudentAddress').value,
+                dojo_id: parseInt(document.getElementById('createStudentDojo').value),
+                status: 'active'
+            };
+            
+            hideError('createStudentError');
+            setLoading('createStudentBtn', 'createStudentSpinner', 'createStudentBtnText', true, 'Salvando...', 'Salvar Aluno');
+            
+            const result = await createStudent(formData);
+            
+            if (result.success) {
+                hideCreateStudentModal();
+                if (currentTab === 'students') {
+                    await loadStudents();
+                }
+                await loadStats();
+            } else {
+                showError('createStudentError', result.error);
+            }
+            
+            setLoading('createStudentBtn', 'createStudentSpinner', 'createStudentBtnText', false, '', 'Salvar Aluno');
+        });
+
+        document.getElementById('createMemberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                student_id: parseInt(document.getElementById('createMemberStudent').value),
+                registered_number: document.getElementById('createMemberRegisteredNumber').value,
+                membership_date: document.getElementById('createMemberMembershipDate').value,
+                member_type: document.getElementById('createMemberType').value,
+                current_status: document.getElementById('createMemberStatus').value,
+                last_activity_year: parseInt(document.getElementById('createMemberLastActivity').value) || null
+            };
+            
+            hideError('createMemberError');
+            setLoading('createMemberBtn', 'createMemberSpinner', 'createMemberBtnText', true, 'Salvando...', 'Salvar Status');
+            
+            const result = await createMemberStatus(formData);
+            
+            if (result.success) {
+                hideCreateMemberModal();
+                if (currentTab === 'members') {
+                    await loadMembers();
+                }
+                await loadStats();
+            } else {
+                showError('createMemberError', result.error);
+            }
+            
+            setLoading('createMemberBtn', 'createMemberSpinner', 'createMemberBtnText', false, '', 'Salvar Status');
+        });
+
+        document.getElementById('addGraduationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const memberStatusId = document.getElementById('graduationMemberStatusId').value;
+            const formData = {
+                discipline: document.getElementById('graduationDiscipline').value,
+                rank_name: document.getElementById('graduationRank').value,
+                examination_date: document.getElementById('graduationExamDate').value,
+                certificate_number: document.getElementById('graduationCertificateNumber').value,
+                certificate_status: document.getElementById('graduationCertificateStatus').value,
+                is_current: document.getElementById('graduationIsCurrent').checked
+            };
+            
+            hideError('addGraduationError');
+            setLoading('addGraduationBtn', 'addGraduationSpinner', 'addGraduationBtnText', true, 'Salvando...', 'Salvar Graduação');
+            
+            const result = await addGraduation(memberStatusId, formData);
+            
+            if (result.success) {
+                hideAddGraduationModal();
+                hideMemberDetailsModal();
+                if (currentTab === 'members') {
+                    await loadMembers();
+                }
+            } else {
+                showError('addGraduationError', result.error);
+            }
+            
+            setLoading('addGraduationBtn', 'addGraduationSpinner', 'addGraduationBtnText', false, '', 'Salvar Graduação');
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            try {
+                // Check if user is already logged in
+                const response = await apiRequest('/auth/me');
+                currentUser = response.user;
+                showMainApp();
+            } catch (error) {
+                showLoginScreen();
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -112,7 +112,11 @@ cd ..
 
 ### 2. Acessar a Interface
 - **Backend API**: http://localhost:5000
-- **Frontend**: Abrir `frontend/ki-aikido-simple.html` no navegador
+- **Frontend**: Para acessar o frontend, você deve servi-lo através de um servidor HTTP. Navegue até o diretório `ki-aikido-system` e execute:
+  ```bash
+  python3 -m http.server 8080 --directory frontend
+  ```
+  Após iniciar o servidor, acesse o frontend em seu navegador através de: `http://localhost:8080/ki-aikido-enhanced.html`
 
 ### 3. Login
 Use uma das credenciais de demonstração:

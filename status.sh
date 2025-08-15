@@ -96,9 +96,9 @@ else
 fi
 
 # Verificar frontend
-if [ -f "$PROJECT_DIR/frontend/ki-aikido-simple.html" ]; then
+if [ -f "$PROJECT_DIR/frontend/ki-aikido-enhanced.html" ]; then
     echo "✅ Frontend: OK"
-    echo "📱 Arquivo: file://$PROJECT_DIR/frontend/ki-aikido-simple.html"
+    echo "📱 Arquivo: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
 else
     echo "❌ Frontend: NÃO ENCONTRADO"
 fi

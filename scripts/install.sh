@@ -109,7 +109,11 @@ with app.app_context():
 print('Banco de dados inicializado com sucesso!')
 "
 
-# 8. Criar arquivo de configuração local
+# 8. Executar migrações das novas tabelas
+log_info "Executando migrações das tabelas de membros..."
+python3 src/migrations/add_member_status_tables.py
+
+# 9. Criar arquivo de configuração local
 log_info "Criando configuração local..."
 cat > "$PROJECT_DIR/.env" << EOF
 # Configuração Local do Sistema Ki Aikido
@@ -142,7 +146,7 @@ fi
 cd "$BACKEND_DIR"
 source venv/bin/activate
 echo "🚀 Iniciando servidor backend em http://localhost:5000"
-echo "📱 Abra o frontend em: file://$PROJECT_DIR/frontend/ki-aikido-simple.html"
+echo "📱 Abra o frontend em: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
 echo "⏹️  Para parar o servidor, pressione Ctrl+C"
 echo ""
 python3 src/main.py
@@ -294,7 +298,7 @@ echo "🚀 Para iniciar: ./start.sh"
 echo "📊 Para status: ./status.sh"
 echo "🔄 Para atualizar: ./update.sh"
 echo ""
-echo "📱 Frontend: file://$PROJECT_DIR/frontend/ki-aikido-simple.html"
+echo "📱 Frontend: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
 echo "🌐 Backend: http://localhost:5000"
 echo ""
 echo "👤 Usuários de teste:"

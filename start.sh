@@ -63,7 +63,7 @@ source venv/bin/activate
 echo ""
 echo "🚀 Iniciando servidor backend..."
 echo "🌐 URL da API: http://localhost:5000"
-echo "📱 Frontend: file://$PROJECT_DIR/frontend/ki-aikido-simple.html"
+echo "📱 Frontend: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
 echo ""
 echo "🔑 Credenciais de teste:"
 echo "   admin@kiaikido.com / 123456 (Administrador)"

@@ -40,5 +40,9 @@ with app.app_context():
 print('Banco de dados atualizado!')
 "
 
+# Executar migrações das novas tabelas se necessário
+echo "🔄 Executando migrações das tabelas de membros..."
+python3 src/migrations/add_member_status_tables.py 2>/dev/null || echo "Migrações já aplicadas ou não necessárias."
+
 echo "✅ Sistema atualizado com sucesso!"
 echo "🚀 Execute ./start.sh para iniciar o sistema."

@@ -27,7 +27,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 # CORS para permitir requisições do frontend
 CORS(app, 
      supports_credentials=True,
-     origins=["http://localhost:3000", "http://127.0.0.1:3000", "null", "https://5000-izgjrvq6mcow7rda4z9gz-53bb438c.manus.computer"],  # null para file://
+     origins=["http://localhost:3000", "http://127.0.0.1:3000", "null", "https://5000-izgjrvq6mcow7rda4z9gz-53bb438c.manus.computer", "file://"],  # null para file://
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 

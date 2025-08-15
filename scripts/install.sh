@@ -10,11 +10,11 @@ echo "🥋 Instalando Sistema Ki Aikido..."
 echo "=================================="
 
 # Cores para output
-RED=\'\\033[0;31m\'
-GREEN=\'\\033[0;32m\'
-YELLOW=\'\\033[1;33m\'
-BLUE=\'\\033[0;34m\'
-NC=\'\\033[0m\' # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
 # Função para log colorido
 log_info() {
@@ -106,7 +106,7 @@ sys.path.append(\".\")
 from src.main import app, init_database
 with app.app_context():
     init_database()
-print(\'Banco de dados inicializado com sucesso!\')
+print("Banco de dados inicializado com sucesso!")
 "
 
 # 8. Executar migrações das novas tabelas

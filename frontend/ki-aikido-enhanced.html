@@ -64,6 +64,7 @@
                     </div>
                     
                     <button type="submit" id="loginBtn"
+                            onclick="if(window.performLogin) { event.preventDefault(); const email = document.getElementById('loginEmail').value; const password = document.getElementById('loginPassword').value; if(email && password) window.performLogin(email, password); else showError('loginError', 'Por favor, preencha email e senha'); }"
                             class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <span id="loginBtnText">Entrar</span>
                         <i data-lucide="loader-2" class="hidden h-4 w-4 animate-spin inline ml-2" id="loginSpinner"></i>
@@ -566,7 +567,7 @@
         let currentTab = 'dashboard';
 
         // API Base URL
-        const API_BASE = 'http://localhost:5000/api';
+        const API_BASE = 'http://localhost:5001/api';
 
         // Initialize Lucide icons
         lucide.createIcons();
@@ -579,7 +580,10 @@
                 credentials: 'include', // Para enviar cookies de sessão
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+                    // Incluir Authorization apenas se o token existir
+                    ...(localStorage.getItem('jwt_token') ? {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    } : {}),
                     ...options.headers,
                 },
                 ...options,
@@ -591,6 +595,9 @@
                 
                 if (!response.ok) {
                     if (response.status === 401) {
+                        // Limpar token inválido e mostrar tela de login
+                        localStorage.removeItem('jwt_token');
+                        currentUser = null;
                         showLoginScreen();
                     }
                     throw new Error(data.error || 'HTTP error! status: ' + response.status);
@@ -636,14 +643,29 @@
 
         async function login(email, password) {
             try {
-                const response = await apiRequest('/auth/login', {
+                // Fazer requisição de login diretamente sem usar apiRequest
+                const response = await fetch(API_BASE + '/auth/login', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Importante para sessões
                     body: JSON.stringify({ email, password }),
                 });
                 
-                currentUser = response.user;
-                localStorage.setItem("jwt_token", response.token);
-                return { success: true, user: response.user };
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro no login');
+                }
+                
+                currentUser = data.user;
+                // Armazenar token se fornecido, mas não é obrigatório para sessões
+                if (data.token) {
+                    localStorage.setItem("jwt_token", data.token);
+                }
+                
+                return { success: true, user: data.user };
             } catch (error) {
                 return { success: false, error: error.message };
             }
@@ -1290,27 +1312,6 @@
             }
         }
 
-        // Event listeners
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            hideError('loginError');
-            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Entrando...', 'Entrar');
-            
-            const result = await login(email, password);
-            
-            if (result.success) {
-                showMainApp();
-            } else {
-                showError('loginError', result.error);
-            }
-            
-            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, '', 'Entrar');
-        });
-
         document.getElementById('createStudentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1406,11 +1407,119 @@
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
+            // Função de login robusta que será usada em múltiplos lugares
+            window.performLogin = async function(email, password) {
+                try {
+                    hideError('loginError');
+                    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Entrando...', 'Entrar');
+                    
+                    const response = await fetch(API_BASE + '/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ email, password }),
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.user) {
+                        currentUser = data.user;
+                        if (data.token) {
+                            localStorage.setItem("jwt_token", data.token);
+                        }
+                        showMainApp();
+                        return { success: true };
+                    } else {
+                        throw new Error(data.error || 'Erro no login');
+                    }
+                    
+                } catch (error) {
+                    showError('loginError', error.message);
+                    return { success: false, error: error.message };
+                } finally {
+                    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, '', 'Entrar');
+                }
+            };
+            
+            // Abordagem 1: Event listener tradicional no formulário
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+                    
+                    if (!email || !password) {
+                        showError('loginError', 'Por favor, preencha email e senha');
+                        return;
+                    }
+                    
+                    await window.performLogin(email, password);
+                });
+            }
+            
+            // Abordagem 2: Event listener no botão diretamente
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', async (e) => {
+                    // Verificar se não é um submit do formulário para evitar duplicação
+                    if (e.target.type === 'button' || !loginForm) {
+                        e.preventDefault();
+                        const email = document.getElementById('loginEmail').value;
+                        const password = document.getElementById('loginPassword').value;
+                        
+                        if (!email || !password) {
+                            showError('loginError', 'Por favor, preencha email e senha');
+                            return;
+                        }
+                        
+                        await window.performLogin(email, password);
+                    }
+                });
+            }
+            
+            // Abordagem 3: Listener para Enter nos campos de input
+            const emailInput = document.getElementById('loginEmail');
+            const passwordInput = document.getElementById('loginPassword');
+            
+            [emailInput, passwordInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('keypress', async (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const email = document.getElementById('loginEmail').value;
+                            const password = document.getElementById('loginPassword').value;
+                            
+                            if (!email || !password) {
+                                showError('loginError', 'Por favor, preencha email e senha');
+                                return;
+                            }
+                            
+                            await window.performLogin(email, password);
+                        }
+                    });
+                }
+            });
+            
             try {
-                // Check if user is already logged in
-                const response = await apiRequest('/auth/me');
-                currentUser = response.user;
-                showMainApp();
+                // Check if user is already logged in via session
+                const response = await fetch(API_BASE + '/auth/me', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    showMainApp();
+                } else {
+                    showLoginScreen();
+                }
             } catch (error) {
                 showLoginScreen();
             }

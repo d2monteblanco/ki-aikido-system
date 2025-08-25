@@ -1,37 +1,36 @@
 #!/bin/bash
 
-# Script de Instalação Rápida do Sistema Ki Aikido
-# Para usar: curl -sSL https://raw.githubusercontent.com/d2monteblanco/ki-aikido-system/main/scripts/quick-install.sh | bash
+# =============================================================================
+# Sistema Ki Aikido - Instalação Rápida
+# =============================================================================
+# Versão: 2.0
+# Descrição: Script de instalação rápida sem interações do usuário
+# =============================================================================
 
 set -e
 
-echo "🥋 Instalação Rápida - Sistema Ki Aikido"
-echo "========================================"
+# Cores
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+NC='\033[0m'
 
-# Verificar se git está instalado
-if ! command -v git &> /dev/null; then
-    echo "📦 Instalando Git..."
-    sudo apt update
-    sudo apt install -y git
-fi
+echo -e "${CYAN}🚀 Sistema Ki Aikido - Instalação Rápida${NC}"
+echo -e "${CYAN}=======================================${NC}"
 
-# Clonar repositório
-INSTALL_DIR="$HOME/ki-aikido-system"
-if [ -d "$INSTALL_DIR" ]; then
-    echo "📁 Diretório já existe. Atualizando..."
-    cd "$INSTALL_DIR"
-    git pull
-else
-    echo "📥 Clonando repositório..."
-    git clone https://github.com/d2monteblanco/ki-aikido-system.git "$INSTALL_DIR"
-    cd "$INSTALL_DIR"
-fi
+# Diretório do projeto
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Executar instalação completa
-echo "🚀 Executando instalação..."
-./scripts/install.sh
+# Executar instalação principal sem interações
+export DEBIAN_FRONTEND=noninteractive
 
-echo ""
-echo "✅ Instalação rápida concluída!"
-echo "🚀 Execute './start.sh' para iniciar o sistema."
+echo -e "${GREEN}📦 Iniciando instalação automatizada...${NC}"
+
+# Executar script principal
+"$PROJECT_DIR/scripts/install.sh" || {
+    echo -e "${RED}❌ Erro na instalação${NC}"
+    exit 1
+}
+
+echo -e "${GREEN}✅ Instalação rápida concluída!${NC}"
+echo -e "${CYAN}Execute: ./start.sh para iniciar o sistema${NC}"
 

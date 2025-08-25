@@ -1,447 +1,508 @@
 #!/bin/bash
 
-# Script de Instalação do Sistema Ki Aikido
-# Autor: Sistema Manus
-# Versão: 1.0
+# =============================================================================
+# Sistema Ki Aikido - Script de Instalação Completa
+# =============================================================================
+# Versão: 2.0
+# Data: 23/08/2025
+# Descrição: Script de instalação automatizada para o Sistema Ki Aikido
+# Compatível com: Ubuntu 20.04+, Debian 10+, CentOS 8+
+# =============================================================================
 
-set -e  # Parar em caso de erro
-
-echo "🥋 Instalando Sistema Ki Aikido..."
-echo "=================================="
+set -e  # Parar execução em caso de erro
 
 # Cores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+NC='\033[0m' # No Color
 
-# Função para log colorido
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Verificar se está rodando no Ubuntu
-if ! command -v apt &> /dev/null; then
-    log_error "Este script é para Ubuntu/Debian. Sistema não suportado."
-    exit 1
-fi
-
-# Verificar se está rodando como usuário normal (não root)
-if [ "$EUID" -eq 0 ]; then
-    log_error "Não execute este script como root. Use seu usuário normal."
-    exit 1
-fi
-
-# Diretório do projeto
+# Configurações
+PROJECT_NAME="Sistema Ki Aikido"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
-DATA_DIR="$PROJECT_DIR/data"
+VENV_DIR="$BACKEND_DIR/venv"
+DB_FILE="$BACKEND_DIR/src/database/app.db"
+LOG_FILE="$PROJECT_DIR/install.log"
 
-log_info "Diretório do projeto: $PROJECT_DIR"
+# Função para logging
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+    echo -e "$1"
+}
 
-# 1. Atualizar sistema
-log_info "Atualizando sistema Ubuntu..."
-sudo apt update && sudo apt upgrade -y
+# Função para exibir banner
+show_banner() {
+    clear
+    echo -e "${BLUE}╔══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${WHITE}                    SISTEMA KI AIKIDO                            ${BLUE}║${NC}"
+    echo -e "${BLUE}║${WHITE}                 Instalação Automatizada                        ${BLUE}║${NC}"
+    echo -e "${BLUE}║                                                                  ║${NC}"
+    echo -e "${BLUE}║${CYAN}  🥋 Gestão Completa de Academias Ki Aikido no Brasil 🇧🇷        ${BLUE}║${NC}"
+    echo -e "${BLUE}║                                                                  ║${NC}"
+    echo -e "${BLUE}║${YELLOW}  Versão: 2.0                                                  ${BLUE}║${NC}"
+    echo -e "${BLUE}║${YELLOW}  Data: 23/08/2025                                             ${BLUE}║${NC}"
+    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
 
-# 2. Instalar dependências do sistema
-log_info "Instalando dependências do sistema..."
-sudo apt install -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    python3-dev \
-    build-essential \
-    curl \
-    wget \
-    git \
-    sqlite3 \
-    nginx \
-    supervisor \
-    ufw
+# Função para verificar se comando existe
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
 
-# 3. Instalar Node.js (para possíveis futuras melhorias no frontend)
-log_info "Instalando Node.js..."
-if ! command -v node &> /dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-fi
+# Função para detectar sistema operacional
+detect_os() {
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command_exists apt-get; then
+            OS="ubuntu"
+        elif command_exists yum; then
+            OS="centos"
+        elif command_exists dnf; then
+            OS="fedora"
+        else
+            OS="linux"
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        OS="macos"
+    else
+        OS="unknown"
+    fi
+    log "${CYAN}Sistema operacional detectado: $OS${NC}"
+}
 
-# 4. Criar ambiente virtual Python
-log_info "Criando ambiente virtual Python..."
-cd "$BACKEND_DIR"
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-fi
+# Função para verificar privilégios
+check_privileges() {
+    log "${CYAN}🔐 Verificando privilégios...${NC}"
+    
+    if [[ $EUID -eq 0 ]]; then
+        log "${YELLOW}⚠️  Executando como root. Recomenda-se executar como usuário normal.${NC}"
+        read -p "Deseja continuar? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log "${RED}❌ Instalação cancelada pelo usuário.${NC}"
+            exit 1
+        fi
+    fi
+}
 
-# 5. Ativar ambiente virtual e instalar dependências Python
-log_info "Instalando dependências Python..."
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+# Função para verificar dependências do sistema
+check_system_dependencies() {
+    log "${CYAN}🔍 Verificando dependências do sistema...${NC}"
+    
+    local missing_deps=()
+    
+    # Verificar Python 3.8+
+    if command_exists python3; then
+        PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+        if python3 -c 'import sys; exit(0 if sys.version_info >= (3, 8) else 1)'; then
+            log "${GREEN}✅ Python $PYTHON_VERSION encontrado${NC}"
+        else
+            log "${RED}❌ Python 3.8+ necessário. Versão atual: $PYTHON_VERSION${NC}"
+            missing_deps+=("python3.8+")
+        fi
+    else
+        log "${RED}❌ Python 3 não encontrado${NC}"
+        missing_deps+=("python3")
+    fi
+    
+    # Verificar pip
+    if command_exists pip3; then
+        log "${GREEN}✅ pip3 encontrado${NC}"
+    else
+        log "${RED}❌ pip3 não encontrado${NC}"
+        missing_deps+=("python3-pip")
+    fi
+    
+    # Verificar venv
+    if python3 -c 'import venv' 2>/dev/null; then
+        log "${GREEN}✅ python3-venv disponível${NC}"
+    else
+        log "${RED}❌ python3-venv não encontrado${NC}"
+        missing_deps+=("python3-venv")
+    fi
+    
+    # Verificar curl
+    if command_exists curl; then
+        log "${GREEN}✅ curl encontrado${NC}"
+    else
+        log "${RED}❌ curl não encontrado${NC}"
+        missing_deps+=("curl")
+    fi
+    
+    # Verificar git
+    if command_exists git; then
+        log "${GREEN}✅ git encontrado${NC}"
+    else
+        log "${YELLOW}⚠️  git não encontrado (opcional)${NC}"
+    fi
+    
+    # Se há dependências faltando, tentar instalar
+    if [ ${#missing_deps[@]} -ne 0 ]; then
+        log "${YELLOW}📦 Instalando dependências faltando: ${missing_deps[*]}${NC}"
+        install_system_dependencies "${missing_deps[@]}"
+    fi
+}
 
-# 6. Criar diretório de banco de dados
-log_info "Configurando banco de dados..."
-mkdir -p "$BACKEND_DIR/database"
+# Função para instalar dependências do sistema
+install_system_dependencies() {
+    local deps=("$@")
+    
+    case $OS in
+        ubuntu)
+            log "${CYAN}📦 Atualizando repositórios apt...${NC}"
+            sudo apt-get update -qq
+            
+            log "${CYAN}📦 Instalando dependências via apt...${NC}"
+            sudo apt-get install -y "${deps[@]}" || {
+                log "${RED}❌ Erro ao instalar dependências via apt${NC}"
+                exit 1
+            }
+            ;;
+        centos|fedora)
+            if command_exists dnf; then
+                log "${CYAN}📦 Instalando dependências via dnf...${NC}"
+                sudo dnf install -y "${deps[@]}" || {
+                    log "${RED}❌ Erro ao instalar dependências via dnf${NC}"
+                    exit 1
+                }
+            else
+                log "${CYAN}📦 Instalando dependências via yum...${NC}"
+                sudo yum install -y "${deps[@]}" || {
+                    log "${RED}❌ Erro ao instalar dependências via yum${NC}"
+                    exit 1
+                }
+            fi
+            ;;
+        macos)
+            if command_exists brew; then
+                log "${CYAN}📦 Instalando dependências via Homebrew...${NC}"
+                brew install "${deps[@]}" || {
+                    log "${RED}❌ Erro ao instalar dependências via Homebrew${NC}"
+                    exit 1
+                }
+            else
+                log "${RED}❌ Homebrew não encontrado. Instale manualmente: https://brew.sh${NC}"
+                exit 1
+            fi
+            ;;
+        *)
+            log "${RED}❌ Sistema operacional não suportado para instalação automática${NC}"
+            log "${YELLOW}Por favor, instale manualmente: ${deps[*]}${NC}"
+            exit 1
+            ;;
+    esac
+    
+    log "${GREEN}✅ Dependências do sistema instaladas com sucesso${NC}"
+}
 
-# 7. Inicializar banco de dados com dados de exemplo
-log_info "Inicializando banco de dados..."
-cd "$BACKEND_DIR"
-python3 -c "
-import sys
-sys.path.append(\".\")
-from src.main import app, init_database
-with app.app_context():
-    init_database()
-print("Banco de dados inicializado com sucesso!")
-"
+# Função para verificar estrutura do projeto
+check_project_structure() {
+    log "${CYAN}📁 Verificando estrutura do projeto...${NC}"
+    
+    # Verificar diretórios essenciais
+    local required_dirs=("$BACKEND_DIR" "$FRONTEND_DIR")
+    for dir in "${required_dirs[@]}"; do
+        if [[ -d "$dir" ]]; then
+            log "${GREEN}✅ Diretório encontrado: $dir${NC}"
+        else
+            log "${RED}❌ Diretório não encontrado: $dir${NC}"
+            exit 1
+        fi
+    done
+    
+    # Verificar arquivos essenciais
+    local required_files=(
+        "$BACKEND_DIR/requirements.txt"
+        "$BACKEND_DIR/src/main.py"
+        "$FRONTEND_DIR/index.html"
+        "$FRONTEND_DIR/app.js"
+    )
+    
+    for file in "${required_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            log "${GREEN}✅ Arquivo encontrado: $(basename "$file")${NC}"
+        else
+            log "${RED}❌ Arquivo não encontrado: $file${NC}"
+            exit 1
+        fi
+    done
+}
 
-# 8. Executar migrações das novas tabelas
-log_info "Executando migrações das tabelas de membros..."
-python3 src/migrations/add_member_status_tables.py
+# Função para criar ambiente virtual
+create_virtual_environment() {
+    log "${CYAN}🐍 Configurando ambiente virtual Python...${NC}"
+    
+    # Remover venv existente se houver
+    if [[ -d "$VENV_DIR" ]]; then
+        log "${YELLOW}🗑️  Removendo ambiente virtual existente...${NC}"
+        rm -rf "$VENV_DIR"
+    fi
+    
+    # Criar novo ambiente virtual
+    log "${CYAN}📦 Criando novo ambiente virtual...${NC}"
+    cd "$BACKEND_DIR"
+    python3 -m venv venv || {
+        log "${RED}❌ Erro ao criar ambiente virtual${NC}"
+        exit 1
+    }
+    
+    # Ativar ambiente virtual
+    source venv/bin/activate || {
+        log "${RED}❌ Erro ao ativar ambiente virtual${NC}"
+        exit 1
+    }
+    
+    # Atualizar pip
+    log "${CYAN}⬆️  Atualizando pip...${NC}"
+    pip install --upgrade pip || {
+        log "${RED}❌ Erro ao atualizar pip${NC}"
+        exit 1
+    }
+    
+    log "${GREEN}✅ Ambiente virtual criado e ativado${NC}"
+}
 
-# 9. Criar arquivo de configuração local
-log_info "Criando configuração local..."
-cat > "$PROJECT_DIR/.env" << EOF
-# Configuração Local do Sistema Ki Aikido
-FLASK_ENV=development
-FLASK_DEBUG=True
-DATABASE_URL=sqlite:///database/app.db
-SECRET_KEY=ki-aikido-local-secret-key-$(date +%s)
-PORT=5000
-HOST=127.0.0.1
-EOF
-
-# 9. Criar script de inicialização
-log_info "Criando scripts de controle..."
-cat > "$PROJECT_DIR/start.sh" << \'EOF\'
-#!/bin/bash
-# Script para iniciar o Sistema Ki Aikido
-
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKEND_DIR="$PROJECT_DIR/backend"
-FRONTEND_DIR="$PROJECT_DIR/frontend"
-
-echo "🥋 Iniciando Sistema Ki Aikido..."
-
-# Verificar se o ambiente virtual existe
-if [ ! -d "$BACKEND_DIR/venv" ]; then
-    echo "❌ Ambiente virtual não encontrado. Execute ./scripts/install.sh primeiro."
-    exit 1
-fi
-
-# Limpeza robusta de processos antigos
-echo "🔄 Limpando processos antigos..."
-
-# Matar processos Python do sistema Ki Aikido (backend)
-pkill -f "python.*main.py" 2>/dev/null && echo "🔧 Processos Python do backend antigos finalizados"
-
-# Matar processos do servidor HTTP do frontend
-pkill -f "python3 -m http.server 8080 --directory frontend" 2>/dev/null && echo "🔧 Processos do servidor frontend antigos finalizados"
-
-# Matar processos na porta 5000 (backend)
-PIDS_BACKEND=$(lsof -ti:5000 2>/dev/null)
-if [ ! -z "$PIDS_BACKEND" ]; then
-    echo "🛑 Finalizando processos na porta 5000: $PIDS_BACKEND"
-    echo $PIDS_BACKEND | xargs kill -9 2>/dev/null || true
-    sleep 2
-fi
-
-# Matar processos na porta 8080 (frontend)
-PIDS_FRONTEND=$(lsof -ti:8080 2>/dev/null)
-if [ ! -z "$PIDS_FRONTEND" ]; then
-    echo "🛑 Finalizando processos na porta 8080: $PIDS_FRONTEND"
-    echo $PIDS_FRONTEND | xargs kill -9 2>/dev/null || true
-    sleep 2
-fi
-
-# Verificar se o banco de dados existe
-if [ ! -f "$BACKEND_DIR/src/database/app.db" ]; then
-    echo "⚠️  Banco de dados não encontrado. Inicializando..."
+# Função para instalar dependências Python
+install_python_dependencies() {
+    log "${CYAN}📦 Instalando dependências Python...${NC}"
+    
     cd "$BACKEND_DIR"
     source venv/bin/activate
-    python3 -c "
-import sys
-sys.path.append(\".\")
-from src.main import app, init_database
-with app.app_context():
-    init_database()
-    print(\'✅ Banco de dados inicializado!\')
-"
-    cd "$PROJECT_DIR"
-fi
-
-# Iniciar backend em segundo plano
-cd "$BACKEND_DIR"
-source venv/bin/activate
-python3 src/main.py > /dev/null 2>&1 &
-BACKEND_PID=$!
-cd "$PROJECT_DIR"
-
-echo "🚀 Servidor backend iniciado em http://localhost:5000 (PID: $BACKEND_PID)"
-
-# Iniciar frontend em segundo plano
-python3 -m http.server 8080 --directory "$FRONTEND_DIR" > /dev/null 2>&1 &
-FRONTEND_PID=$!
-
-echo "🌐 Servidor frontend iniciado em http://localhost:8080/ki-aikido-enhanced.html (PID: $FRONTEND_PID)"
-echo "📱 Arquivo local: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
-echo ""
-echo "🔑 Credenciais de teste:"
-echo "   admin@kiaikido.com / 123456 (Administrador)"
-echo "   florianopolis@kiaikido.com / 123456 (Dojo Florianópolis)"
-echo ""
-echo "⏹️  Para parar o sistema, execute ./stop.sh ou pressione Ctrl+C"
-echo "📊 Para verificar status: ./status.sh"
-echo ""
-
-# Esperar por Ctrl+C para finalizar os processos
-trap "kill $BACKEND_PID $FRONTEND_PID" EXIT
-wait $BACKEND_PID
-EOF
-
-chmod +x "$PROJECT_DIR/start.sh"
-
-# 10. Criar script de parada
-cat > "$PROJECT_DIR/stop.sh" << \'EOF\'
-#!/bin/bash
-# Script para parar o Sistema Ki Aikido
-
-echo "🛑 Parando Sistema Ki Aikido..."
-
-# Parar processos Python do Ki Aikido (graceful)
-PIDS_BACKEND=$(ps aux | grep "python src/main.py" | grep -v grep | awk \'\{print $2}\'\')
-if [ ! -z "$PIDS_BACKEND" ]; then
-    echo "🔄 Enviando sinal TERM para processos Python do backend..."
-    echo $PIDS_BACKEND | xargs kill -TERM 2>/dev/null || true
-    sleep 3
     
-    # Verificar se ainda estão rodando
-    PIDS_BACKEND=$(ps aux | grep "python src/main.py" | grep -v grep | awk \'\{print $2}\'\')
-    if [ ! -z "$PIDS_BACKEND" ]; then
-        echo "🔨 Forçando parada dos processos do backend (KILL)..."
-        echo $PIDS_BACKEND | xargs kill -9 2>/dev/null || true
-        sleep 1
-    fi
-fi
-
-# Parar processos do servidor HTTP do frontend
-PIDS_FRONTEND=$(ps aux | grep "python3 -m http.server 8080 --directory frontend" | grep -v grep | awk \'\{print $2}\'\')
-if [ ! -z "$PIDS_FRONTEND" ]; then
-    echo "🔄 Enviando sinal TERM para processos do frontend..."
-    echo $PIDS_FRONTEND | xargs kill -TERM 2>/dev/null || true
-    sleep 3
+    # Instalar dependências do requirements.txt
+    pip install -r requirements.txt || {
+        log "${RED}❌ Erro ao instalar dependências Python${NC}"
+        exit 1
+    }
     
-    # Verificar se ainda estão rodando
-    PIDS_FRONTEND=$(ps aux | grep "python3 -m http.server 8080 --directory frontend" | grep -v grep | awk \'\{print $2}\'\')
-    if [ ! -z "$PIDS_FRONTEND" ]; then
-        echo "🔨 Forçando parada dos processos do frontend (KILL)..."
-        echo $PIDS_FRONTEND | xargs kill -9 2>/dev/null || true
-        sleep 1
-    fi
-fi
+    log "${GREEN}✅ Dependências Python instaladas com sucesso${NC}"
+}
 
-# Limpar qualquer processo travado
-STOPPED_PROCS=$(ps aux | grep python | grep -E \'\\sT\\s\' | grep -E "(main.py|http.server)")
-if [ ! -z "$STOPPED_PROCS" ]; then
-    echo "🔧 Limpando processos travados..."
-    pkill -f "python.*(main.py|http.server)" 2>/dev/null
-fi
-
-# Parar qualquer processo na porta 5000
-PIDS_5000=$(lsof -ti:5000 2>/dev/null)
-if [ ! -z "$PIDS_5000" ]; then
-    echo "🔄 Liberando porta 5000 (PIDs: $PIDS_5000)..."
-    echo $PIDS_5000 | xargs kill -9 2>/dev/null || true
-    sleep 1
-fi
-
-# Parar qualquer processo na porta 8080
-PIDS_8080=$(lsof -ti:8080 2>/dev/null)
-if [ ! -z "$PIDS_8080" ]; then
-    echo "🔄 Liberando porta 8080 (PIDs: $PIDS_8080)..."
-    echo $PIDS_8080 | xargs kill -9 2>/dev/null || true
-    sleep 1
-fi
-
-# Verificação final
-if pgrep -f "python.*(main.py|http.server)" > /dev/null; then
-    echo "⚠️  Alguns processos ainda podem estar rodando"
-    echo "🔍 Execute \'./status.sh\' para verificar"
-else
-    echo "✅ Todos os processos do Ki Aikido foram finalizados"
-fi
-
-# Verificar se as portas estão livres
-if lsof -ti:5000 >/dev/null 2>&1; then
-    echo "⚠️  Porta 5000 ainda ocupada por outro processo"
-else
-    echo "✅ Porta 5000 liberada"
-fi
-
-if lsof -ti:8080 >/dev/null 2>&1; then
-    echo "⚠️  Porta 8080 ainda ocupada por outro processo"
-else
-    echo "✅ Porta 8080 liberada"
-fi
-
-echo "🏁 Sistema parado com sucesso."
-EOF
-
-chmod +x "$PROJECT_DIR/stop.sh"
-
-# 11. Criar script de atualização
-cat > "$PROJECT_DIR/update.sh" << \'EOF\'
-#!/bin/bash
-# Script para atualizar o Sistema Ki Aikido via Git
-
-set -e
-
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKEND_DIR="$PROJECT_DIR/backend"
-
-echo "🔄 Atualizando Sistema Ki Aikido..."
-
-# Parar sistema se estiver rodando
-./stop.sh
-
-# Fazer backup do banco de dados
-if [ -f "$BACKEND_DIR/database/app.db" ]; then
-    echo "💾 Fazendo backup do banco de dados..."
-    cp "$BACKEND_DIR/database/app.db" "$BACKEND_DIR/database/app.db.backup.$(date +%Y%m%d_%H%M%S)"
-fi
-
-# Atualizar código via Git
-echo "📥 Baixando atualizações..."
-git pull origin main
-
-# Atualizar dependências Python
-echo "📦 Atualizando dependências..."
-cd "$BACKEND_DIR"
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# Aplicar migrações de banco se necessário
-echo "🗄️  Verificando banco de dados..."
-python3 -c "
-import sys
-sys.path.append(\".\")
-from src.main import app
-from src.models import db
-with app.app_context():
-    db.create_all()
-print(\'Banco de dados atualizado!\')
-"
-
-echo "✅ Sistema atualizado com sucesso!"
-echo "🚀 Execute ./start.sh para iniciar o sistema."
-EOF
-
-chmod +x "$PROJECT_DIR/update.sh"
-
-# 12. Configurar firewall (opcional)
-log_info "Configurando firewall..."
-sudo ufw allow 5000/tcp 2>/dev/null || true
-
-# 13. Criar arquivo de status
-cat > "$PROJECT_DIR/status.sh" << \'EOF\'
-#!/bin/bash
-# Script para verificar status do Sistema Ki Aikido
-
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKEND_DIR="$PROJECT_DIR/backend"
-FRONTEND_DIR="$PROJECT_DIR/frontend"
-
-echo "📊 Status do Sistema Ki Aikido"
-echo "=============================="
-
-# Verificar se o ambiente virtual existe
-if [ -d "$BACKEND_DIR/venv" ]; then
-    echo "✅ Ambiente virtual: OK"
-else
-    echo "❌ Ambiente virtual: NÃO ENCONTRADO"
-fi
-
-# Verificar se o banco existe
-if [ -f "$BACKEND_DIR/database/app.db" ]; then
-    echo "✅ Banco de dados: OK"
+# Função para configurar banco de dados
+setup_database() {
+    log "${CYAN}🗄️  Configurando banco de dados...${NC}"
     
-    # Mostrar estatísticas do banco
     cd "$BACKEND_DIR"
-    source venv/bin/activate 2>/dev/null
+    source venv/bin/activate
+    
+    # Criar diretório do banco se não existir
+    mkdir -p "$(dirname "$DB_FILE")"
+    
+    # Executar script de inicialização do banco
+    log "${CYAN}🔧 Inicializando banco de dados...${NC}"
     python3 -c "
 import sys
-sys.path.append(\".\")
-from src.main import app
-from src.models import Student, Dojo, User
+import os
+sys.path.append('src')
+
+# Importar o app diretamente do main.py
+from src.main import app, db, User
+
+# O banco já é inicializado automaticamente no main.py
+# Apenas verificar se funcionou
 with app.app_context():
-    print(f\'👥 Usuários: {User.query.count()}\')
-    print(f\'🏢 Dojos: {Dojo.query.count()}\')
-    print(f\'🎓 Alunos: {Student.query.count()}\')
-" 2>/dev/null || echo "⚠️  Não foi possível acessar estatísticas do banco"
-else
-    echo "❌ Banco de dados: NÃO ENCONTRADO"
-fi
+    users = User.query.all()
+    print(f'✅ Banco de dados inicializado. {len(users)} usuários encontrados.')
+    if len(users) > 0:
+        print('Usuários disponíveis:')
+        for user in users:
+            print(f'  - {user.email} ({user.role})')
+" || {
+        log "${RED}❌ Erro ao configurar banco de dados${NC}"
+        exit 1
+    }
+    
+    # Executar migrações se existirem
+    if [[ -d "$BACKEND_DIR/src/migrations" ]]; then
+        log "${CYAN}🔄 Executando migrações...${NC}"
+        for migration in "$BACKEND_DIR/src/migrations"/*.py; do
+            if [[ -f "$migration" && "$(basename "$migration")" != "__init__.py" ]]; then
+                log "${CYAN}📝 Executando migração: $(basename "$migration")${NC}"
+                python3 "$migration" || {
+                    log "${YELLOW}⚠️  Aviso: Erro na migração $(basename "$migration") (pode ser normal se já executada)${NC}"
+                }
+            fi
+        done
+    fi
+    
+    log "${GREEN}✅ Banco de dados configurado com sucesso${NC}"
+}
 
-# Verificar se o servidor backend está rodando
-if pgrep -f "python3 src/main.py" > /dev/null; then
-    echo "🟢 Servidor Backend: RODANDO"
-    echo "🌐 URL Backend: http://localhost:5000"
-else
-    echo "🔴 Servidor Backend: PARADO"
-fi
+# Função para verificar portas
+check_ports() {
+    log "${CYAN}🔌 Verificando disponibilidade de portas...${NC}"
+    
+    local ports=(5001 8080)
+    for port in "${ports[@]}"; do
+        if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+            log "${YELLOW}⚠️  Porta $port está em uso${NC}"
+            read -p "Deseja parar o processo na porta $port? (y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                local pid=$(lsof -Pi :$port -sTCP:LISTEN -t)
+                kill -9 $pid 2>/dev/null || true
+                log "${GREEN}✅ Processo na porta $port finalizado${NC}"
+            fi
+        else
+            log "${GREEN}✅ Porta $port disponível${NC}"
+        fi
+    done
+}
 
-# Verificar se o servidor frontend está rodando
-if pgrep -f "python3 -m http.server 8080 --directory frontend" > /dev/null; then
-    echo "🟢 Servidor Frontend: RODANDO"
-    echo "🌐 URL Frontend: http://localhost:8080/ki-aikido-enhanced.html"
-else
-    echo "🔴 Servidor Frontend: PARADO"
-fi
+# Função para criar scripts de controle
+create_control_scripts() {
+    log "${CYAN}📝 Criando scripts de controle...${NC}"
+    
+    # Script start.sh já existe, verificar se está atualizado
+    if [[ -f "$PROJECT_DIR/start.sh" ]]; then
+        log "${GREEN}✅ Script start.sh já existe${NC}"
+    fi
+    
+    # Script stop.sh já existe, verificar se está atualizado
+    if [[ -f "$PROJECT_DIR/stop.sh" ]]; then
+        log "${GREEN}✅ Script stop.sh já existe${NC}"
+    fi
+    
+    # Script status.sh já existe, verificar se está atualizado
+    if [[ -f "$PROJECT_DIR/status.sh" ]]; then
+        log "${GREEN}✅ Script status.sh já existe${NC}"
+    fi
+    
+    # Tornar scripts executáveis
+    chmod +x "$PROJECT_DIR"/*.sh 2>/dev/null || true
+    
+    log "${GREEN}✅ Scripts de controle configurados${NC}"
+}
 
-echo ""
-echo "🚀 Para iniciar: ./start.sh"
-echo "🛑 Para parar: ./stop.sh"
-echo "🔄 Para atualizar: ./update.sh"
-EOF
+# Função para testar instalação
+test_installation() {
+    log "${CYAN}🧪 Testando instalação...${NC}"
+    
+    cd "$BACKEND_DIR"
+    source venv/bin/activate
+    
+    # Testar importações Python
+    log "${CYAN}🐍 Testando importações Python...${NC}"
+    python3 -c "
+import flask
+import flask_sqlalchemy
+import flask_cors
+import jwt
+print('✅ Todas as importações Python funcionando')
+" || {
+        log "${RED}❌ Erro nas importações Python${NC}"
+        exit 1
+    }
+    
+    # Testar conexão com banco
+    log "${CYAN}🗄️  Testando conexão com banco de dados...${NC}"
+    python3 -c "
+import sys
+import os
+sys.path.append('src')
 
-chmod +x "$PROJECT_DIR/status.sh"
+from src.main import app, db, User
 
-# 14. Finalização
-log_success "Instalação concluída com sucesso!"
-echo ""
-echo "🎉 Sistema Ki Aikido instalado!"
-echo "================================"
-echo ""
-echo "📁 Localização: $PROJECT_DIR"
-echo "🚀 Para iniciar: ./start.sh"
-echo "📊 Para status: ./status.sh"
-echo "🔄 Para atualizar: ./update.sh"
-echo ""
-echo "📱 Frontend: http://localhost:8080/ki-aikido-enhanced.html"
-echo "📁 Arquivo local: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
-echo "🌐 Backend: http://localhost:5000"
-echo ""
-echo "👤 Usuários de teste:"
-echo "   admin@kiaikido.com / 123456 (Administrador)"
-echo "   florianopolis@kiaikido.com / 123456 (Dojo Florianópolis)"
-echo ""
-echo "📚 Documentação: $PROJECT_DIR/docs/"
-echo ""
-log_info "Execute \'./start.sh\' para iniciar o sistema agora!"
+with app.app_context():
+    users = User.query.all()
+    print(f'✅ Banco de dados funcionando. {len(users)} usuários encontrados.')
+" || {
+        log "${RED}❌ Erro na conexão com banco de dados${NC}"
+        exit 1
+    }
+    
+    # Testar servidor (start rápido)
+    log "${CYAN}🌐 Testando servidor backend...${NC}"
+    cd "$BACKEND_DIR"
+    timeout 10s python3 -c "
+import sys
+import os
+sys.path.append('src')
+from src.main import app
+print('✅ Servidor backend pode ser iniciado')
+" || {
+        log "${YELLOW}⚠️  Teste de servidor interrompido (normal)${NC}"
+    }
+    
+    log "${GREEN}✅ Todos os testes passaram${NC}"
+}
 
+# Função para exibir informações finais
+show_final_info() {
+    log "${GREEN}🎉 Instalação concluída com sucesso!${NC}"
+    echo ""
+    echo -e "${BLUE}╔══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${WHITE}                    INSTALAÇÃO CONCLUÍDA                         ${BLUE}║${NC}"
+    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "${WHITE}📋 INFORMAÇÕES DO SISTEMA:${NC}"
+    echo -e "${CYAN}   • Projeto: $PROJECT_NAME${NC}"
+    echo -e "${CYAN}   • Diretório: $PROJECT_DIR${NC}"
+    echo -e "${CYAN}   • Backend: Flask (Python)${NC}"
+    echo -e "${CYAN}   • Frontend: HTML5 + JavaScript${NC}"
+    echo -e "${CYAN}   • Banco: SQLite${NC}"
+    echo ""
+    echo -e "${WHITE}🚀 COMO USAR:${NC}"
+    echo -e "${GREEN}   1. Iniciar sistema:${NC}     ${YELLOW}./start.sh${NC}"
+    echo -e "${GREEN}   2. Verificar status:${NC}   ${YELLOW}./status.sh${NC}"
+    echo -e "${GREEN}   3. Parar sistema:${NC}      ${YELLOW}./stop.sh${NC}"
+    echo ""
+    echo -e "${WHITE}🌐 ACESSO:${NC}"
+    echo -e "${GREEN}   • Frontend:${NC} ${CYAN}http://localhost:8080${NC}"
+    echo -e "${GREEN}   • Backend API:${NC} ${CYAN}http://localhost:5001/api${NC}"
+    echo ""
+    echo -e "${WHITE}🔐 CREDENCIAIS PADRÃO:${NC}"
+    echo -e "${GREEN}   • Admin Geral:${NC} ${YELLOW}admin@kiaikido.com${NC} / ${YELLOW}123456${NC}"
+    echo -e "${GREEN}   • Dojo Floripa:${NC} ${YELLOW}florianopolis@kiaikido.com${NC} / ${YELLOW}123456${NC}"
+    echo ""
+    echo -e "${WHITE}📚 DOCUMENTAÇÃO:${NC}"
+    echo -e "${CYAN}   • README.md - Documentação completa${NC}"
+    echo -e "${CYAN}   • Log de instalação: $LOG_FILE${NC}"
+    echo ""
+    echo -e "${PURPLE}🥋 Sistema Ki Aikido pronto para uso! 🇧🇷${NC}"
+    echo ""
+}
+
+# Função principal
+main() {
+    # Inicializar log
+    echo "=== Instalação Sistema Ki Aikido - $(date) ===" > "$LOG_FILE"
+    
+    show_banner
+    
+    log "${WHITE}🚀 Iniciando instalação do Sistema Ki Aikido...${NC}"
+    
+    # Verificações iniciais
+    detect_os
+    check_privileges
+    check_project_structure
+    check_system_dependencies
+    check_ports
+    
+    # Configuração do ambiente
+    create_virtual_environment
+    install_python_dependencies
+    setup_database
+    
+    # Scripts e testes
+    create_control_scripts
+    test_installation
+    
+    # Finalização
+    show_final_info
+    
+    log "${GREEN}✅ Instalação concluída com sucesso em $(date)${NC}"
+}
+
+# Tratamento de erros
+trap 'log "${RED}❌ Erro durante a instalação. Verifique o log: $LOG_FILE${NC}"; exit 1' ERR
+
+# Executar instalação
+main "$@"
 

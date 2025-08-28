@@ -365,6 +365,208 @@
         </main>
     </div>
 
+    <!-- Modal Adicionar Status de Membro -->
+    <div id="addMemberStatusModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Adicionar Status/Graduação</h3>
+                <button id="closeAddMemberStatusModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="addMemberStatusForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Aluno</label>
+                    <select id="memberStatusStudent" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione um aluno</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Membro</label>
+                    <select id="memberStatusType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione o tipo</option>
+                        <option value="student">Estudante</option>
+                        <option value="instructor">Instrutor</option>
+                        <option value="assistant">Assistente</option>
+                        <option value="chief_instructor">Instrutor Chefe</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="memberStatusStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione o status</option>
+                        <option value="active">Ativo</option>
+                        <option value="inactive">Inativo</option>
+                        <option value="pending">Pendente</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
+                    <select id="memberStatusDiscipline" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione a disciplina</option>
+                        <option value="Shinshin Toitsu Aikido">Shinshin Toitsu Aikido</option>
+                        <option value="Shinshin Toitsudo">Shinshin Toitsudo</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduação</label>
+                    <select id="memberStatusRank" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione a graduação</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
+                    <input type="date" id="memberStatusExamDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
+                    <select id="memberStatusCertificate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione o status</option>
+                        <option value="pending">Pendente</option>
+                        <option value="issued">Emitido</option>
+                        <option value="to-be-filed">A ser arquivado</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+                    <textarea id="memberStatusNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelAddMemberStatus" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <span id="addMemberStatusBtnText">Adicionar Status</span>
+                        <i id="addMemberStatusSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Aluno -->
+    <div id="addStudentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Adicionar Novo Aluno</h3>
+                <button id="closeAddStudentModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="addStudentForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="studentName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="studentEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+                    <input type="date" id="studentBirthDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                    <input type="tel" id="studentPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                    <textarea id="studentAddress" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dojo</label>
+                    <select id="studentDojo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione um dojo</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelAddStudent" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <span id="addStudentBtnText">Adicionar Aluno</span>
+                        <i id="addStudentSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Editar Aluno -->
+    <div id="editStudentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Editar Aluno</h3>
+                <button id="closeEditStudentModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="editStudentForm" class="space-y-4">
+                <input type="hidden" id="editStudentId">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="editStudentName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="editStudentEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+                    <input type="date" id="editStudentBirthDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                    <input type="tel" id="editStudentPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                    <textarea id="editStudentAddress" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dojo</label>
+                    <select id="editStudentDojo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        <option value="">Selecione um dojo</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelEditStudent" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <span id="editStudentBtnText">Salvar Alterações</span>
+                        <i id="editStudentSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg p-6 text-center">

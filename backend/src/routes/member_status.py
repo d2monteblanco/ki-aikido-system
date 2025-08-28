@@ -1,28 +1,23 @@
-from flask import Blueprint, request, jsonify, session
-from src.models import db, Student, MemberStatus, MemberGraduation, MemberQualification
+from flask import Blueprint, request, jsonify
+from src.models import db, Student, MemberStatus, MemberGraduation, MemberQualification, User
+from src.routes.auth import login_required, get_current_user
 from datetime import datetime
 
 member_status_bp = Blueprint('member_status', __name__)
 
-def require_auth():
-    """Verifica se o usuário está autenticado"""
-    if 'user_id' not in session:
-        return False
-    return True
-
 def get_user_dojos():
     """Retorna os dojos que o usuário pode acessar"""
-    from src.models import User
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    if not user:
+        return []
     if user.role == 'admin':
         return None  # Admin pode ver todos
     return [user.dojo_id] if user.dojo_id else []
 
 @member_status_bp.route('/member-status', methods=['GET'])
+@login_required
 def list_member_status():
     """Lista todos os status de membros com paginação e filtros"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
     
     # Parâmetros de paginação
     page = request.args.get('page', 1, type=int)
@@ -81,10 +76,9 @@ def list_member_status():
     })
 
 @member_status_bp.route('/member-status/<int:id>', methods=['GET'])
+@login_required
 def get_member_status(id):
     """Retorna detalhes de um status de membro específico"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
     
     member_status = MemberStatus.query.get_or_404(id)
     
@@ -96,10 +90,9 @@ def get_member_status(id):
     return jsonify(member_status.to_dict())
 
 @member_status_bp.route('/member-status', methods=['POST'])
+@login_required
 def create_member_status():
     """Cria um novo status de membro"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
     
     data = request.get_json()
     
@@ -141,10 +134,9 @@ def create_member_status():
         return jsonify({'error': f'Erro ao criar status de membro: {str(e)}'}), 500
 
 @member_status_bp.route('/member-status/<int:id>', methods=['PUT'])
+@login_required
 def update_member_status(id):
     """Atualiza um status de membro"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
     
     member_status = MemberStatus.query.get_or_404(id)
     
@@ -178,10 +170,9 @@ def update_member_status(id):
         return jsonify({'error': f'Erro ao atualizar status de membro: {str(e)}'}), 500
 
 @member_status_bp.route('/member-status/<int:id>', methods=['DELETE'])
+@login_required
 def delete_member_status(id):
     """Remove um status de membro"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
     
     member_status = MemberStatus.query.get_or_404(id)
     

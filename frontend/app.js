@@ -54,6 +54,62 @@ function setupEventListeners() {
         });
     });
 
+    // Botões de aluno
+    const addStudentBtn = document.getElementById('addStudentBtn');
+    const addStudentForm = document.getElementById('addStudentForm');
+    const closeAddStudentModal = document.getElementById('closeAddStudentModal');
+    const cancelAddStudent = document.getElementById('cancelAddStudent');
+    
+    const editStudentForm = document.getElementById('editStudentForm');
+    const closeEditStudentModal = document.getElementById('closeEditStudentModal');
+    const cancelEditStudent = document.getElementById('cancelEditStudent');
+
+    if (addStudentBtn) {
+        addStudentBtn.addEventListener('click', showAddStudentModal);
+    }
+    if (addStudentForm) {
+        addStudentForm.addEventListener('submit', handleAddStudent);
+    }
+    if (closeAddStudentModal) {
+        closeAddStudentModal.addEventListener('click', hideAddStudentModal);
+    }
+    if (cancelAddStudent) {
+        cancelAddStudent.addEventListener('click', hideAddStudentModal);
+    }
+    
+    if (editStudentForm) {
+        editStudentForm.addEventListener('submit', handleEditStudent);
+    }
+    if (closeEditStudentModal) {
+        closeEditStudentModal.addEventListener('click', hideEditStudentModal);
+    }
+    if (cancelEditStudent) {
+        cancelEditStudent.addEventListener('click', hideEditStudentModal);
+    }
+
+    // Botões de status/graduações
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const addMemberStatusForm = document.getElementById('addMemberStatusForm');
+    const closeAddMemberStatusModal = document.getElementById('closeAddMemberStatusModal');
+    const cancelAddMemberStatus = document.getElementById('cancelAddMemberStatus');
+    const memberStatusDiscipline = document.getElementById('memberStatusDiscipline');
+
+    if (addMemberBtn) {
+        addMemberBtn.addEventListener('click', showAddMemberStatusModal);
+    }
+    if (addMemberStatusForm) {
+        addMemberStatusForm.addEventListener('submit', handleAddMemberStatus);
+    }
+    if (closeAddMemberStatusModal) {
+        closeAddMemberStatusModal.addEventListener('click', hideAddMemberStatusModal);
+    }
+    if (cancelAddMemberStatus) {
+        cancelAddMemberStatus.addEventListener('click', hideAddMemberStatusModal);
+    }
+    if (memberStatusDiscipline) {
+        memberStatusDiscipline.addEventListener('change', updateRankOptions);
+    }
+
     // Filtros de membros
     const memberSearch = document.getElementById('memberSearch');
     const memberTypeFilter = document.getElementById('memberTypeFilter');
@@ -479,8 +535,12 @@ async function loadStudentsData() {
                                         ${student.dojo_name || 'N/A'}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
-                                        <button class="text-red-600 hover:text-red-900">Excluir</button>
+                                        <button onclick="showEditStudentModal(${JSON.stringify(student).replace(/"/g, '&quot;')})" class="text-blue-600 hover:text-blue-900 mr-3">
+                                            <i class="fas fa-edit mr-1"></i>Editar
+                                        </button>
+                                        <button onclick="deleteStudent(${student.id}, '${student.name.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash mr-1"></i>Excluir
+                                        </button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -497,94 +557,6 @@ async function loadStudentsData() {
                 <h3 class="text-lg font-medium mb-2">Erro ao carregar alunos</h3>
                 <p class="mb-4">${error.message}</p>
                 <button onclick="loadStudentsData()" class="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600">
-                    <i class="fas fa-redo mr-2"></i>Tentar Novamente
-                </button>
-            </div>
-        `;
-    }
-}
-
-// Carregar dados de membros
-async function loadMembersData() {
-    const container = document.getElementById('membersList');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-            <p>Carregando membros...</p>
-        </div>
-    `;
-    
-    try {
-        const response = await apiRequest('/member-status');
-        const members = response.members || [];
-        
-        if (members.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-12 text-gray-500">
-                    <i class="fas fa-graduation-cap text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium mb-2">Nenhum membro cadastrado</h3>
-                    <p class="mb-4">Comece adicionando o primeiro status de membro.</p>
-                    <button class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-plus mr-2"></i>Adicionar Primeiro Membro
-                    </button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adesão</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            ${members.map(member => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900">${member.student_name || 'N/A'}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${member.member_type || 'N/A'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.status)}">
-                                            ${member.status || 'N/A'}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${member.member_number || 'N/A'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${member.join_date ? new Date(member.join_date).toLocaleDateString('pt-BR') : 'N/A'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
-                                        <button class="text-green-600 hover:text-green-900 mr-3">Graduações</button>
-                                        <button class="text-red-600 hover:text-red-900">Excluir</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Erro ao carregar membros:', error);
-        container.innerHTML = `
-            <div class="text-center py-12 text-red-500">
-                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                <h3 class="text-lg font-medium mb-2">Erro ao carregar membros</h3>
-                <p class="mb-4">${error.message}</p>
-                <button onclick="loadMembersData()" class="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600">
                     <i class="fas fa-redo mr-2"></i>Tentar Novamente
                 </button>
             </div>
@@ -626,3 +598,526 @@ function debounce(func, wait) {
 window.fillCredentials = fillCredentials;
 window.loadStudentsData = loadStudentsData;
 window.loadMembersData = loadMembersData;
+
+
+// ===== FUNÇÕES DE MODAL DE ALUNO =====
+
+// Mostrar modal de adicionar aluno
+async function showAddStudentModal() {
+    const modal = document.getElementById('addStudentModal');
+    if (!modal) return;
+    
+    // Carregar dojos no select
+    await loadDojosInSelect('studentDojo');
+    
+    // Limpar formulário
+    document.getElementById('addStudentForm').reset();
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+}
+
+// Esconder modal de adicionar aluno
+function hideAddStudentModal() {
+    const modal = document.getElementById('addStudentModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Mostrar modal de editar aluno
+async function showEditStudentModal(student) {
+    const modal = document.getElementById('editStudentModal');
+    if (!modal) return;
+    
+    // Carregar dojos no select
+    await loadDojosInSelect('editStudentDojo');
+    
+    // Preencher formulário com dados do aluno
+    document.getElementById('editStudentId').value = student.id;
+    document.getElementById('editStudentName').value = student.name || '';
+    document.getElementById('editStudentEmail').value = student.email || '';
+    document.getElementById('editStudentBirthDate').value = student.birth_date || '';
+    document.getElementById('editStudentPhone').value = student.phone || '';
+    document.getElementById('editStudentAddress').value = student.address || '';
+    document.getElementById('editStudentDojo').value = student.dojo_id || '';
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+}
+
+// Esconder modal de editar aluno
+function hideEditStudentModal() {
+    const modal = document.getElementById('editStudentModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Carregar dojos no select
+async function loadDojosInSelect(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    try {
+        const response = await apiRequest('/dojos');
+        const dojos = response.dojos || [];
+        
+        // Limpar opções existentes (exceto a primeira)
+        select.innerHTML = '<option value="">Selecione um dojo</option>';
+        
+        // Adicionar dojos
+        dojos.forEach(dojo => {
+            const option = document.createElement('option');
+            option.value = dojo.id;
+            option.textContent = dojo.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar dojos:', error);
+    }
+}
+
+// Lidar com adição de aluno
+async function handleAddStudent(event) {
+    event.preventDefault();
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const btnText = document.getElementById('addStudentBtnText');
+    const spinner = document.getElementById('addStudentSpinner');
+    
+    // Mostrar loading
+    btnText.textContent = 'Adicionando...';
+    spinner.classList.remove('hidden');
+    submitBtn.disabled = true;
+    
+    try {
+        const formData = {
+            name: document.getElementById('studentName').value.trim(),
+            email: document.getElementById('studentEmail').value.trim(),
+            birth_date: document.getElementById('studentBirthDate').value,
+            phone: document.getElementById('studentPhone').value.trim(),
+            address: document.getElementById('studentAddress').value.trim(),
+            dojo_id: parseInt(document.getElementById('studentDojo').value)
+        };
+        
+        // Validar dados
+        if (!formData.name || !formData.email || !formData.birth_date || !formData.address || !formData.dojo_id) {
+            throw new Error('Por favor, preencha todos os campos obrigatórios');
+        }
+        
+        // Enviar para API
+        await apiRequest('/students', 'POST', formData);
+        
+        // Sucesso
+        hideAddStudentModal();
+        loadStudentsData(); // Recarregar lista
+        showSuccessMessage('Aluno adicionado com sucesso!');
+        
+    } catch (error) {
+        console.error('Erro ao adicionar aluno:', error);
+        showErrorMessage(error.message || 'Erro ao adicionar aluno');
+    } finally {
+        // Restaurar botão
+        btnText.textContent = 'Adicionar Aluno';
+        spinner.classList.add('hidden');
+        submitBtn.disabled = false;
+    }
+}
+
+// Lidar com edição de aluno
+async function handleEditStudent(event) {
+    event.preventDefault();
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const btnText = document.getElementById('editStudentBtnText');
+    const spinner = document.getElementById('editStudentSpinner');
+    
+    // Mostrar loading
+    btnText.textContent = 'Salvando...';
+    spinner.classList.remove('hidden');
+    submitBtn.disabled = true;
+    
+    try {
+        const studentId = document.getElementById('editStudentId').value;
+        const formData = {
+            name: document.getElementById('editStudentName').value.trim(),
+            email: document.getElementById('editStudentEmail').value.trim(),
+            birth_date: document.getElementById('editStudentBirthDate').value,
+            phone: document.getElementById('editStudentPhone').value.trim(),
+            address: document.getElementById('editStudentAddress').value.trim(),
+            dojo_id: parseInt(document.getElementById('editStudentDojo').value)
+        };
+        
+        // Validar dados
+        if (!formData.name || !formData.email || !formData.birth_date || !formData.address || !formData.dojo_id) {
+            throw new Error('Por favor, preencha todos os campos obrigatórios');
+        }
+        
+        // Enviar para API
+        await apiRequest(`/students/${studentId}`, 'PUT', formData);
+        
+        // Sucesso
+        hideEditStudentModal();
+        loadStudentsData(); // Recarregar lista
+        showSuccessMessage('Aluno atualizado com sucesso!');
+        
+    } catch (error) {
+        console.error('Erro ao editar aluno:', error);
+        showErrorMessage(error.message || 'Erro ao editar aluno');
+    } finally {
+        // Restaurar botão
+        btnText.textContent = 'Salvar Alterações';
+        spinner.classList.add('hidden');
+        submitBtn.disabled = false;
+    }
+}
+
+// Excluir aluno
+async function deleteStudent(studentId, studentName) {
+    if (!confirm(`Tem certeza que deseja excluir o aluno "${studentName}"?`)) {
+        return;
+    }
+    
+    try {
+        await apiRequest(`/students/${studentId}`, 'DELETE');
+        loadStudentsData(); // Recarregar lista
+        showSuccessMessage('Aluno excluído com sucesso!');
+    } catch (error) {
+        console.error('Erro ao excluir aluno:', error);
+        showErrorMessage(error.message || 'Erro ao excluir aluno');
+    }
+}
+
+// Mostrar mensagem de sucesso
+function showSuccessMessage(message) {
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Mostrar mensagem de erro
+function showErrorMessage(message) {
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remover após 5 segundos
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Expor funções globalmente
+window.showEditStudentModal = showEditStudentModal;
+window.deleteStudent = deleteStudent;
+
+
+// ===== FUNÇÕES DE MODAL DE STATUS/GRADUAÇÕES =====
+
+// Mostrar modal de adicionar status de membro
+async function showAddMemberStatusModal() {
+    const modal = document.getElementById('addMemberStatusModal');
+    if (!modal) return;
+    
+    // Carregar alunos no select
+    await loadStudentsInSelect('memberStatusStudent');
+    
+    // Limpar formulário
+    document.getElementById('addMemberStatusForm').reset();
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+}
+
+// Esconder modal de adicionar status de membro
+function hideAddMemberStatusModal() {
+    const modal = document.getElementById('addMemberStatusModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Carregar alunos no select
+async function loadStudentsInSelect(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    try {
+        const response = await apiRequest('/students');
+        const students = response.students || [];
+        
+        // Limpar opções existentes (exceto a primeira)
+        select.innerHTML = '<option value="">Selecione um aluno</option>';
+        
+        // Adicionar alunos
+        students.forEach(student => {
+            const option = document.createElement('option');
+            option.value = student.id;
+            option.textContent = `${student.name} (${student.registration_number})`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar alunos:', error);
+    }
+}
+
+// Atualizar opções de graduação baseado na disciplina
+async function updateRankOptions() {
+    const disciplineSelect = document.getElementById('memberStatusDiscipline');
+    const rankSelect = document.getElementById('memberStatusRank');
+    
+    if (!disciplineSelect || !rankSelect) return;
+    
+    const discipline = disciplineSelect.value;
+    
+    // Limpar opções
+    rankSelect.innerHTML = '<option value="">Selecione a graduação</option>';
+    
+    if (!discipline) return;
+    
+    try {
+        const response = await apiRequest('/member-status/constants');
+        let ranks = {};
+        
+        if (discipline === 'Shinshin Toitsu Aikido') {
+            ranks = response.aikido_ranks || {};
+        } else if (discipline === 'Shinshin Toitsudo') {
+            ranks = response.toitsudo_ranks || {};
+        }
+        
+        // Adicionar graduações ordenadas por nível
+        const sortedRanks = Object.entries(ranks).sort((a, b) => a[1].level - b[1].level);
+        
+        sortedRanks.forEach(([key, rank]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = rank.display;
+            rankSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar graduações:', error);
+    }
+}
+
+// Lidar com adição de status de membro
+async function handleAddMemberStatus(event) {
+    event.preventDefault();
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const btnText = document.getElementById('addMemberStatusBtnText');
+    const spinner = document.getElementById('addMemberStatusSpinner');
+    
+    // Mostrar loading
+    btnText.textContent = 'Adicionando...';
+    spinner.classList.remove('hidden');
+    submitBtn.disabled = true;
+    
+    try {
+        const formData = {
+            student_id: parseInt(document.getElementById('memberStatusStudent').value),
+            member_type: document.getElementById('memberStatusType').value,
+            status: document.getElementById('memberStatusStatus').value,
+            notes: document.getElementById('memberStatusNotes').value.trim()
+        };
+        
+        // Dados opcionais de graduação
+        const discipline = document.getElementById('memberStatusDiscipline').value;
+        const rank = document.getElementById('memberStatusRank').value;
+        const examDate = document.getElementById('memberStatusExamDate').value;
+        const certificateStatus = document.getElementById('memberStatusCertificate').value;
+        
+        // Validar dados obrigatórios
+        if (!formData.student_id || !formData.member_type || !formData.status) {
+            throw new Error('Por favor, preencha todos os campos obrigatórios');
+        }
+        
+        // Adicionar status de membro
+        await apiRequest('/member-status', 'POST', formData);
+        
+        // Se há dados de graduação, adicionar também
+        if (discipline && rank) {
+            const graduationData = {
+                student_id: formData.student_id,
+                discipline: discipline,
+                rank: rank,
+                exam_date: examDate || null,
+                certificate_status: certificateStatus || 'pending',
+                notes: formData.notes
+            };
+            
+            await apiRequest('/member-graduation', 'POST', graduationData);
+        }
+        
+        // Sucesso
+        hideAddMemberStatusModal();
+        loadMembersData(); // Recarregar lista
+        showSuccessMessage('Status/graduação adicionado com sucesso!');
+        
+    } catch (error) {
+        console.error('Erro ao adicionar status:', error);
+        showErrorMessage(error.message || 'Erro ao adicionar status');
+    } finally {
+        // Restaurar botão
+        btnText.textContent = 'Adicionar Status';
+        spinner.classList.add('hidden');
+        submitBtn.disabled = false;
+    }
+}
+
+// Corrigir função loadMembersData
+async function loadMembersData() {
+    const container = document.getElementById('membersList');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+            <p>Carregando membros...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await apiRequest('/member-status');
+        const members = response.members || [];
+        
+        if (members.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fas fa-user-graduate text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium mb-2">Nenhum status cadastrado</h3>
+                    <p class="mb-4">Comece adicionando o primeiro status de membro.</p>
+                    <button onclick="showAddMemberStatusModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                        <i class="fas fa-plus mr-2"></i>Adicionar Primeiro Status
+                    </button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aluno</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Graduação</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${members.map(member => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="font-medium text-gray-900">${member.student_name || 'N/A'}</div>
+                                        <div class="text-sm text-gray-500">${member.student_email || ''}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
+                                        ${getMemberTypeDisplay(member.member_type)}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.status)}">
+                                            ${getStatusDisplay(member.status)}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
+                                        ${member.latest_rank || 'Sem graduação'}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="editMemberStatus(${member.id})" class="text-blue-600 hover:text-blue-900 mr-3">
+                                            <i class="fas fa-edit mr-1"></i>Editar
+                                        </button>
+                                        <button onclick="deleteMemberStatus(${member.id})" class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash mr-1"></i>Excluir
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar membros:', error);
+        container.innerHTML = `
+            <div class="text-center py-12 text-red-500">
+                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                <h3 class="text-lg font-medium mb-2">Erro ao carregar membros</h3>
+                <p class="mb-4">${error.message}</p>
+                <button onclick="loadMembersData()" class="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600">
+                    <i class="fas fa-redo mr-2"></i>Tentar Novamente
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Funções auxiliares para exibição
+function getMemberTypeDisplay(type) {
+    const types = {
+        'student': 'Estudante',
+        'instructor': 'Instrutor',
+        'assistant': 'Assistente',
+        'chief_instructor': 'Instrutor Chefe'
+    };
+    return types[type] || type;
+}
+
+function getStatusDisplay(status) {
+    const statuses = {
+        'active': 'Ativo',
+        'inactive': 'Inativo',
+        'pending': 'Pendente'
+    };
+    return statuses[status] || status;
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'active': 'bg-green-100 text-green-800',
+        'inactive': 'bg-red-100 text-red-800',
+        'pending': 'bg-yellow-100 text-yellow-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+}
+
+// Funções placeholder para editar e excluir status
+function editMemberStatus(id) {
+    showErrorMessage('Funcionalidade de edição em desenvolvimento');
+}
+
+function deleteMemberStatus(id) {
+    showErrorMessage('Funcionalidade de exclusão em desenvolvimento');
+}
+
+// Expor funções globalmente
+window.showAddStudentModal = showAddStudentModal;
+window.showEditStudentModal = showEditStudentModal;
+window.deleteStudent = deleteStudent;
+window.showAddMemberStatusModal = showAddMemberStatusModal;
+window.editMemberStatus = editMemberStatus;
+window.deleteMemberStatus = deleteMemberStatus;
+

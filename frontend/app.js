@@ -968,7 +968,7 @@ async function handleAddMemberStatus(event) {
                 notes: formData.notes
             };
             
-            await apiRequest('/member-graduation', 'POST', graduationData);
+            await apiRequest('/member-status', 'POST', graduationData);
         }
         
         // Sucesso

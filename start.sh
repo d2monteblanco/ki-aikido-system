@@ -67,8 +67,7 @@ echo "🚀 Servidor backend iniciado em http://localhost:5000 (PID: $BACKEND_PID
 python3 -m http.server 8080 --directory "$FRONTEND_DIR" > /dev/null 2>&1 &
 FRONTEND_PID=$!
 
-echo "🌐 Servidor frontend iniciado em http://localhost:8080/ki-aikido-enhanced.html (PID: $FRONTEND_PID)"
-echo "📱 Arquivo local: file://$PROJECT_DIR/frontend/ki-aikido-enhanced.html"
+echo "🌐 Servidor frontend iniciado em http://localhost:8080/index.html (PID: $FRONTEND_PID)"
 echo ""
 echo "🔑 Credenciais de teste:"
 echo "   admin@kiaikido.com / 123456 (Administrador)"

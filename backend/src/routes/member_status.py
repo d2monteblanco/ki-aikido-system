@@ -64,7 +64,7 @@ def list_member_status():
     )
     
     return jsonify({
-        'member_status': [ms.to_summary() for ms in pagination.items],
+        'members': [ms.to_summary() for ms in pagination.items],
         'pagination': {
             'page': page,
             'per_page': per_page,

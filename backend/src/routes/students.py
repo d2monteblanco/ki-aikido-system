@@ -311,13 +311,30 @@ def get_students_stats():
         pending = query.filter(Student.status == 'pending').count()
         inactive = query.filter(Student.status == 'inactive').count()
         
+        # Calcular estatísticas adicionais
+        from src.models import MemberStatus, Dojo
+        
+        # Contar instrutores (membros com tipo instructor ou chief_instructor)
+        instructor_query = MemberStatus.query.filter(
+            MemberStatus.member_type.in_(['instructor', 'chief_instructor'])
+        )
+        if not current_user.is_admin():
+            instructor_query = instructor_query.join(Student).filter(Student.dojo_id == current_user.dojo_id)
+        instructors = instructor_query.count()
+        
+        # Contar dojos (admin vê todos, usuário vê apenas o seu)
+        if current_user.is_admin():
+            total_dojos = Dojo.query.filter_by(is_active=True).count()
+        else:
+            total_dojos = 1 if current_user.dojo_id else 0
+        
         return jsonify({
-            'stats': {
-                'total': total,
-                'active': active,
-                'pending': pending,
-                'inactive': inactive
-            }
+            'total_students': total,
+            'active_members': active,
+            'instructors': instructors,
+            'total_dojos': total_dojos,
+            'pending_students': pending,
+            'inactive_students': inactive
         }), 200
         
     except Exception as e:

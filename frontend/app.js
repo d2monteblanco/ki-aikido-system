@@ -461,8 +461,8 @@ async function loadMembersPreview() {
                         <div class="text-sm text-gray-500">${member.member_type || 'N/A'}</div>
                     </div>
                     <div class="text-sm">
-                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.status)}">
-                            ${member.status || 'N/A'}
+                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.current_status)}">
+                            ${member.current_status || 'N/A'}
                         </span>
                     </div>
                 </div>
@@ -936,11 +936,13 @@ async function handleAddMemberStatus(event) {
     submitBtn.disabled = true;
     
     try {
-        const formData = {
-            student_id: parseInt(document.getElementById('memberStatusStudent').value),
+        const studentId = parseInt(document.getElementById('memberStatusStudent').value);
+        
+        // Dados do status de membro
+        const memberStatusData = {
+            student_id: studentId,
             member_type: document.getElementById('memberStatusType').value,
-            status: document.getElementById('memberStatusStatus').value,
-            notes: document.getElementById('memberStatusNotes').value.trim()
+            current_status: document.getElementById('memberStatusStatus').value
         };
         
         // Dados opcionais de graduação
@@ -948,27 +950,28 @@ async function handleAddMemberStatus(event) {
         const rank = document.getElementById('memberStatusRank').value;
         const examDate = document.getElementById('memberStatusExamDate').value;
         const certificateStatus = document.getElementById('memberStatusCertificate').value;
+        const notes = document.getElementById('memberStatusNotes').value.trim();
         
         // Validar dados obrigatórios
-        if (!formData.student_id || !formData.member_type || !formData.status) {
+        if (!memberStatusData.student_id || !memberStatusData.member_type || !memberStatusData.current_status) {
             throw new Error('Por favor, preencha todos os campos obrigatórios');
         }
         
         // Adicionar status de membro
-        await apiRequest('/member-status', 'POST', formData);
+        await apiRequest('/member-status', 'POST', memberStatusData);
         
-        // Se há dados de graduação, adicionar também
+        // Se há dados de graduação, adicionar separadamente
         if (discipline && rank) {
             const graduationData = {
-                student_id: formData.student_id,
+                student_id: studentId,
                 discipline: discipline,
-                rank: rank,
+                rank_name: rank,
                 exam_date: examDate || null,
                 certificate_status: certificateStatus || 'pending',
-                notes: formData.notes
+                notes: notes
             };
             
-            await apiRequest('/member-status', 'POST', graduationData);
+            await apiRequest('/member-graduations', 'POST', graduationData);
         }
         
         // Sucesso
@@ -1038,8 +1041,8 @@ async function loadMembersData() {
                                         ${getMemberTypeDisplay(member.member_type)}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.status)}">
-                                            ${getStatusDisplay(member.status)}
+                                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.current_status)}">
+                                            ${getStatusDisplay(member.current_status)}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-gray-500">

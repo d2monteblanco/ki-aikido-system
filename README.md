@@ -116,7 +116,7 @@ cd ..
   ```bash
   python3 -m http.server 8080 --directory frontend
   ```
-  Após iniciar o servidor, acesse o frontend em seu navegador através de: `http://localhost:8080/ki-aikido-enhanced.html`
+  Após iniciar o servidor, acesse o frontend em seu navegador através de: `http://localhost:8080/index.html`
 
 ### 3. Login
 Use uma das credenciais de demonstração:
@@ -203,7 +203,7 @@ ki-aikido-system/
 │   ├── database/           # Banco de dados SQLite
 │   └── requirements.txt    # Dependências Python
 ├── frontend/               # Frontend HTML/JS
-│   └── ki-aikido-simple.html
+│   └── index.html
 ├── scripts/                # Scripts de automação
 │   ├── install.sh         # Instalação completa
 │   ├── quick-install.sh   # Instalação rápida

@@ -60,6 +60,64 @@ def list_graduations(member_status_id):
     
     return jsonify([grad.to_dict() for grad in graduations])
 
+@member_graduations_bp.route('/member-graduations', methods=['POST'])
+def create_graduation_by_student():
+    """Cria uma nova graduação usando student_id (endpoint alternativo)"""
+    if not require_auth():
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    data = request.get_json()
+    
+    # Validações
+    required_fields = ['student_id', 'discipline', 'rank_name']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'error': f'{field} é obrigatório'}), 400
+    
+    # Encontrar o member_status_id pelo student_id
+    member_status = MemberStatus.query.filter_by(student_id=data['student_id']).first()
+    if not member_status:
+        return jsonify({'error': 'Status de membro não encontrado para este estudante'}), 404
+    
+    if not check_member_access(member_status.id):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    try:
+        graduation = MemberGraduation(
+            member_status_id=member_status.id,
+            discipline=data['discipline'],
+            rank_name=data['rank_name'],
+            examination_date=datetime.strptime(data['exam_date'], '%Y-%m-%d').date() if data.get('exam_date') else None,
+            certificate_number=data.get('certificate_number'),
+            certificate_status=data.get('certificate_status', 'pending'),
+            is_current=data.get('is_current', True)  # Por padrão, nova graduação é atual
+        )
+        
+        # Definir rank_level automaticamente
+        graduation.rank_level = MemberGraduation.get_rank_level(
+            graduation.discipline, graduation.rank_name
+        )
+        
+        db.session.add(graduation)
+        
+        # Se marcada como atual, desmarcar outras da mesma disciplina
+        if graduation.is_current:
+            other_grads = MemberGraduation.query.filter_by(
+                member_status_id=member_status.id,
+                discipline=graduation.discipline
+            ).all()
+            
+            for grad in other_grads:
+                grad.is_current = False
+        
+        db.session.commit()
+        
+        return jsonify(graduation.to_dict()), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Erro ao criar graduação: {str(e)}'}), 500
+
 @member_graduations_bp.route('/member-status/<int:member_status_id>/graduations', methods=['POST'])
 def create_graduation(member_status_id):
     """Cria uma nova graduação para um membro"""

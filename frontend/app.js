@@ -847,6 +847,12 @@ async function showAddMemberStatusModal() {
     // Limpar formulário
     document.getElementById('addMemberStatusForm').reset();
     
+    // Limpar opções de graduação
+    const rankSelect = document.getElementById('memberStatusRank');
+    if (rankSelect) {
+        rankSelect.innerHTML = '<option value="">Selecione a graduação</option>';
+    }
+    
     // Mostrar modal
     modal.classList.remove('hidden');
 }
@@ -938,27 +944,34 @@ async function handleAddMemberStatus(event) {
     try {
         const studentId = parseInt(document.getElementById('memberStatusStudent').value);
         
+        // Validar dados obrigatórios
+        if (!studentId) {
+            throw new Error('Por favor, selecione um aluno');
+        }
+        
+        const memberType = document.getElementById('memberStatusType').value;
+        const currentStatus = document.getElementById('memberStatusStatus').value;
+        
+        if (!memberType || !currentStatus) {
+            throw new Error('Por favor, preencha todos os campos obrigatórios');
+        }
+        
         // Dados do status de membro
         const memberStatusData = {
             student_id: studentId,
-            member_type: document.getElementById('memberStatusType').value,
-            current_status: document.getElementById('memberStatusStatus').value
+            member_type: memberType,
+            current_status: currentStatus,
+            registered_number: document.getElementById('memberStatusRegisteredNumber').value.trim() || null,
+            membership_date: document.getElementById('memberStatusMembershipDate').value || null,
+            last_activity_year: parseInt(document.getElementById('memberStatusLastActivityYear').value) || null
         };
+        
+        // Adicionar status de membro
+        await apiRequest('/member-status', 'POST', memberStatusData);
         
         // Dados opcionais de graduação
         const discipline = document.getElementById('memberStatusDiscipline').value;
         const rank = document.getElementById('memberStatusRank').value;
-        const examDate = document.getElementById('memberStatusExamDate').value;
-        const certificateStatus = document.getElementById('memberStatusCertificate').value;
-        const notes = document.getElementById('memberStatusNotes').value.trim();
-        
-        // Validar dados obrigatórios
-        if (!memberStatusData.student_id || !memberStatusData.member_type || !memberStatusData.current_status) {
-            throw new Error('Por favor, preencha todos os campos obrigatórios');
-        }
-        
-        // Adicionar status de membro
-        await apiRequest('/member-status', 'POST', memberStatusData);
         
         // Se há dados de graduação, adicionar separadamente
         if (discipline && rank) {
@@ -966,9 +979,9 @@ async function handleAddMemberStatus(event) {
                 student_id: studentId,
                 discipline: discipline,
                 rank_name: rank,
-                exam_date: examDate || null,
-                certificate_status: certificateStatus || 'pending',
-                notes: notes
+                examination_date: document.getElementById('memberStatusExaminationDate').value || null,
+                certificate_status: document.getElementById('memberStatusCertificate').value || 'pending',
+                certificate_number: document.getElementById('memberStatusCertificateNumber').value.trim() || null
             };
             
             await apiRequest('/member-graduations', 'POST', graduationData);

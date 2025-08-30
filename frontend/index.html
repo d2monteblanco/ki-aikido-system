@@ -376,68 +376,105 @@
             </div>
             
             <form id="addMemberStatusForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Aluno</label>
-                    <select id="memberStatusStudent" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione um aluno</option>
-                    </select>
+                <!-- Seção: Informações do Aluno -->
+                <div class="border-b pb-4">
+                    <h4 class="text-md font-medium text-gray-800 mb-3">Informações do Aluno</h4>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Aluno *</label>
+                        <select id="memberStatusStudent" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                            <option value="">Selecione um aluno</option>
+                        </select>
+                    </div>
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Membro</label>
-                    <select id="memberStatusType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione o tipo</option>
-                        <option value="student">Estudante</option>
-                        <option value="instructor">Instrutor</option>
-                        <option value="assistant">Assistente</option>
-                        <option value="chief_instructor">Instrutor Chefe</option>
-                    </select>
+
+                <!-- Seção: Status de Membro -->
+                <div class="border-b pb-4">
+                    <h4 class="text-md font-medium text-gray-800 mb-3">Status de Membro</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Membro *</label>
+                            <select id="memberStatusType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                                <option value="">Selecione o tipo</option>
+                                <option value="student">Estudante</option>
+                                <option value="assistant">Assistente</option>
+                                <option value="instructor">Instrutor</option>
+                                <option value="chief_instructor">Instrutor Chefe</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Atual *</label>
+                            <select id="memberStatusStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                                <option value="">Selecione o status</option>
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="pending">Pendente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Registro</label>
+                            <input type="text" id="memberStatusRegisteredNumber" placeholder="Ex: KIA-001-2024" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Filiação</label>
+                            <input type="date" id="memberStatusMembershipDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Último Ano de Atividade</label>
+                        <input type="number" id="memberStatusLastActivityYear" min="2000" max="2030" placeholder="Ex: 2024" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                    </div>
                 </div>
-                
+
+                <!-- Seção: Graduação (Opcional) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="memberStatusStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione o status</option>
-                        <option value="active">Ativo</option>
-                        <option value="inactive">Inativo</option>
-                        <option value="pending">Pendente</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
-                    <select id="memberStatusDiscipline" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione a disciplina</option>
-                        <option value="Shinshin Toitsu Aikido">Shinshin Toitsu Aikido</option>
-                        <option value="Shinshin Toitsudo">Shinshin Toitsudo</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduação</label>
-                    <select id="memberStatusRank" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione a graduação</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
-                    <input type="date" id="memberStatusExamDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
-                    <select id="memberStatusCertificate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione o status</option>
-                        <option value="pending">Pendente</option>
-                        <option value="issued">Emitido</option>
-                        <option value="to-be-filed">A ser arquivado</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-                    <textarea id="memberStatusNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
+                    <h4 class="text-md font-medium text-gray-800 mb-3">Graduação (Opcional)</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
+                            <select id="memberStatusDiscipline" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                                <option value="">Selecione a disciplina</option>
+                                <option value="Shinshin Toitsu Aikido">Shinshin Toitsu Aikido</option>
+                                <option value="Shinshin Toitsudo">Shinshin Toitsudo</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Graduação</label>
+                            <select id="memberStatusRank" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                                <option value="">Selecione a graduação</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
+                            <input type="date" id="memberStatusExaminationDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
+                            <select id="memberStatusCertificate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                                <option value="">Selecione o status</option>
+                                <option value="pending">Pendente</option>
+                                <option value="issued">Emitido</option>
+                                <option value="to-be-filed">A ser arquivado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
+                        <input type="text" id="memberStatusCertificateNumber" placeholder="Número do certificado" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                    </div>
                 </div>
                 
                 <div class="flex justify-end space-x-3 pt-4">

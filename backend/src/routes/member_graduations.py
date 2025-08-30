@@ -1,19 +1,15 @@
-from flask import Blueprint, request, jsonify, session
-from src.models import db, MemberStatus, MemberGraduation
+from flask import Blueprint, request, jsonify
+from src.models import db, Student, MemberStatus, MemberGraduation
+from src.routes.auth import login_required, get_current_user
 from datetime import datetime
 
 member_graduations_bp = Blueprint('member_graduations', __name__)
 
-def require_auth():
-    """Verifica se o usuário está autenticado"""
-    if 'user_id' not in session:
-        return False
-    return True
-
 def get_user_dojos():
     """Retorna os dojos que o usuário pode acessar"""
-    from src.models import User
-    user = User.query.get(session['user_id'])
+    user = get_current_user()
+    if not user:
+        return []
     if user.role == 'admin':
         return None  # Admin pode ver todos
     return [user.dojo_id] if user.dojo_id else []
@@ -31,11 +27,9 @@ def check_member_access(member_status_id):
     return True
 
 @member_graduations_bp.route('/member-status/<int:member_status_id>/graduations', methods=['GET'])
+@login_required
 def list_graduations(member_status_id):
     """Lista graduações de um membro"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     if not check_member_access(member_status_id):
         return jsonify({'error': 'Acesso negado'}), 403
     
@@ -61,11 +55,9 @@ def list_graduations(member_status_id):
     return jsonify([grad.to_dict() for grad in graduations])
 
 @member_graduations_bp.route('/member-graduations', methods=['POST'])
+@login_required
 def create_graduation_by_student():
     """Cria uma nova graduação usando student_id (endpoint alternativo)"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     data = request.get_json()
     
     # Validações
@@ -87,7 +79,7 @@ def create_graduation_by_student():
             member_status_id=member_status.id,
             discipline=data['discipline'],
             rank_name=data['rank_name'],
-            examination_date=datetime.strptime(data['exam_date'], '%Y-%m-%d').date() if data.get('exam_date') else None,
+            examination_date=datetime.strptime(data['examination_date'], '%Y-%m-%d').date() if data.get('examination_date') else None,
             certificate_number=data.get('certificate_number'),
             certificate_status=data.get('certificate_status', 'pending'),
             is_current=data.get('is_current', True)  # Por padrão, nova graduação é atual
@@ -119,11 +111,9 @@ def create_graduation_by_student():
         return jsonify({'error': f'Erro ao criar graduação: {str(e)}'}), 500
 
 @member_graduations_bp.route('/member-status/<int:member_status_id>/graduations', methods=['POST'])
+@login_required
 def create_graduation(member_status_id):
     """Cria uma nova graduação para um membro"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     if not check_member_access(member_status_id):
         return jsonify({'error': 'Acesso negado'}), 403
     
@@ -172,11 +162,9 @@ def create_graduation(member_status_id):
         return jsonify({'error': f'Erro ao criar graduação: {str(e)}'}), 500
 
 @member_graduations_bp.route('/graduations/<int:id>', methods=['GET'])
+@login_required
 def get_graduation(id):
     """Retorna detalhes de uma graduação específica"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     graduation = MemberGraduation.query.get_or_404(id)
     
     if not check_member_access(graduation.member_status_id):
@@ -185,11 +173,9 @@ def get_graduation(id):
     return jsonify(graduation.to_dict())
 
 @member_graduations_bp.route('/graduations/<int:id>', methods=['PUT'])
+@login_required
 def update_graduation(id):
     """Atualiza uma graduação"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     graduation = MemberGraduation.query.get_or_404(id)
     
     if not check_member_access(graduation.member_status_id):
@@ -236,11 +222,9 @@ def update_graduation(id):
         return jsonify({'error': f'Erro ao atualizar graduação: {str(e)}'}), 500
 
 @member_graduations_bp.route('/graduations/<int:id>', methods=['DELETE'])
+@login_required
 def delete_graduation(id):
     """Remove uma graduação"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     graduation = MemberGraduation.query.get_or_404(id)
     
     if not check_member_access(graduation.member_status_id):
@@ -256,11 +240,9 @@ def delete_graduation(id):
         return jsonify({'error': f'Erro ao remover graduação: {str(e)}'}), 500
 
 @member_graduations_bp.route('/graduations/<int:id>/set-current', methods=['POST'])
+@login_required
 def set_graduation_as_current(id):
     """Define uma graduação como atual"""
-    if not require_auth():
-        return jsonify({'error': 'Não autorizado'}), 401
-    
     graduation = MemberGraduation.query.get_or_404(id)
     
     if not check_member_access(graduation.member_status_id):

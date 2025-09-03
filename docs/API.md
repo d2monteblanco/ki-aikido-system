@@ -161,6 +161,7 @@ POST /api/students
 {
   "name": "Maria Santos",
   "email": "maria@exemplo.com",
+  "phone": "+55 11 99999-9999",
   "birth_date": "1985-03-20",
   "address": "Av. Principal, 456, São Paulo, SP",
   "dojo_id": 1,
@@ -175,20 +176,21 @@ POST /api/students
 {
   "message": "Student created successfully",
   "student": {
-    "id": 2,
-    "registration_number": "KIA-001-0002",
+    "id": 1,
+    "registration_number": "KIA-001-0001",
     "name": "Maria Santos",
     "email": "maria@exemplo.com",
+    "phone": "+55 11 99999-9999",
     "birth_date": "1985-03-20",
     "address": "Av. Principal, 456, São Paulo, SP",
     "dojo_id": 1,
-    "dojo_name": "Florianópolis Ki-Aikido Dojo",
-    "registration_date": "2025-08-11T15:30:00.000000",
+    "dojo_name": "Dojo Central",
+    "registration_date": "2025-01-09T10:30:00",
     "started_practicing_year": 2023,
     "status": "active",
     "notes": "Observações sobre a aluna",
-    "created_at": "2025-08-11T15:30:00.000000",
-    "updated_at": "2025-08-11T15:30:00.000000"
+    "created_at": "2025-01-09T10:30:00",
+    "updated_at": "2025-01-09T10:30:00"
   }
 }
 ```
@@ -388,6 +390,7 @@ GET /api/health
   "registration_number": "string (unique, auto-generated)",
   "name": "string",
   "email": "string",
+  "phone": "string|null",
   "birth_date": "date",
   "address": "string",
   "dojo_id": "integer",
@@ -462,6 +465,7 @@ curl -s -b cookies.txt -X POST http://localhost:5000/api/students \
   -d '{
     "name": "Ana Costa",
     "email": "ana@exemplo.com",
+    "phone": "+55 41 98888-7777",
     "birth_date": "1992-07-10",
     "address": "Rua das Palmeiras, 789, Curitiba, PR",
     "dojo_id": 1,
@@ -635,4 +639,299 @@ Para dúvidas sobre a API:
 4. Abra uma issue no GitHub com detalhes da requisição
 
 **Base URL de desenvolvimento**: `http://localhost:5000/api` 🚀
+
+
+
+
+### Alterar Senha
+Permite que o usuário logado altere sua própria senha.
+
+```http
+POST /api/auth/change-password
+```
+
+**Request Body:**
+```json
+{
+  "current_password": "senha_atual",
+  "new_password": "nova_senha_forte"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Password updated successfully"
+}
+```
+
+```
+
+## 🏥 Health Check
+
+### Verificar Status
+Verifica se a API está funcionando.
+
+```http
+GET /api/health
+```
+
+**Response (200):**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-08-11T15:30:00.000000",
+  "version": "1.0.0",
+  "database": "connected"
+}
+```
+
+
+
+
+### Criar Dojo (Admin)
+Cria um novo dojo. Requer permissão de administrador.
+
+```http
+POST /api/dojos
+```
+
+**Request Body:**
+```json
+{
+  "name": "Novo Dojo",
+  "address": "Endereço do Novo Dojo",
+  "contact_email": "contato@novodojo.com",
+  "responsible_instructor": "Nome do Responsável"
+}
+```
+
+**Response (201):**
+```json
+{
+  "message": "Dojo created successfully",
+  "dojo": { ... }
+}
+```
+
+### Atualizar Dojo (Admin)
+Atualiza informações de um dojo. Requer permissão de administrador.
+
+```http
+PUT /api/dojos/{id}
+```
+
+**Request Body:**
+```json
+{
+  "name": "Nome Atualizado do Dojo",
+  "is_active": false
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Dojo updated successfully",
+  "dojo": { ... }
+}
+```
+
+### Estatísticas do Dojo
+Retorna estatísticas de um dojo específico.
+
+```http
+GET /api/dojos/{id}/stats
+```
+
+**Response (200):**
+```json
+{
+  "dojo_id": 1,
+  "dojo_name": "Florianópolis Ki-Aikido Dojo",
+  "stats": {
+    "total_students": 14,
+    "active_students": 12,
+    "inactive_students": 2,
+    "pending_students": 0
+  }
+}
+```
+
+
+
+
+## 🥋 Gestão de Status de Membros
+
+### Listar Status de Membros
+Lista todos os status de membros com filtros e paginação.
+
+```http
+GET /api/member-status
+```
+
+**Query Parameters:**
+- `page`, `per_page`, `search`, `dojo_id`
+- `member_type`: (student, instructor, chief_instructor)
+- `current_status`: (active, inactive, suspended)
+
+**Response (200):**
+```json
+{
+  "members": [ ... ],
+  "pagination": { ... }
+}
+```
+
+### Obter Status de Membro
+Retorna detalhes de um status de membro específico.
+
+```http
+GET /api/member-status/{id}
+```
+
+### Criar Status de Membro
+Cria um novo status de membro para um estudante.
+
+```http
+POST /api/member-status
+```
+
+**Request Body:**
+```json
+{
+  "student_id": 1,
+  "member_type": "student",
+  "current_status": "active",
+  "membership_date": "2024-01-15"
+}
+```
+
+### Atualizar Status de Membro
+Atualiza um status de membro existente.
+
+```http
+PUT /api/member-status/{id}
+```
+
+### Remover Status de Membro
+Remove um status de membro.
+
+```http
+DELETE /api/member-status/{id}
+```
+
+### Obter Constantes
+Retorna constantes usadas nos formulários de status e graduação.
+
+```http
+GET /api/member-status/constants
+```
+
+
+
+
+
+## 🎓 Gestão de Graduações
+
+### Listar Graduações de um Membro
+Lista todas as graduações de um membro específico.
+
+```http
+GET /api/member-status/{member_status_id}/graduations
+```
+
+### Criar Graduação
+Cria uma nova graduação para um membro.
+
+```http
+POST /api/member-status/{member_status_id}/graduations
+```
+
+**Request Body:**
+```json
+{
+  "discipline": "Shinshin Toitsu Aikido",
+  "rank_name": "Shodan",
+  "examination_date": "2025-12-10"
+}
+```
+
+### Obter Graduação
+Retorna detalhes de uma graduação específica.
+
+```http
+GET /api/graduations/{id}
+```
+
+### Atualizar Graduação
+Atualiza uma graduação existente.
+
+```http
+PUT /api/graduations/{id}
+```
+
+### Remover Graduação
+Remove uma graduação.
+
+```http
+DELETE /api/graduations/{id}
+```
+
+### Definir Graduação como Atual
+Marca uma graduação como a mais recente para uma disciplina.
+
+```http
+POST /api/graduations/{id}/set-current
+```
+```
+
+
+
+
+### MemberStatus (Status de Membro)
+```json
+{
+  "id": "integer",
+  "student_id": "integer",
+  "registered_number": "string|null",
+  "membership_date": "date|null",
+  "member_type": "string (student|instructor|chief_instructor)",
+  "current_status": "string (active|inactive|suspended)",
+  "last_activity_year": "integer|null",
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+```
+
+### MemberGraduation (Graduação de Membro)
+```json
+{
+  "id": "integer",
+  "member_status_id": "integer",
+  "discipline": "string (Shinshin Toitsu Aikido|Shinshin Toitsudo)",
+  "rank_name": "string",
+  "rank_level": "integer",
+  "examination_date": "date|null",
+  "certificate_number": "string|null",
+  "certificate_status": "string (pending|issued|received)",
+  "is_current": "boolean",
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+```
+
+### MemberQualification (Qualificação de Membro)
+```json
+{
+  "id": "integer",
+  "member_status_id": "integer",
+  "qualification_type": "string (examiner|lecturer|instructor)",
+  "level": "string",
+  "start_date": "date",
+  "end_date": "date|null",
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+```
 

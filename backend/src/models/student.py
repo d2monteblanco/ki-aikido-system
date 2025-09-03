@@ -7,6 +7,7 @@ class Student(db.Model):
     registration_number = db.Column(db.String(50), unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
+    phone = db.Column(db.String(20), nullable=True)  # Campo telefone adicionado
     birth_date = db.Column(db.Date, nullable=False)
     address = db.Column(db.Text, nullable=False)
     dojo_id = db.Column(db.Integer, db.ForeignKey('dojo.id'), nullable=False)
@@ -56,6 +57,7 @@ class Student(db.Model):
             'registration_number': self.registration_number,
             'name': self.name,
             'email': self.email,
+            'phone': self.phone,
             'birth_date': self.birth_date.isoformat() if self.birth_date else None,
             'address': self.address,
             'dojo_id': self.dojo_id,
@@ -75,6 +77,7 @@ class Student(db.Model):
             'registration_number': self.registration_number,
             'name': self.name,
             'email': self.email,
+            'phone': self.phone,
             'dojo_name': self.dojo.name if self.dojo else None,
             'status': self.status,
             'registration_date': self.registration_date.isoformat() if self.registration_date else None

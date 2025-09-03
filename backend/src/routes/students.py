@@ -169,6 +169,7 @@ def create_student():
             registration_number=registration_number,
             name=data['name'].strip(),
             email=data['email'].lower().strip(),
+            phone=data.get('phone', '').strip() if data.get('phone') else None,
             birth_date=birth_date,
             address=data['address'].strip(),
             dojo_id=dojo_id,
@@ -232,6 +233,9 @@ def update_student(student_id):
         
         if 'address' in data:
             student.address = data['address'].strip()
+        
+        if 'phone' in data:
+            student.phone = data['phone'].strip() if data['phone'] else None
         
         if 'started_practicing_year' in data:
             student.started_practicing_year = data['started_practicing_year']

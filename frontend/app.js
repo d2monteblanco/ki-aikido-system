@@ -8,6 +8,375 @@ let authToken = null;
 // Elementos DOM
 const loginScreen = document.getElementById('loginScreen');
 const mainApp = document.getElementById('mainApp');
+
+// ===== FUNÇÕES UTILITÁRIAS =====
+
+/**
+ * Utilitários para estados de carregamento
+ */
+const LoadingUtils = {
+    show: function(containerId, message = 'Carregando...') {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+    },
+    
+    showError: function(containerId, message = 'Erro ao carregar dados') {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-red-500">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+    },
+    
+    showEmpty: function(containerId, message = 'Nenhum item encontrado', actionButton = null) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            const buttonHtml = actionButton ? 
+                `<button class="btn-primary text-white px-6 py-3 rounded-lg font-medium mt-4">
+                    <i class="fas fa-plus mr-2"></i>${actionButton.text}
+                </button>` : '';
+            
+            container.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium mb-2">${message}</h3>
+                    ${buttonHtml}
+                </div>
+            `;
+            
+            if (actionButton && actionButton.onclick) {
+                const button = container.querySelector('button');
+                if (button) {
+                    button.addEventListener('click', actionButton.onclick);
+                }
+            }
+        }
+    }
+};
+
+/**
+ * Classe genérica para gerenciamento de modais
+ */
+class ModalManager {
+    constructor(modalId) {
+        this.modalId = modalId;
+        this.modal = document.getElementById(modalId);
+        this.form = this.modal ? this.modal.querySelector('form') : null;
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        if (!this.modal) return;
+        
+        // Fechar modal ao clicar no X ou botão cancelar
+        const closeButtons = this.modal.querySelectorAll('[data-close-modal]');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => this.hide());
+        });
+        
+        // Fechar modal ao clicar fora
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.hide();
+            }
+        });
+    }
+    
+    show() {
+        if (this.modal) {
+            this.modal.classList.remove('hidden');
+            // Focar no primeiro input
+            const firstInput = this.modal.querySelector('input, textarea, select');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+        }
+    }
+    
+    hide() {
+        if (this.modal) {
+            this.modal.classList.add('hidden');
+            this.clearForm();
+        }
+    }
+    
+    clearForm() {
+        if (this.form) {
+            this.form.reset();
+            // Limpar campos hidden também
+            const hiddenInputs = this.form.querySelectorAll('input[type="hidden"]');
+            hiddenInputs.forEach(input => input.value = '');
+        }
+    }
+    
+    populateForm(data) {
+        if (!this.form || !data) return;
+        
+        Object.keys(data).forEach(key => {
+            const field = this.form.querySelector(`[name="${key}"], #${key}`);
+            if (field) {
+                if (field.type === 'checkbox') {
+                    field.checked = Boolean(data[key]);
+                } else if (field.type === 'radio') {
+                    const radio = this.form.querySelector(`[name="${key}"][value="${data[key]}"]`);
+                    if (radio) radio.checked = true;
+                } else {
+                    field.value = data[key] || '';
+                }
+            }
+        });
+    }
+    
+    getFormData() {
+        if (!this.form) return {};
+        
+        const formData = new FormData(this.form);
+        const data = {};
+        
+        for (let [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        
+        return data;
+    }
+    
+    setLoading(isLoading, buttonSelector = 'button[type="submit"]') {
+        const button = this.modal.querySelector(buttonSelector);
+        if (button) {
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processando...';
+            } else {
+                button.disabled = false;
+                // Restaurar texto original (assumindo que está em data-original-text)
+                const originalText = button.getAttribute('data-original-text') || 'Salvar';
+                button.innerHTML = originalText;
+            }
+        }
+    }
+}
+
+/**
+ * Utilitários para notificações
+ */
+const NotificationUtils = {
+    show: function(message, type = 'info', duration = 5000) {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${this.getTypeClasses(type)}`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${this.getTypeIcon(type)} mr-2"></i>
+                <span>${message}</span>
+                <button class="ml-4 text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remover após duração especificada
+        if (duration > 0) {
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, duration);
+        }
+        
+        return notification;
+    },
+    
+    getTypeClasses: function(type) {
+        const classes = {
+            'success': 'bg-green-500 text-white',
+            'error': 'bg-red-500 text-white',
+            'warning': 'bg-yellow-500 text-white',
+            'info': 'bg-blue-500 text-white'
+        };
+        return classes[type] || classes.info;
+    },
+    
+    getTypeIcon: function(type) {
+        const icons = {
+            'success': 'fa-check-circle',
+            'error': 'fa-exclamation-circle',
+            'warning': 'fa-exclamation-triangle',
+            'info': 'fa-info-circle'
+        };
+        return icons[type] || icons.info;
+    },
+    
+    success: function(message, duration = 5000) {
+        return this.show(message, 'success', duration);
+    },
+    
+    error: function(message, duration = 7000) {
+        return this.show(message, 'error', duration);
+    },
+    
+    warning: function(message, duration = 6000) {
+        return this.show(message, 'warning', duration);
+    },
+    
+    info: function(message, duration = 5000) {
+        return this.show(message, 'info', duration);
+    }
+};
+
+/**
+ * Utilitários para validação de formulários
+ */
+const ValidationUtils = {
+    email: function(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    },
+    
+    phone: function(phone) {
+        const cleaned = phone.replace(/\D/g, '');
+        return cleaned.length >= 10 && cleaned.length <= 11;
+    },
+    
+    required: function(value) {
+        return value && value.toString().trim().length > 0;
+    },
+    
+    minLength: function(value, min) {
+        return value && value.toString().length >= min;
+    },
+    
+    maxLength: function(value, max) {
+        return !value || value.toString().length <= max;
+    },
+    
+    date: function(dateString) {
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date);
+    },
+    
+    validateForm: function(formElement, rules) {
+        const errors = [];
+        
+        Object.keys(rules).forEach(fieldName => {
+            const field = formElement.querySelector(`[name="${fieldName}"]`);
+            const fieldRules = rules[fieldName];
+            const value = field ? field.value : '';
+            
+            fieldRules.forEach(rule => {
+                if (typeof rule === 'function') {
+                    if (!rule(value)) {
+                        errors.push(`Campo ${fieldName} é inválido`);
+                    }
+                } else if (typeof rule === 'object') {
+                    const { validator, message } = rule;
+                    if (!validator(value)) {
+                        errors.push(message || `Campo ${fieldName} é inválido`);
+                    }
+                }
+            });
+        });
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
+    },
+    
+    showFieldError: function(fieldName, message) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            // Remover erro anterior
+            this.clearFieldError(fieldName);
+            
+            // Adicionar classe de erro
+            field.classList.add('border-red-500');
+            
+            // Criar elemento de erro
+            const errorElement = document.createElement('div');
+            errorElement.className = 'text-red-500 text-sm mt-1';
+            errorElement.textContent = message;
+            errorElement.setAttribute('data-error-for', fieldName);
+            
+            // Inserir após o campo
+            field.parentNode.insertBefore(errorElement, field.nextSibling);
+        }
+    },
+    
+    clearFieldError: function(fieldName) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.remove('border-red-500');
+            const errorElement = document.querySelector(`[data-error-for="${fieldName}"]`);
+            if (errorElement) {
+                errorElement.remove();
+            }
+        }
+    },
+    
+    clearAllErrors: function(formElement) {
+        const errorElements = formElement.querySelectorAll('[data-error-for]');
+        errorElements.forEach(element => element.remove());
+        
+        const errorFields = formElement.querySelectorAll('.border-red-500');
+        errorFields.forEach(field => field.classList.remove('border-red-500'));
+    }
+};
+
+/**
+ * Utilitários para formatação
+ */
+const FormatUtils = {
+    phone: function(phone) {
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length === 11) {
+            return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        } else if (cleaned.length === 10) {
+            return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+        }
+        return phone;
+    },
+    
+    date: function(dateString, format = 'DD/MM/YYYY') {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date)) return dateString;
+        
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        
+        return format
+            .replace('DD', day)
+            .replace('MM', month)
+            .replace('YYYY', year);
+    },
+    
+    currency: function(value, currency = 'BRL') {
+        const number = parseFloat(value);
+        if (isNaN(number)) return value;
+        
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: currency
+        }).format(number);
+    }
+};
+
+// ===== FIM DAS FUNÇÕES UTILITÁRIAS =====
+
+
 const loginForm = document.getElementById('loginForm');
 const loginBtn = document.getElementById('loginBtn');
 const loginBtnText = document.getElementById('loginBtnText');
@@ -495,89 +864,6 @@ async function loadMembersPreview() {
 }
 
 // Carregar dados de alunos
-async function loadStudentsData() {
-    const container = document.getElementById('studentsList');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-            <p>Carregando alunos...</p>
-        </div>
-    `;
-    
-    try {
-        const response = await apiRequest('/students');
-        const students = response.students || [];
-        
-        if (students.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-12 text-gray-500">
-                    <i class="fas fa-user-plus text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium mb-2">Nenhum aluno cadastrado</h3>
-                    <p class="mb-4">Comece adicionando o primeiro aluno ao sistema.</p>
-                    <button class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-plus mr-2"></i>Adicionar Primeiro Aluno
-                    </button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registro</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dojo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            ${students.map(student => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900">${student.name}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${student.email}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${student.registration_number || 'N/A'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${student.dojo_name || 'N/A'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button onclick="showEditStudentModal(${JSON.stringify(student).replace(/"/g, '&quot;')})" class="text-blue-600 hover:text-blue-900 mr-3">
-                                            <i class="fas fa-edit mr-1"></i>Editar
-                                        </button>
-                                        <button onclick="deleteStudent(${student.id}, '${student.name.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-900">
-                                            <i class="fas fa-trash mr-1"></i>Excluir
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Erro ao carregar alunos:', error);
-        container.innerHTML = `
-            <div class="text-center py-12 text-red-500">
-                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                <h3 class="text-lg font-medium mb-2">Erro ao carregar alunos</h3>
-                <p class="mb-4">${error.message}</p>
-                <button onclick="loadStudentsData()" class="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600">
-                    <i class="fas fa-redo mr-2"></i>Tentar Novamente
-                </button>
-            </div>
-        `;
-    }
-}
 
 // Filtrar membros
 function filterMembers() {
@@ -587,14 +873,6 @@ function filterMembers() {
 }
 
 // Obter cor do status
-function getStatusColor(status) {
-    const colors = {
-        'active': 'bg-green-100 text-green-800',
-        'inactive': 'bg-gray-100 text-gray-800',
-        'suspended': 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-}
 
 // Debounce function
 function debounce(func, wait) {
@@ -641,24 +919,37 @@ function hideAddStudentModal() {
 }
 
 // Mostrar modal de editar aluno
-async function showEditStudentModal(student) {
-    const modal = document.getElementById('editStudentModal');
-    if (!modal) return;
-    
-    // Carregar dojos no select
-    await loadDojosInSelect('editStudentDojo');
-    
-    // Preencher formulário com dados do aluno
-    document.getElementById('editStudentId').value = student.id;
-    document.getElementById('editStudentName').value = student.name || '';
-    document.getElementById('editStudentEmail').value = student.email || '';
-    document.getElementById('editStudentBirthDate').value = student.birth_date || '';
-    document.getElementById('editStudentPhone').value = student.phone || '';
-    document.getElementById('editStudentAddress').value = student.address || '';
-    document.getElementById('editStudentDojo').value = student.dojo_id || '';
-    
-    // Mostrar modal
-    modal.classList.remove('hidden');
+async function showEditStudentModal(studentId) {
+    try {
+        // Buscar dados atualizados do aluno
+        const response = await apiRequest(`/students/${studentId}`);
+        const student = response.student;
+        
+        if (!student) {
+            throw new Error('Aluno não encontrado');
+        }
+        
+        const modal = document.getElementById('editStudentModal');
+        if (!modal) return;
+        
+        // Carregar dojos no select
+        await loadDojosInSelect('editStudentDojo');
+        
+        // Preencher formulário com dados do aluno
+        document.getElementById('editStudentId').value = student.id;
+        document.getElementById('editStudentName').value = student.name || '';
+        document.getElementById('editStudentEmail').value = student.email || '';
+        document.getElementById('editStudentBirthDate').value = student.birth_date || '';
+        document.getElementById('editStudentPhone').value = student.phone || '';
+        document.getElementById('editStudentAddress').value = student.address || '';
+        document.getElementById('editStudentDojo').value = student.dojo_id || '';
+        
+        // Mostrar modal
+        modal.classList.remove('hidden');
+    } catch (error) {
+        console.error('Erro ao carregar dados do aluno:', error);
+        alert('Erro ao carregar dados do aluno: ' + error.message);
+    }
 }
 
 // Esconder modal de editar aluno
@@ -845,7 +1136,7 @@ function showErrorMessage(message) {
 }
 
 // Expor funções globalmente
-window.showEditStudentModal = showEditStudentModal;
+
 window.deleteStudent = deleteStudent;
 
 
@@ -1019,92 +1310,6 @@ async function handleAddMemberStatus(event) {
 }
 
 // Corrigir função loadMembersData
-async function loadMembersData() {
-    const container = document.getElementById('membersList');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-            <p>Carregando membros...</p>
-        </div>
-    `;
-    
-    try {
-        const response = await apiRequest('/member-status');
-        const members = response.members || [];
-        
-        if (members.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-12 text-gray-500">
-                    <i class="fas fa-user-graduate text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium mb-2">Nenhum status cadastrado</h3>
-                    <p class="mb-4">Comece adicionando o primeiro status de membro.</p>
-                    <button onclick="showAddMemberStatusModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-plus mr-2"></i>Adicionar Primeiro Status
-                    </button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aluno</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Graduação</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            ${members.map(member => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-medium text-gray-900">${member.student_name || 'N/A'}</div>
-                                        <div class="text-sm text-gray-500">${member.student_email || ''}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${getMemberTypeDisplay(member.member_type)}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(member.current_status)}">
-                                            ${getStatusDisplay(member.current_status)}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
-                                        ${member.latest_rank || 'Sem graduação'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button onclick="editMemberStatus(${member.id})" class="text-blue-600 hover:text-blue-900 mr-3">
-                                            <i class="fas fa-edit mr-1"></i>Editar
-                                        </button>
-                                        <button onclick="deleteMemberStatus(${member.id})" class="text-red-600 hover:text-red-900">
-                                            <i class="fas fa-trash mr-1"></i>Excluir
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Erro ao carregar membros:', error);
-        container.innerHTML = `
-            <div class="text-center py-12 text-red-500">
-                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                <h3 class="text-lg font-medium mb-2">Erro ao carregar membros</h3>
-                <p class="mb-4">${error.message}</p>
-                <button onclick="loadMembersData()" class="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600">
-                    <i class="fas fa-redo mr-2"></i>Tentar Novamente
-                </button>
-            </div>
-        `;
-    }
-}
 
 // Funções auxiliares para exibição
 function getMemberTypeDisplay(type) {
@@ -1167,7 +1372,7 @@ async function deleteMemberStatus(id) {
 
 // Expor funções globalmente
 window.showAddStudentModal = showAddStudentModal;
-window.showEditStudentModal = showEditStudentModal;
+
 window.deleteStudent = deleteStudent;
 window.showAddMemberStatusModal = showAddMemberStatusModal;
 window.editMemberStatus = editMemberStatus;
@@ -1766,60 +1971,10 @@ async function handleAddGraduation(event) {
 }
 
 // Editar graduação
-async function editGraduation(graduationId) {
-    try {
-        const response = await apiRequest(`/graduations/${graduationId}`);
-        const graduation = response;
-        
-        showEditGraduationModal(graduation);
-    } catch (error) {
-        console.error('Erro ao carregar graduação:', error);
-        showErrorMessage('Erro ao carregar dados da graduação');
-    }
-}
 
 // Excluir graduação
-async function deleteGraduation(graduationId) {
-    if (!confirm('Tem certeza que deseja excluir esta graduação?')) {
-        return;
-    }
-    
-    try {
-        await apiRequest(`/graduations/${graduationId}`, 'DELETE');
-        showSuccessMessage('Graduação excluída com sucesso!');
-        
-        // Recarregar detalhes
-        const detailsModal = document.getElementById('memberDetailsModal');
-        if (detailsModal) {
-            // Buscar member_status_id do modal atual
-            const memberStatusId = document.querySelector('[onclick*="showAddGraduationModal"]').onclick.toString().match(/\d+/)[0];
-            showMemberDetails(memberStatusId);
-        }
-        
-    } catch (error) {
-        console.error('Erro ao excluir graduação:', error);
-        showErrorMessage(error.message || 'Erro ao excluir graduação');
-    }
-}
 
 // Definir graduação como atual
-async function setGraduationAsCurrent(graduationId) {
-    try {
-        await apiRequest(`/graduations/${graduationId}/set-current`, 'POST');
-        showSuccessMessage('Graduação definida como atual!');
-        
-        // Recarregar detalhes
-        const detailsModal = document.getElementById('memberDetailsModal');
-        if (detailsModal) {
-            const memberStatusId = document.querySelector('[onclick*="showAddGraduationModal"]').onclick.toString().match(/\d+/)[0];
-            showMemberDetails(memberStatusId);
-        }
-        
-    } catch (error) {
-        console.error('Erro ao definir graduação como atual:', error);
-        showErrorMessage(error.message || 'Erro ao definir graduação como atual');
-    }
-}
 
 
 // ===== FUNÇÕES CRUD PARA QUALIFICAÇÕES =====
@@ -1962,8 +2117,8 @@ function updateQualificationLevelOptions() {
     let levels = {};
     if (type === 'examiner' || type === 'special_examiner') {
         levels = window.qualificationConstants.examiner_levels || {};
-    } else if (type === 'lecturer') {
-        levels = window.qualificationConstants.lecturer_levels || {};
+    } else if (type === 'instructor') {
+        levels = window.qualificationConstants.instructor_levels || {};
     }
     
     // Adicionar níveis
@@ -2028,41 +2183,8 @@ async function handleAddQualification(event) {
 }
 
 // Editar qualificação
-async function editQualification(qualificationId) {
-    try {
-        const response = await apiRequest(`/qualifications/${qualificationId}`);
-        const qualification = response;
-        
-        showEditQualificationModal(qualification);
-    } catch (error) {
-        console.error('Erro ao carregar qualificação:', error);
-        showErrorMessage('Erro ao carregar dados da qualificação');
-    }
-}
 
 // Excluir qualificação
-async function deleteQualification(qualificationId) {
-    if (!confirm('Tem certeza que deseja excluir esta qualificação?')) {
-        return;
-    }
-    
-    try {
-        await apiRequest(`/qualifications/${qualificationId}`, 'DELETE');
-        showSuccessMessage('Qualificação excluída com sucesso!');
-        
-        // Recarregar detalhes
-        const detailsModal = document.getElementById('memberDetailsModal');
-        if (detailsModal) {
-            // Buscar member_status_id do modal atual
-            const memberStatusId = document.querySelector('[onclick*="showAddQualificationModal"]').onclick.toString().match(/\d+/)[0];
-            showMemberDetails(memberStatusId);
-        }
-        
-    } catch (error) {
-        console.error('Erro ao excluir qualificação:', error);
-        showErrorMessage(error.message || 'Erro ao excluir qualificação');
-    }
-}
 
 // Atualizar a lista de membros para incluir botão de detalhes
 function updateMembersListWithDetails() {
@@ -4388,3 +4510,58 @@ window.closeMemberDetailsModal = closeMemberDetailsModal;
 window.loadMemberGraduations = loadMemberGraduations;
 window.loadMemberQualifications = loadMemberQualifications;
 
+
+// Expor função globalmente
+window.showEditStudentModal = showEditStudentModal;
+
+
+// ===== INICIALIZAÇÃO DOS MODAIS =====
+let addStudentModal, editStudentModal, addMemberStatusModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar modais
+    addStudentModal = new ModalManager('addStudentModal');
+    editStudentModal = new ModalManager('editStudentModal');
+    addMemberStatusModal = new ModalManager('addMemberStatusModal');
+    
+    // Configurar botões de ação originais para usar os novos modais
+    const addStudentBtn = document.getElementById('addStudentBtn');
+    if (addStudentBtn) {
+        addStudentBtn.addEventListener('click', () => {
+            addStudentModal.show();
+            loadDojosInSelect('addStudentDojo');
+        });
+    }
+});
+
+// Funções de compatibilidade para manter o código existente funcionando
+function showAddStudentModal() {
+    if (addStudentModal) {
+        addStudentModal.show();
+        loadDojosInSelect('addStudentDojo');
+    }
+}
+
+function hideAddStudentModal() {
+    if (addStudentModal) {
+        addStudentModal.hide();
+    }
+}
+
+function hideEditStudentModal() {
+    if (editStudentModal) {
+        editStudentModal.hide();
+    }
+}
+
+function showAddMemberStatusModal() {
+    if (addMemberStatusModal) {
+        addMemberStatusModal.show();
+    }
+}
+
+function hideAddMemberStatusModal() {
+    if (addMemberStatusModal) {
+        addMemberStatusModal.hide();
+    }
+}

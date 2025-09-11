@@ -7,7 +7,7 @@ class MemberQualification(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     member_status_id = db.Column(db.Integer, db.ForeignKey('member_status.id'), nullable=False)
-    qualification_type = db.Column(db.String(100), nullable=False)  # examiner, lecturer, assistant
+    qualification_type = db.Column(db.String(100), nullable=False)  # examiner, instructor
     qualification_level = db.Column(db.String(100), nullable=True)  # Nível da qualificação
     date_obtained = db.Column(db.Date, nullable=True)  # Data de obtenção
     certificate_number = db.Column(db.String(100), nullable=True)  # Número do certificado
@@ -17,25 +17,21 @@ class MemberQualification(db.Model):
     # Constantes para tipos de qualificação
     QUALIFICATION_TYPES = {
         'examiner': 'Examinador',
-        'lecturer': 'Instrutor/Palestrante',
-        'assistant': 'Assistente',
-        'special_examiner': 'Examinador Especial'
+        'lecturer': 'Instrutor',
     }
     
     # Níveis de qualificação para examinadores
     EXAMINER_LEVELS = {
-        'basic': 'Básico',
-        'intermediate': 'Intermediário',
-        'advanced': 'Avançado',
-        'special': 'Especial'
+        'assistente': 'Assistente',
+        'companheiro': 'Companheiro',
+        'pleno': 'Pleno'
     }
     
     # Níveis de qualificação para instrutores
-    LECTURER_LEVELS = {
-        'assistant': 'Assistente',
-        'instructor': 'Instrutor',
-        'senior_instructor': 'Instrutor Sênior',
-        'master_instructor': 'Instrutor Mestre'
+    INSTRUCTOR_LEVELS = {
+        'assistente': 'Assistente',
+        'companheiro': 'Companheiro',
+        'pleno': 'Pleno'
     }
     
     def __repr__(self):
@@ -47,7 +43,7 @@ class MemberQualification(db.Model):
         if qualification_type == 'examiner' or qualification_type == 'special_examiner':
             return cls.EXAMINER_LEVELS
         elif qualification_type == 'lecturer':
-            return cls.LECTURER_LEVELS
+            return cls.INSTRUCTOR_LEVELS
         return {}
     
     def get_qualification_display(self):

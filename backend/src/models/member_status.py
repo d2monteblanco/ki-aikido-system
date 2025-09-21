@@ -9,7 +9,7 @@ class MemberStatus(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False, unique=True)
     registered_number = db.Column(db.String(50), unique=True, nullable=True)  # Número oficial de registro
     membership_date = db.Column(db.Date, nullable=True)  # Data de filiação/ingresso
-    member_type = db.Column(db.String(50), nullable=False, default='student')  # student, instructor, assistant, chief_instructor
+    member_type = db.Column(db.String(50), nullable=False, default='student')  # student, instructor, chief_instructor
     current_status = db.Column(db.String(50), nullable=False, default='active')  # active, inactive, pending
     last_activity_year = db.Column(db.Integer, nullable=True)  # Último ano de atividade
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -23,7 +23,6 @@ class MemberStatus(db.Model):
     # Constantes para tipos de membro
     MEMBER_TYPES = {
         'student': 'Estudante',
-        'assistant': 'Assistente',
         'instructor': 'Instrutor',
         'chief_instructor': 'Instrutor Chefe'
     }

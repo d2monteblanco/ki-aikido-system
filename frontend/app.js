@@ -529,6 +529,9 @@ function showMainApp() {
     // Atualizar informações do usuário
     updateUserInfo();
     
+    // Controlar visibilidade do card de dojos baseado no role do usuário
+    updateDojosCardVisibility();
+    
     // Carregar perfil do usuário
     loadUserProfile();
     
@@ -558,6 +561,19 @@ function getRoleDisplayName(role) {
         'user': 'Usuário'
     };
     return roles[role] || role;
+}
+
+// Controlar visibilidade do card de dojos baseado no role do usuário
+function updateDojosCardVisibility() {
+    const dojosCard = document.getElementById('dojosStatsCard');
+    if (dojosCard) {
+        // Mostrar card apenas para administradores
+        if (currentUser && currentUser.role === 'admin') {
+            dojosCard.classList.remove('hidden');
+        } else {
+            dojosCard.classList.add('hidden');
+        }
+    }
 }
 
 // Handle login

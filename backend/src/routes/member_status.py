@@ -190,10 +190,21 @@ def delete_member_status(id):
         db.session.rollback()
         return jsonify({'error': f'Erro ao remover status de membro: {str(e)}'}), 500
 
-@member_status_bp.route('/member-status/constants', methods=['GET'])
+@member_status_bp.route('/member-status/constants', methods=['GET', 'OPTIONS'])
 def get_constants():
     """Retorna constantes para formulários"""
-    return jsonify({
+    from flask import make_response
+    
+    # Handle preflight request
+    if request.method == 'OPTIONS':
+        response = make_response('', 200)
+        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+        response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+    
+    response = jsonify({
         'member_types': MemberStatus.MEMBER_TYPES,
         'status_types': MemberStatus.STATUS_TYPES,
         'disciplines': MemberGraduation.DISCIPLINES,
@@ -201,7 +212,13 @@ def get_constants():
         'aikido_ranks': MemberGraduation.AIKIDO_RANKS,
         'qualification_types': MemberQualification.QUALIFICATION_TYPES,
         'examiner_levels': MemberQualification.EXAMINER_LEVELS,
-        'lecturer_levels': MemberQualification.LECTURER_LEVELS,
+        'lecturer_levels': MemberQualification.INSTRUCTOR_LEVELS,  # Corrigido: usar INSTRUCTOR_LEVELS
         'certificate_status': MemberGraduation.CERTIFICATE_STATUS
     })
+    
+    # Add CORS headers explicitly
+    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    
+    return response
 

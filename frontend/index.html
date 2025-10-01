@@ -4,147 +4,263 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Ki Aikido - Gestão Completa</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        .hidden { display: none !important; }
-        .loading { opacity: 0.6; pointer-events: none; }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .card-shadow { box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .btn-primary { 
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.2s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .gradient-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             transition: all 0.3s ease;
         }
-        .btn-primary:hover { 
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
-        .tab-active {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
+        .btn-secondary {
+            background: #6b7280;
+            transition: all 0.3s ease;
         }
-        .tab-inactive {
-            background: #f3f4f6;
-            color: #6b7280;
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
         }
-        .tab-inactive:hover {
-            background: #e5e7eb;
+        .btn-danger {
+            background: #dc2626;
+            transition: all 0.3s ease;
         }
-        .stats-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid #e2e8f0;
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
         }
-        .input-focus:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        .btn-success {
+            background: #059669;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .stat-card {
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+        .input-field {
+            transition: all 0.2s ease;
+        }
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .table-row {
+            transition: background-color 0.2s ease;
+        }
+        .table-row:hover {
+            background-color: #f9fafb;
+        }
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-danger { background-color: #fee2e2; color: #991b1b; }
+        .badge-info { background-color: #dbeafe; color: #1e40af; }
+        .sidebar-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 500px;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none !important;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50">
+
+    <!-- Notificação Toast -->
+    <div id="notification" class="notification hidden">
+        <div class="bg-white rounded-lg shadow-lg p-4 fade-in">
+            <div class="flex items-center">
+                <div id="notificationIcon" class="flex-shrink-0 mr-3"></div>
+                <div class="flex-1">
+                    <p id="notificationMessage" class="text-sm font-medium text-gray-900"></p>
+                </div>
+                <button onclick="hideNotification()" class="ml-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-white text-lg">Carregando...</p>
+        </div>
+    </div>
+
     <!-- Tela de Login -->
-    <div id="loginScreen" class="min-h-screen gradient-bg flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl card-shadow p-8 w-full max-w-md">
-            <!-- Logo e Título -->
+    <div id="loginScreen" class="min-h-screen gradient-primary flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md slide-in">
             <div class="text-center mb-8">
-                <div class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-bolt text-white text-2xl"></i>
+                <div class="bg-gradient-to-r from-purple-600 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-yin-yang text-white text-3xl"></i>
                 </div>
                 <h1 class="text-3xl font-bold text-gray-800 mb-2">Sistema Ki Aikido</h1>
-                <p class="text-gray-600">Gestão Completa das Academias</p>
+                <p class="text-gray-600">Gestão Completa de Academias</p>
             </div>
 
-            <!-- Formulário de Login -->
             <form id="loginForm" class="space-y-6">
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-2"></i>Email
+                    </label>
                     <input 
                         type="email" 
-                        id="email" 
-                        name="email"
+                        id="loginEmail" 
                         required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus transition-all duration-200"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:outline-none"
                         placeholder="seu@email.com"
                     >
                 </div>
                 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Senha
+                    </label>
                     <input 
                         type="password" 
-                        id="password" 
-                        name="password"
+                        id="loginPassword" 
                         required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus transition-all duration-200"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg input-field focus:outline-none"
                         placeholder="Sua senha"
                     >
                 </div>
 
                 <button 
                     type="submit" 
-                    id="loginBtn"
-                    class="w-full btn-primary text-white py-3 px-4 rounded-lg font-medium"
+                    class="w-full btn-primary text-white py-3 px-4 rounded-lg font-medium text-lg"
                 >
-                    <span id="loginBtnText">Entrar</span>
-                    <i id="loginSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    Entrar
                 </button>
             </form>
 
-            <!-- Credenciais de Demonstração -->
             <div class="mt-8 p-4 bg-gray-50 rounded-lg">
                 <p class="text-sm text-gray-600 mb-3 font-medium">Credenciais de Demonstração:</p>
                 <div class="space-y-2">
                     <button 
                         type="button" 
-                        class="w-full text-left p-3 bg-white rounded border hover:bg-gray-50 transition-colors"
-                        onclick="fillCredentials('admin@kiaikido.com', '123456')"
+                        class="w-full text-left p-3 bg-white rounded border hover:bg-gray-50 transition-colors text-sm"
+                        onclick="fillLoginCredentials('admin@kiaikido.com', '123456')"
                     >
-                        <div class="font-medium text-gray-800">admin@kiaikido.com</div>
-                        <div class="text-sm text-gray-500">Administrador (vê todos os dojos)</div>
+                        <strong>Admin:</strong> admin@kiaikido.com / 123456
                     </button>
                     <button 
                         type="button" 
-                        class="w-full text-left p-3 bg-white rounded border hover:bg-gray-50 transition-colors"
-                        onclick="fillCredentials('florianopolis@kiaikido.com', '123456')"
+                        class="w-full text-left p-3 bg-white rounded border hover:bg-gray-50 transition-colors text-sm"
+                        onclick="fillLoginCredentials('florianopolis@kiaikido.com', '123456')"
                     >
-                        <div class="font-medium text-gray-800">florianopolis@kiaikido.com</div>
-                        <div class="text-sm text-gray-500">Dojo Florianópolis</div>
+                        <strong>Dojo Florianópolis:</strong> florianopolis@kiaikido.com / 123456
                     </button>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Senha para todos: 123456</p>
-            </div>
-
-            <!-- Mensagem de Erro -->
-            <div id="loginError" class="mt-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg hidden">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                <span id="loginErrorText"></span>
             </div>
         </div>
     </div>
 
-    <!-- Aplicação Principal -->
-    <div id="mainApp" class="hidden min-h-screen bg-gray-50">
+    <!-- Sistema Principal -->
+    <div id="mainSystem" class="hidden">
         <!-- Header -->
-        <header class="bg-white shadow-sm border-b">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <!-- Logo e Título -->
+        <header class="gradient-primary text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                        <div class="bg-blue-600 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-bolt text-white"></i>
-                        </div>
-                        <h1 class="text-xl font-bold text-gray-800">Ki Aikido</h1>
+                        <i class="fas fa-yin-yang text-2xl mr-3"></i>
+                        <h1 class="text-2xl font-bold">Sistema Ki Aikido</h1>
                     </div>
-
-                    <!-- Info do Usuário e Logout -->
                     <div class="flex items-center space-x-4">
                         <div class="text-right">
-                            <div id="userName" class="text-sm font-medium text-gray-800"></div>
-                            <div id="userRole" class="text-xs text-gray-500"></div>
+                            <p class="text-sm opacity-90">Bem-vindo(a),</p>
+                            <p class="font-medium" id="userName">Usuário</p>
                         </div>
-                        <button 
-                            id="logoutBtn"
-                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
+                        <button onclick="logout()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
                             <i class="fas fa-sign-out-alt mr-2"></i>Sair
                         </button>
                     </div>
@@ -152,1260 +268,672 @@
             </div>
         </header>
 
-        <!-- Navegação por Abas -->
-        <nav class="bg-white border-b">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex space-x-1">
-                    <button 
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 tab-active"
-                        data-tab="dashboard"
-                    >
-                        <i class="fas fa-chart-dashboard mr-2"></i>Dashboard
-                    </button>
-                    <button 
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 tab-inactive"
-                        data-tab="students"
-                    >
-                        <i class="fas fa-users mr-2"></i>Alunos
-                    </button>
-                    <button 
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 tab-inactive"
-                        data-tab="members"
-                    >
-                        <i class="fas fa-graduation-cap mr-2"></i>Status/Graduações/Qualificações
-                    </button>
-                    <button 
-                        id="adminTabButton"
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 tab-inactive hidden"
-                        data-tab="admin"
-                    >
-                        <i class="fas fa-cog mr-2"></i>Administração
-                    </button>
-                    <button 
-                        class="tab-button px-6 py-3 font-medium rounded-t-lg transition-all duration-200 tab-inactive"
-                        data-tab="profile"
-                    >
-                        <i class="fas fa-user mr-2"></i>Perfil
-                    </button>
-                </div>
-            </div>
-        </nav>
+        <!-- Layout Principal -->
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside class="w-64 gradient-primary text-white min-h-screen shadow-xl">
+                <nav class="py-6 px-4">
+                    <div class="space-y-2">
+                        <div class="sidebar-item active px-4 py-3 rounded-lg" onclick="showSection('dashboard')">
+                            <i class="fas fa-chart-line w-6 mr-3"></i>
+                            <span>Dashboard</span>
+                        </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('students')">
+                            <i class="fas fa-users w-6 mr-3"></i>
+                            <span>Alunos</span>
+                        </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('members')">
+                            <i class="fas fa-id-card w-6 mr-3"></i>
+                            <span>Membros</span>
+                        </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('dojos')" id="sidebarDojos">
+                            <i class="fas fa-building w-6 mr-3"></i>
+                            <span>Dojos</span>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
 
-        <!-- Conteúdo Principal -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Dashboard -->
-            <div id="dashboardTab" class="tab-content">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Dashboard</h2>
-                    <p class="text-gray-600">Bem-vindo ao sistema Ki Aikido</p>
-                </div>
+            <!-- Conteúdo Principal -->
+            <main class="flex-1 p-8">
+                <!-- Dashboard -->
+                <section id="dashboardSection" class="section">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h2>
+                    
+                    <!-- Cards de Estatísticas -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Total de Alunos</p>
+                                    <p class="text-3xl font-bold mt-2" id="statTotalStudents">0</p>
+                                </div>
+                                <i class="fas fa-users text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-gradient-to-br from-green-500 to-green-600 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Membros Ativos</p>
+                                    <p class="text-3xl font-bold mt-2" id="statActiveMembers">0</p>
+                                </div>
+                                <i class="fas fa-user-check text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Instrutores</p>
+                                    <p class="text-3xl font-bold mt-2" id="statInstructors">0</p>
+                                </div>
+                                <i class="fas fa-chalkboard-teacher text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Dojos</p>
+                                    <p class="text-3xl font-bold mt-2" id="statTotalDojos">0</p>
+                                </div>
+                                <i class="fas fa-building text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Estatísticas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="stats-card rounded-xl p-6">
-                        <div class="flex items-center justify-between">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">
+                                <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+                                Sobre o Sistema
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Sistema de gestão completa para academias Ki Aikido no Brasil. 
+                                Gerencie alunos, membros, graduações e qualificações de forma centralizada.
+                            </p>
+                            <div class="space-y-2">
+                                <p class="text-sm text-gray-600"><i class="fas fa-check text-green-600 mr-2"></i>Controle de alunos e dojos</p>
+                                <p class="text-sm text-gray-600"><i class="fas fa-check text-green-600 mr-2"></i>Gerenciamento de graduações</p>
+                                <p class="text-sm text-gray-600"><i class="fas fa-check text-green-600 mr-2"></i>Registro de qualificações</p>
+                                <p class="text-sm text-gray-600"><i class="fas fa-check text-green-600 mr-2"></i>Relatórios e estatísticas</p>
+                            </div>
+                        </div>
+
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">
+                                <i class="fas fa-clock mr-2 text-purple-600"></i>
+                                Atividades Recentes
+                            </h3>
+                            <div class="space-y-3">
+                                <p class="text-sm text-gray-600">Nenhuma atividade recente disponível.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de Alunos -->
+                <section id="studentsSection" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">
+                            <i class="fas fa-users mr-2"></i>Alunos
+                        </h2>
+                        <button onclick="openStudentModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>Novo Aluno
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="card p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Total de Alunos</p>
-                                <p id="totalStudents" class="text-3xl font-bold text-gray-800">-</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                <input 
+                                    type="text" 
+                                    id="studentSearch" 
+                                    placeholder="Nome, email ou matrícula..."
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"
+                                    oninput="searchStudents()"
+                                >
                             </div>
-                            <div class="bg-blue-100 p-3 rounded-full">
-                                <i class="fas fa-users text-blue-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stats-card rounded-xl p-6">
-                        <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Membros Ativos</p>
-                                <p id="activeMembers" class="text-3xl font-bold text-gray-800">-</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select 
+                                    id="studentStatusFilter" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"
+                                    onchange="filterStudents()"
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="active">Ativos</option>
+                                    <option value="pending">Pendentes</option>
+                                    <option value="inactive">Inativos</option>
+                                </select>
                             </div>
-                            <div class="bg-green-100 p-3 rounded-full">
-                                <i class="fas fa-user-check text-green-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stats-card rounded-xl p-6">
-                        <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Instrutores</p>
-                                <p id="instructors" class="text-3xl font-bold text-gray-800">-</p>
-                            </div>
-                            <div class="bg-purple-100 p-3 rounded-full">
-                                <i class="fas fa-chalkboard-teacher text-purple-600 text-xl"></i>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Dojo</label>
+                                <select 
+                                    id="studentDojoFilter" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"
+                                    onchange="filterStudents()"
+                                >
+                                    <option value="">Todos</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <div id="dojosStatsCard" class="stats-card rounded-xl p-6">
-                        <div class="flex items-center justify-between">
+                    <!-- Tabela de Alunos -->
+                    <div class="card overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matrícula</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dojo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Alunos serão inseridos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginação -->
+                        <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t">
+                            <div class="text-sm text-gray-700">
+                                Mostrando <span id="studentsPaginationInfo">0</span> alunos
+                            </div>
+                            <div class="flex space-x-2" id="studentsPagination">
+                                <!-- Botões de paginação serão inseridos aqui -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de Membros -->
+                <section id="membersSection" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">
+                            <i class="fas fa-id-card mr-2"></i>Membros
+                        </h2>
+                        <button onclick="openMemberModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-plus mr-2"></i>Novo Membro
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="card p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Dojos</p>
-                                <p id="totalDojosStats" class="text-3xl font-bold text-gray-800">-</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                <input 
+                                    type="text" 
+                                    id="memberSearch" 
+                                    placeholder="Nome ou número de registro..."
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"
+                                    oninput="searchMembers()"
+                                >
                             </div>
-                            <div class="bg-orange-100 p-3 rounded-full">
-                                <i class="fas fa-building text-orange-600 text-xl"></i>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                                <select 
+                                    id="memberTypeFilter" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"
+                                    onchange="filterMembers()"
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="student">Estudante</option>
+                                    <option value="instructor">Instrutor</option>
+                                    <option value="chief_instructor">Instrutor Chefe</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select 
+                                    id="memberStatusFilter" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"
+                                    onchange="filterMembers()"
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="pending">Pendente</option>
+                                </select>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Seções de Gestão -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Gestão de Alunos -->
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                            <i class="fas fa-users mr-2 text-blue-600"></i>Gestão de Alunos
-                        </h3>
-                        <div id="studentsPreview" class="space-y-3">
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                                <p>Carregando alunos...</p>
+                    <!-- Tabela de Membros -->
+                    <div class="card overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Graduações</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="membersTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Membros serão inseridos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginação -->
+                        <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t">
+                            <div class="text-sm text-gray-700">
+                                Mostrando <span id="membersPaginationInfo">0</span> membros
+                            </div>
+                            <div class="flex space-x-2" id="membersPagination">
+                                <!-- Botões de paginação serão inseridos aqui -->
                             </div>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Status e Graduações -->
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                            <i class="fas fa-graduation-cap mr-2 text-purple-600"></i>Status e Graduações dos Membros
-                        </h3>
-                        <div id="membersPreview" class="space-y-3">
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                                <p>Carregando membros...</p>
-                            </div>
-                        </div>
+                <!-- Seção de Dojos -->
+                <section id="dojosSection" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">
+                            <i class="fas fa-building mr-2"></i>Dojos
+                        </h2>
+                        <button onclick="openDojoModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium" id="newDojoBtn">
+                            <i class="fas fa-plus mr-2"></i>Novo Dojo
+                        </button>
                     </div>
-                </div>
-            </div>
 
-            <!-- Aba de Alunos -->
-            <div id="studentsTab" class="tab-content hidden">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Gestão de Alunos</h2>
-                    <p class="text-gray-600">Cadastro e gerenciamento de alunos</p>
-                </div>
+                    <!-- Grid de Dojos -->
+                    <div id="dojosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Dojos serão inseridos aqui -->
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
 
-                <!-- Filtros de Alunos -->
-                <div class="bg-white rounded-xl card-shadow p-6 mb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Modal: Aluno -->
+    <div id="studentModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeStudentModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold" id="studentModalTitle">
+                        <i class="fas fa-user-plus mr-2"></i>Novo Aluno
+                    </h3>
+                </div>
+                
+                <form id="studentForm" class="p-6 space-y-4">
+                    <input type="hidden" id="studentId">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                            <input 
-                                type="text" 
-                                id="studentSearch"
-                                placeholder="Nome, email ou registro..."
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
-                            >
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                            <input type="text" id="studentName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                         </div>
-                        <div data-admin-only="true">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Dojo</label>
-                            <select id="studentDojoFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Todos os dojos</option>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <input type="email" id="studentEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                            <input type="tel" id="studentPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data de Nascimento *</label>
+                            <input type="date" id="studentBirthDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dojo *</label>
+                            <select id="studentDojo" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                <option value="">Selecione...</option>
                             </select>
                         </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ano que Começou a Praticar</label>
+                            <input type="number" id="studentStartYear" min="1900" max="2100" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                        </div>
+                        
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                            <select id="studentStatusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Todos</option>
+                            <select id="studentStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                                 <option value="active">Ativo</option>
                                 <option value="pending">Pendente</option>
                                 <option value="inactive">Inativo</option>
                             </select>
                         </div>
-                        <div class="flex items-end">
-                            <button 
-                                id="clearStudentFilters"
-                                class="w-full px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                                <i class="fas fa-times mr-2"></i>Limpar Filtros
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botão Adicionar Aluno -->
-                <div class="mb-6">
-                    <button 
-                        id="addStudentBtn"
-                        class="btn-primary text-white px-6 py-3 rounded-lg font-medium"
-                    >
-                        <i class="fas fa-plus mr-2"></i>Adicionar Aluno
-                    </button>
-                </div>
-
-                <!-- Lista de Alunos -->
-                <div class="bg-white rounded-xl card-shadow">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Lista de Alunos</h3>
-                            <div class="flex items-center gap-4">
-                                <span id="studentsCount" class="text-sm text-gray-500">0 alunos</span>
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm text-gray-600">Por página:</label>
-                                    <select id="studentsPerPage" class="px-2 py-1 border border-gray-300 rounded text-sm">
-                                        <option value="10">10</option>
-                                        <option value="20" selected>20</option>
-                                        <option value="50">50</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="studentsList">
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                                <p>Carregando alunos...</p>
-                            </div>
-                        </div>
-                        <!-- Paginação de Alunos -->
-                        <div id="studentsPagination" class="mt-6 hidden">
-                            <div class="flex justify-between items-center">
-                                <div class="text-sm text-gray-600">
-                                    Mostrando <span id="studentsShowingStart">0</span> a <span id="studentsShowingEnd">0</span> de <span id="studentsTotal">0</span> alunos
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="studentsPrevPage" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fas fa-chevron-left mr-1"></i>Anterior
-                                    </button>
-                                    <div id="studentsPagesContainer" class="flex gap-1">
-                                        <!-- Páginas serão inseridas aqui -->
-                                    </div>
-                                    <button id="studentsNextPage" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Próxima<i class="fas fa-chevron-right ml-1"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aba de Status/Graduações -->
-            <div id="membersTab" class="tab-content hidden">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Status, Graduações e Qualificações</h2>
-                    <p class="text-gray-600">Gerenciamento completo de status de membros, graduações e qualificações</p>
-                </div>
-
-                <!-- Filtros -->
-                <div class="bg-white rounded-xl card-shadow p-6 mb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                            <input 
-                                type="text" 
-                                id="memberSearch"
-                                placeholder="Nome ou email..."
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
-                            >
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Membro</label>
-                            <select id="memberTypeFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Todos</option>
-                                <option value="student">Estudante</option>
-                                <option value="instructor">Instrutor</option>
-                                <option value="chief_instructor">Instrutor Chefe</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                            <select id="memberStatusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Todos</option>
-                                <option value="active">Ativo</option>
-                                <option value="inactive">Inativo</option>
-                                <option value="suspended">Suspenso</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end">
-                            <button 
-                                id="clearMemberFilters"
-                                class="w-full px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                                <i class="fas fa-times mr-2"></i>Limpar Filtros
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botão Adicionar Status -->
-                <div class="mb-6">
-                    <button 
-                        id="addMemberBtn"
-                        class="btn-primary text-white px-6 py-3 rounded-lg font-medium"
-                    >
-                        <i class="fas fa-plus mr-2"></i>Adicionar Status de Membro
-                    </button>
-                </div>
-
-                <!-- Lista de Membros -->
-                <div class="bg-white rounded-xl card-shadow">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Lista de Membros</h3>
-                            <div class="flex items-center gap-4">
-                                <span id="membersCount" class="text-sm text-gray-500">0 membros</span>
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm text-gray-600">Por página:</label>
-                                    <select id="membersPerPage" class="px-2 py-1 border border-gray-300 rounded text-sm">
-                                        <option value="10">10</option>
-                                        <option value="20" selected>20</option>
-                                        <option value="50">50</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="membersList">
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                                <p>Carregando membros...</p>
-                            </div>
-                        </div>
-                        <!-- Paginação de Membros -->
-                        <div id="membersPagination" class="mt-6 hidden">
-                            <div class="flex justify-between items-center">
-                                <div class="text-sm text-gray-600">
-                                    Mostrando <span id="membersShowingStart">0</span> a <span id="membersShowingEnd">0</span> de <span id="membersTotal">0</span> membros
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="membersPrevPage" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fas fa-chevron-left mr-1"></i>Anterior
-                                    </button>
-                                    <div id="membersPagesContainer" class="flex gap-1">
-                                        <!-- Páginas serão inseridas aqui -->
-                                    </div>
-                                    <button id="membersNextPage" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Próxima<i class="fas fa-chevron-right ml-1"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aba de Administração -->
-            <div id="adminTab" class="tab-content hidden">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Administração</h2>
-                    <p class="text-gray-600">Gerenciamento de dojos e configurações do sistema</p>
-                </div>
-
-                <!-- Estatísticas Administrativas -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                                <i class="fas fa-building text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total de Dojos</p>
-                                <p id="totalDojos" class="text-2xl font-bold text-gray-900">-</p>
-                            </div>
-                        </div>
                     </div>
                     
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-green-100 text-green-600">
-                                <i class="fas fa-check-circle text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Dojos Ativos</p>
-                                <p id="dojosAtivos" class="text-2xl font-bold text-gray-900">-</p>
-                            </div>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Endereço *</label>
+                        <textarea id="studentAddress" required rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"></textarea>
                     </div>
                     
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                                <i class="fas fa-users text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total de Alunos</p>
-                                <p id="totalAlunosAdmin" class="text-2xl font-bold text-gray-900">-</p>
-                            </div>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="studentNotes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"></textarea>
                     </div>
                     
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-orange-100 text-orange-600">
-                                <i class="fas fa-graduation-cap text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total de Membros</p>
-                                <p id="totalMembrosAdmin" class="text-2xl font-bold text-gray-900">-</p>
-                            </div>
-                        </div>
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save mr-2"></i>Salvar
+                        </button>
+                        <button type="button" onclick="closeStudentModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </button>
                     </div>
-                </div>
-
-                <!-- Gestão de Dojos -->
-                <div class="bg-white rounded-xl card-shadow">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-semibold text-gray-800">Gestão de Dojos</h3>
-                            <button 
-                                onclick="openAddDojoModal()"
-                                class="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                            >
-                                <i class="fas fa-plus mr-2"></i>Adicionar Dojo
-                            </button>
-                        </div>
-                        
-                        <!-- Filtros de Dojos -->
-                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                                    <input 
-                                        type="text" 
-                                        id="dojoSearch"
-                                        placeholder="Nome ou endereço..."
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
-                                    >
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                    <select id="dojoStatusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
-                                        <option value="">Todos</option>
-                                        <option value="true">Ativo</option>
-                                        <option value="false">Inativo</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-end">
-                                    <button 
-                                        id="clearDojoFilters"
-                                        class="w-full px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                    >
-                                        <i class="fas fa-times mr-2"></i>Limpar Filtros
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div id="dojosList">
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endereço</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="dojosTableBody" class="bg-white divide-y divide-gray-200">
-                                        <tr>
-                                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                                                <p>Carregando dojos...</p>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
+        </div>
+    </div>
 
-            <!-- Aba de Perfil -->
-            <div id="profileTab" class="tab-content hidden">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Meu Perfil</h2>
-                    <p class="text-gray-600">Gerencie suas informações pessoais e configurações</p>
+    <!-- Modal: Membro -->
+    <div id="memberModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeMemberModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold" id="memberModalTitle">
+                        <i class="fas fa-id-card mr-2"></i>Novo Membro
+                    </h3>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Informações do Usuário -->
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Informações Pessoais</h3>
-                        
-                        <div id="userInfo" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                                <p id="profileUserName" class="text-gray-900 font-medium">-</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <p id="profileUserEmail" class="text-gray-900">-</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuário</label>
-                                <p id="profileUserRole" class="text-gray-900">-</p>
-                            </div>
-                            
-                            <div id="userDojoInfo" class="hidden">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Dojo</label>
-                                <p id="userDojo" class="text-gray-900">-</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Membro desde</label>
-                                <p id="userCreatedAt" class="text-gray-900">-</p>
-                            </div>
-                        </div>
+                
+                <div class="p-6">
+                    <!-- Tabs -->
+                    <div class="flex border-b mb-6">
+                        <button class="px-6 py-3 font-medium border-b-2 border-purple-600 text-purple-600" id="memberInfoTab" onclick="showMemberTab('info')">
+                            <i class="fas fa-info-circle mr-2"></i>Informações
+                        </button>
+                        <button class="px-6 py-3 font-medium text-gray-500" id="memberGraduationsTab" onclick="showMemberTab('graduations')">
+                            <i class="fas fa-medal mr-2"></i>Graduações
+                        </button>
+                        <button class="px-6 py-3 font-medium text-gray-500" id="memberQualificationsTab" onclick="showMemberTab('qualifications')">
+                            <i class="fas fa-certificate mr-2"></i>Qualificações
+                        </button>
                     </div>
-
-                    <!-- Alteração de Senha -->
-                    <div class="bg-white rounded-xl card-shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Alterar Senha</h3>
-                        
-                        <form id="changePasswordForm">
-                            <div class="space-y-4">
+                    
+                    <!-- Tab: Informações -->
+                    <div id="memberInfoTabContent">
+                        <form id="memberForm" class="space-y-4">
+                            <input type="hidden" id="memberId">
+                            <input type="hidden" id="memberStudentId">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Senha Atual *</label>
-                                    <input 
-                                        type="password" 
-                                        id="currentPassword"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
-                                        required
-                                    >
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Selecionar Aluno *</label>
+                                    <select id="memberStudentSelect" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                        <option value="">Selecione um aluno...</option>
+                                    </select>
                                 </div>
                                 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nova Senha *</label>
-                                    <input 
-                                        type="password" 
-                                        id="newPassword"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
-                                        minlength="6"
-                                        required
-                                    >
-                                    <p class="text-xs text-gray-500 mt-1">Mínimo de 6 caracteres</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Número de Registro</label>
+                                    <input type="text" id="memberRegisteredNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                                 </div>
                                 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha *</label>
-                                    <input 
-                                        type="password" 
-                                        id="confirmPassword"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
-                                        required
-                                    >
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data de Filiação</label>
+                                    <input type="date" id="memberMembershipDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                                 </div>
                                 
-                                <button 
-                                    type="submit" 
-                                    class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                                >
-                                    <span id="changePasswordSpinner" class="fas fa-spinner fa-spin mr-2 hidden"></span>
-                                    <span id="changePasswordBtnText">Alterar Senha</span>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Membro *</label>
+                                    <select id="memberType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                        <option value="student">Estudante</option>
+                                        <option value="instructor">Instrutor</option>
+                                        <option value="chief_instructor">Instrutor Chefe</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                                    <select id="memberStatus" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                        <option value="active">Ativo</option>
+                                        <option value="inactive">Inativo</option>
+                                        <option value="pending">Pendente</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Último Ano de Atividade</label>
+                                    <input type="number" id="memberLastActivityYear" min="1900" max="2100" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-4 pt-4">
+                                <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                                    <i class="fas fa-save mr-2"></i>Salvar
+                                </button>
+                                <button type="button" onclick="closeMemberModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                                    <i class="fas fa-times mr-2"></i>Cancelar
                                 </button>
                             </div>
                         </form>
                     </div>
+                    
+                    <!-- Tab: Graduações -->
+                    <div id="memberGraduationsTabContent" class="hidden">
+                        <div class="mb-4">
+                            <button onclick="openGraduationModal()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                                <i class="fas fa-plus mr-2"></i>Nova Graduação
+                            </button>
+                        </div>
+                        <div id="memberGraduationsList" class="space-y-4">
+                            <!-- Graduações serão inseridas aqui -->
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Qualificações -->
+                    <div id="memberQualificationsTabContent" class="hidden">
+                        <div class="mb-4">
+                            <button onclick="openQualificationModal()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                                <i class="fas fa-plus mr-2"></i>Nova Qualificação
+                            </button>
+                        </div>
+                        <div id="memberQualificationsList" class="space-y-4">
+                            <!-- Qualificações serão inseridas aqui -->
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 
-    <!-- Modal Adicionar Status de Membro -->
-    <div id="addMemberStatusModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Adicionar Status/Graduação</h3>
-                <button id="closeAddMemberStatusModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="addMemberStatusForm" class="space-y-4">
-                <!-- Seção: Informações do Aluno -->
-                <div class="border-b pb-4">
-                    <h4 class="text-md font-medium text-gray-800 mb-3">Informações do Aluno</h4>
+    <!-- Modal: Graduação -->
+    <div id="graduationModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeGraduationModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold">
+                        <i class="fas fa-medal mr-2"></i>Nova Graduação
+                    </h3>
+                </div>
+                
+                <form id="graduationForm" class="p-6 space-y-4">
+                    <input type="hidden" id="graduationId">
+                    <input type="hidden" id="graduationMemberStatusId">
+                    
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Aluno *</label>
-                        <select id="memberStatusStudent" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                            <option value="">Selecione um aluno</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Disciplina *</label>
+                        <select id="graduationDiscipline" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none" onchange="updateRankOptions()">
+                            <option value="">Selecione...</option>
+                            <option value="Shinshin Toitsudo">Shinshin Toitsudo</option>
+                            <option value="Shinshin Toitsu Aikido">Shinshin Toitsu Aikido</option>
                         </select>
                     </div>
-                </div>
-
-                <!-- Seção: Status de Membro -->
-                <div class="border-b pb-4">
-                    <h4 class="text-md font-medium text-gray-800 mb-3">Status de Membro</h4>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Membro *</label>
-                            <select id="memberStatusType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Selecione o tipo</option>
-                                <option value="student">Estudante</option>
-                                <option value="assistant">Assistente</option>
-                                <option value="instructor">Instrutor</option>
-                                <option value="chief_instructor">Instrutor Chefe</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Atual *</label>
-                            <select id="memberStatusStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Selecione o status</option>
-                                <option value="active">Ativo</option>
-                                <option value="inactive">Inativo</option>
-                                <option value="pending">Pendente</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Graduação *</label>
+                        <select id="graduationRankName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                            <option value="">Selecione uma disciplina primeiro...</option>
+                        </select>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Registro</label>
-                            <input type="text" id="memberStatusRegisteredNumber" placeholder="Ex: KIA-001-2024" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Filiação</label>
-                            <input type="date" id="memberStatusMembershipDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Último Ano de Atividade</label>
-                        <input type="number" id="memberStatusLastActivityYear" min="2000" max="2030" placeholder="Ex: 2024" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                    </div>
-                </div>
-
-                <!-- Seção: Graduação (Opcional) -->
-                <div>
-                    <h4 class="text-md font-medium text-gray-800 mb-3">Graduação (Opcional)</h4>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
-                            <select id="memberStatusDiscipline" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Selecione a disciplina</option>
-                                <option value="Shinshin Toitsu Aikido">Shinshin Toitsu Aikido</option>
-                                <option value="Shinshin Toitsudo">Shinshin Toitsudo</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Graduação</label>
-                            <select id="memberStatusRank" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Selecione a graduação</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data do Exame</label>
+                        <input type="date" id="graduationExamDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
-                            <input type="date" id="memberStatusExaminationDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
-                            <select id="memberStatusCertificate" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                                <option value="">Selecione o status</option>
-                                <option value="pending">Pendente</option>
-                                <option value="issued">Emitido</option>
-                                <option value="to-be-filed">A ser arquivado</option>
-                            </select>
-                        </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número do Certificado</label>
+                        <input type="text" id="graduationCertificateNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                     </div>
-
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
-                        <input type="text" id="memberStatusCertificateNumber" placeholder="Número do certificado" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status do Certificado</label>
+                        <select id="graduationCertificateStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                            <option value="pending">Pendente</option>
+                            <option value="issued">Emitido</option>
+                            <option value="to-be-filed">A ser arquivado</option>
+                        </select>
                     </div>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelAddMemberStatus" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="addMemberStatusBtnText">Adicionar Status</span>
-                        <i id="addMemberStatusSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Adicionar Aluno -->
-    <div id="addStudentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Adicionar Novo Aluno</h3>
-                <button id="closeAddStudentModal" data-close-modal class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="graduationIsCurrent" class="mr-2">
+                        <label for="graduationIsCurrent" class="text-sm font-medium text-gray-700">Graduação Atual</label>
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save mr-2"></i>Salvar
+                        </button>
+                        <button type="button" onclick="closeGraduationModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </button>
+                    </div>
+                </form>
             </div>
-            
-            <form id="addStudentForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                    <input type="text" id="studentName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="studentEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-                    <input type="date" id="studentBirthDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                    <input type="tel" id="studentPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
-                    <textarea id="studentAddress" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
-                </div>
-                
-                <div data-field="dojo-select">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Dojo</label>
-                    <select id="studentDojo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione um dojo</option>
-                    </select>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelAddStudent" data-close-modal class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="addStudentBtnText">Adicionar Aluno</span>
-                        <i id="addStudentSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- Modal Editar Aluno -->
-    <div id="editStudentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Editar Aluno</h3>
-                <button id="closeEditStudentModal" data-close-modal class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Modal: Qualificação -->
+    <div id="qualificationModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeQualificationModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold">
+                        <i class="fas fa-certificate mr-2"></i>Nova Qualificação
+                    </h3>
+                </div>
+                
+                <form id="qualificationForm" class="p-6 space-y-4">
+                    <input type="hidden" id="qualificationId">
+                    <input type="hidden" id="qualificationMemberStatusId">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Qualificação *</label>
+                        <select id="qualificationType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none" onchange="updateQualificationLevelOptions()">
+                            <option value="">Selecione...</option>
+                            <option value="examiner">Examinador</option>
+                            <option value="lecturer">Instrutor</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nível</label>
+                        <select id="qualificationLevel" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                            <option value="">Selecione um tipo primeiro...</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Obtenção</label>
+                        <input type="date" id="qualificationDateObtained" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número do Certificado</label>
+                        <input type="text" id="qualificationCertificateNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="qualificationIsActive" checked class="mr-2">
+                        <label for="qualificationIsActive" class="text-sm font-medium text-gray-700">Qualificação Ativa</label>
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save mr-2"></i>Salvar
+                        </button>
+                        <button type="button" onclick="closeQualificationModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </button>
+                    </div>
+                </form>
             </div>
-            
-            <form id="editStudentForm" class="space-y-4">
-                <input type="hidden" id="editStudentId">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                    <input type="text" id="editStudentName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="editStudentEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-                    <input type="date" id="editStudentBirthDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                    <input type="tel" id="editStudentPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
-                    <textarea id="editStudentAddress" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Dojo</label>
-                    <select id="editStudentDojo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione um dojo</option>
-                    </select>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelEditStudent" data-close-modal class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="editStudentBtnText">Salvar Alterações</span>
-                        <i id="editStudentSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 text-center">
-            <i class="fas fa-spinner fa-spin text-3xl text-blue-600 mb-4"></i>
-            <p class="text-gray-700">Carregando...</p>
+    <!-- Modal: Dojo -->
+    <div id="dojoModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeDojoModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold" id="dojoModalTitle">
+                        <i class="fas fa-building mr-2"></i>Novo Dojo
+                    </h3>
+                </div>
+                
+                <form id="dojoForm" class="p-6 space-y-4">
+                    <input type="hidden" id="dojoId">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome *</label>
+                        <input type="text" id="dojoName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Endereço</label>
+                        <textarea id="dojoAddress" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email de Contato</label>
+                        <input type="email" id="dojoContactEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Telefone de Contato</label>
+                        <input type="tel" id="dojoContactPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Instrutor Responsável</label>
+                        <input type="text" id="dojoResponsibleInstructor" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de Registro</label>
+                        <input type="text" id="dojoRegistrationNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save mr-2"></i>Salvar
+                        </button>
+                        <button type="button" onclick="closeDojoModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
+    <!-- Script Principal -->
     <script src="app.js"></script>
 </body>
 </html>
-
-
-    <!-- Modal Adicionar Dojo -->
-    <div id="addDojoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Adicionar Novo Dojo</h3>
-                <button id="closeAddDojoModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="addDojoForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Dojo</label>
-                    <input type="text" id="dojoName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
-                    <textarea id="dojoAddress" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email de Contato</label>
-                    <input type="email" id="dojoContactEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone de Contato</label>
-                    <input type="tel" id="dojoContactPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="dojoIsActive" checked class="mr-2">
-                    <label for="dojoIsActive" class="text-sm text-gray-700">Dojo Ativo</label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelAddDojo" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="addDojoBtnText">Adicionar Dojo</span>
-                        <i id="addDojoSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Editar Dojo -->
-    <div id="editDojoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Editar Dojo</h3>
-                <button id="closeEditDojoModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="editDojoForm" class="space-y-4">
-                <input type="hidden" id="editDojoId">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Dojo</label>
-                    <input type="text" id="editDojoName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
-                    <textarea id="editDojoAddress" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email de Contato</label>
-                    <input type="email" id="editDojoContactEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefone de Contato</label>
-                    <input type="tel" id="editDojoContactPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="editDojoIsActive" class="mr-2">
-                    <label for="editDojoIsActive" class="text-sm text-gray-700">Dojo Ativo</label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelEditDojo" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="editDojoBtnText">Salvar Alterações</span>
-                        <i id="editDojoSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- Modal Adicionar Graduação -->
-    <div id="addGraduationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Adicionar Nova Graduação</h3>
-                <button id="closeAddGraduationModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="addGraduationForm" class="space-y-4">
-                <input type="hidden" id="graduationMemberStatusId">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
-                    <select id="graduationDiscipline" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione a disciplina</option>
-                        <option value="aikido">Aikido</option>
-                        <option value="toitsudo">Toitsudo</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduação</label>
-                    <input type="text" id="graduationRank" required placeholder="Ex: Shodan, Nidan, 1º Kyu..." class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
-                    <input type="date" id="graduationExaminationDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
-                    <input type="text" id="graduationCertificateNumber" placeholder="Opcional" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
-                    <select id="graduationCertificateStatus" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="pending">Pendente</option>
-                        <option value="issued">Emitido</option>
-                        <option value="received">Recebido</option>
-                    </select>
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="graduationIsCurrent" class="mr-2">
-                    <label for="graduationIsCurrent" class="text-sm text-gray-700">Graduação atual para esta disciplina</label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelAddGraduation" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="addGraduationBtnText">Adicionar Graduação</span>
-                        <i id="addGraduationSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Editar Graduação -->
-    <div id="editGraduationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Editar Graduação</h3>
-                <button id="closeEditGraduationModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="editGraduationForm" class="space-y-4">
-                <input type="hidden" id="editGraduationId">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
-                    <select id="editGraduationDiscipline" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="aikido">Aikido</option>
-                        <option value="toitsudo">Toitsudo</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduação</label>
-                    <input type="text" id="editGraduationRank" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data do Exame</label>
-                    <input type="date" id="editGraduationExaminationDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
-                    <input type="text" id="editGraduationCertificateNumber" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status do Certificado</label>
-                    <select id="editGraduationCertificateStatus" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="pending">Pendente</option>
-                        <option value="issued">Emitido</option>
-                        <option value="received">Recebido</option>
-                    </select>
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="editGraduationIsCurrent" class="mr-2">
-                    <label for="editGraduationIsCurrent" class="text-sm text-gray-700">Graduação atual para esta disciplina</label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelEditGraduation" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="editGraduationBtnText">Salvar Alterações</span>
-                        <i id="editGraduationSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- Modal Adicionar Qualificação -->
-    <div id="addQualificationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Adicionar Nova Qualificação</h3>
-                <button id="closeAddQualificationModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="addQualificationForm" class="space-y-4">
-                <input type="hidden" id="qualificationMemberStatusId">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Qualificação</label>
-                    <select id="qualificationType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="">Selecione o tipo</option>
-                        <option value="examiner">Examinador</option>
-                        <option value="instructor">Instrutor</option>
-                        <option value="chief_instructor">Instrutor Chefe</option>
-                        <option value="regional_representative">Representante Regional</option>
-                        <option value="national_representative">Representante Nacional</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nível</label>
-                    <input type="text" id="qualificationLevel" required placeholder="Ex: Nível 1, Básico, Avançado..." class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Obtenção</label>
-                    <input type="date" id="qualificationDateObtained" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
-                    <input type="text" id="qualificationCertificateNumber" placeholder="Opcional" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="qualificationIsActive" checked class="mr-2">
-                    <label for="qualificationIsActive" class="text-sm text-gray-700">Qualificação ativa</label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelAddQualification" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="addQualificationBtnText">Adicionar Qualificação</span>
-                        <i id="addQualificationSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Editar Qualificação -->
-    <div id="editQualificationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Editar Qualificação</h3>
-                <button id="closeEditQualificationModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="editQualificationForm" class="space-y-4">
-                <input type="hidden" id="editQualificationId">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Qualificação</label>
-                    <select id="editQualificationType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                        <option value="examiner">Examinador</option>
-                        <option value="instructor">Instrutor</option>
-                        <option value="chief_instructor">Instrutor Chefe</option>
-                        <option value="regional_representative">Representante Regional</option>
-                        <option value="national_representative">Representante Nacional</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nível</label>
-                    <input type="text" id="editQualificationLevel" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Data de Obtenção</label>
-                    <input type="date" id="editQualificationDateObtained" required class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Número do Certificado</label>
-                    <input type="text" id="editQualificationCertificateNumber" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="editQualificationIsActive" class="mr-2">
-                    <label for="editQualificationIsActive" class="text-sm text-gray-700">Qualificação ativa</label>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancelEditQualification" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <span id="editQualificationBtnText">Salvar Alterações</span>
-                        <i id="editQualificationSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- Modal Detalhes de Membro -->
-    <div id="memberDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-semibold text-gray-800">Detalhes do Membro</h3>
-                <button id="closeMemberDetailsModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            
-            <!-- Informações Básicas -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h4 class="text-lg font-medium text-gray-800 mb-3">Informações Básicas</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Nome</label>
-                        <p id="memberDetailName" class="text-gray-900 font-medium">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Email</label>
-                        <p id="memberDetailEmail" class="text-gray-900">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Telefone</label>
-                        <p id="memberDetailPhone" class="text-gray-900">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Dojo</label>
-                        <p id="memberDetailDojo" class="text-gray-900">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Número de Registro</label>
-                        <p id="memberDetailRegistration" class="text-gray-900 font-mono">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Status</label>
-                        <span id="memberDetailStatus" class="px-2 py-1 text-xs rounded-full">-</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Status de Membro -->
-            <div class="bg-white border rounded-lg p-4 mb-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-lg font-medium text-gray-800">Status de Membro</h4>
-                    <button onclick="editMemberStatus(window.currentMemberStatusId)" class="text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-edit mr-1"></i>Editar
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Número de Membro</label>
-                        <p id="memberDetailMemberNumber" class="text-gray-900">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Data de Adesão</label>
-                        <p id="memberDetailMembershipDate" class="text-gray-900">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Tipo de Membro</label>
-                        <p id="memberDetailMemberType" class="text-gray-900">-</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Última Atividade</label>
-                        <p id="memberDetailLastActivity" class="text-gray-900">-</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Graduações -->
-            <div class="bg-white border rounded-lg p-4 mb-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-lg font-medium text-gray-800">Graduações</h4>
-                    <button onclick="openAddGraduationModal(window.currentMemberStatusId)" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                        <i class="fas fa-plus mr-1"></i>Adicionar
-                    </button>
-                </div>
-                <div id="memberGraduationsList" class="space-y-3">
-                    <div class="text-center py-4 text-gray-500">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p class="mt-2">Carregando graduações...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Qualificações -->
-            <div class="bg-white border rounded-lg p-4">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-lg font-medium text-gray-800">Qualificações</h4>
-                    <button onclick="openAddQualificationModal(window.currentMemberStatusId)" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">
-                        <i class="fas fa-plus mr-1"></i>Adicionar
-                    </button>
-                </div>
-                <div id="memberQualificationsList" class="space-y-3">
-                    <div class="text-center py-4 text-gray-500">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p class="mt-2">Carregando qualificações...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-

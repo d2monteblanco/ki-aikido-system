@@ -301,10 +301,18 @@ function updateDojoFilters() {
     
     // Filtro de Cadastro Básicos
     if (studentDojoFilter) {
-        studentDojoFilter.innerHTML = '<option value="">Todos</option>';
-        allDojos.forEach(dojo => {
-            studentDojoFilter.innerHTML += `<option value="${dojo.id}">${dojo.name}</option>`;
-        });
+        // Se for admin, mostra "Todos" + lista de dojos
+        if (currentUser && currentUser.role === 'admin') {
+            studentDojoFilter.innerHTML = '<option value="">Todos</option>';
+            allDojos.forEach(dojo => {
+                studentDojoFilter.innerHTML += `<option value="${dojo.id}">${dojo.name}</option>`;
+            });
+        } 
+        // Se for usuário de dojo, mostra apenas o dojo dele (sem "Todos")
+        else if (currentUser && currentUser.dojo_id) {
+            studentDojoFilter.innerHTML = `<option value="${currentUser.dojo_id}">${currentUser.dojo_name}</option>`;
+            studentDojoFilter.disabled = true; // Desabilita o select já que só tem uma opção
+        }
     }
     
     // Select de dojo no formulário de Cadastro Básico

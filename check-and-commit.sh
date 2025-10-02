@@ -64,16 +64,15 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "Refactor: Integrar status de Cadastro Básico com área de Membros
+git commit -m "Fix: Filtro de dojo adaptado para usuários não-admin
 
-- Remove campo status do modelo Student (backend)
-- Status agora vem de MemberStatus.current_status
-- Remove campo status do modal e filtro (frontend)
-- Adiciona botão Criar Membro quando estudante não tem member_status
-- Botão abre modal de membro automaticamente com estudante pré-selecionado
-- Schema do banco atualizado (coluna status removida)
+   - Admin vê Todos + lista completa de dojos
+   - Usuário de dojo vê APENAS seu dojo (sem Todos)
+   - Campo desabilitado para usuários de dojo
+   - CSS adicionado para visual de campo desabilitado
 
-BREAKING CHANGE: Banco de dados precisa ser reinicializado"
+   Arquivos: frontend/app.js, frontend/index.html
+"
 
 if [ $? -eq 0 ]; then
     echo ""

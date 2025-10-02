@@ -20,7 +20,6 @@ def get_students():
         per_page = request.args.get('per_page', 20, type=int)
         search = request.args.get('search', '').strip()
         dojo_id = request.args.get('dojo_id', type=int)
-        status = request.args.get('status', '').strip()
         
         # Query base
         query = Student.query
@@ -41,10 +40,6 @@ def get_students():
                     Student.registration_number.ilike(search_filter)
                 )
             )
-        
-        # Filtro por status
-        if status:
-            query = query.filter(Student.status == status)
         
         # Ordenação
         query = query.order_by(Student.name.asc())
@@ -175,7 +170,6 @@ def create_student():
             dojo_id=dojo_id,
             registration_date=registration_date,
             started_practicing_year=data.get('started_practicing_year'),
-            status=data.get('status', 'active'),
             notes=data.get('notes', '').strip() if data.get('notes') else None
         )
         
@@ -240,9 +234,6 @@ def update_student(student_id):
         if 'started_practicing_year' in data:
             student.started_practicing_year = data['started_practicing_year']
         
-        if 'status' in data:
-            student.status = data['status']
-        
         if 'notes' in data:
             student.notes = data['notes'].strip() if data['notes'] else None
         
@@ -268,7 +259,7 @@ def update_student(student_id):
 @students_bp.route('/students/<int:student_id>', methods=['DELETE'])
 @login_required
 def delete_student(student_id):
-    """Exclui um Cadastro Básico (soft delete)"""
+    """Exclui um Cadastro Básico"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -282,9 +273,8 @@ def delete_student(student_id):
         if not current_user.can_access_dojo(student.dojo_id):
             return jsonify({'error': 'Access denied'}), 403
         
-        # Soft delete - marca como inativo
-        student.status = 'inactive'
-        student.updated_at = datetime.utcnow()
+        # Hard delete - remove permanentemente (cascade irá remover member_status)
+        db.session.delete(student)
         db.session.commit()
         
         return jsonify({'message': 'Student deleted successfully'}), 200
@@ -311,12 +301,17 @@ def get_students_stats():
         
         # Estatísticas
         total = query.count()
-        active = query.filter(Student.status == 'active').count()
-        pending = query.filter(Student.status == 'pending').count()
-        inactive = query.filter(Student.status == 'inactive').count()
         
         # Calcular estatísticas adicionais
         from src.models import MemberStatus, Dojo
+        
+        # Contar membros ativos (via member_status)
+        active_query = MemberStatus.query.filter(
+            MemberStatus.current_status == 'active'
+        )
+        if not current_user.is_admin():
+            active_query = active_query.join(Student).filter(Student.dojo_id == current_user.dojo_id)
+        active = active_query.count()
         
         # Contar instrutores (membros com tipo instructor ou chief_instructor)
         instructor_query = MemberStatus.query.filter(
@@ -336,9 +331,7 @@ def get_students_stats():
             'total_students': total,
             'active_members': active,
             'instructors': instructors,
-            'total_dojos': total_dojos,
-            'pending_students': pending,
-            'inactive_students': inactive
+            'total_dojos': total_dojos
         }), 200
         
     except Exception as e:

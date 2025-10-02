@@ -510,6 +510,22 @@ function renderStudentsTable(students) {
             inactive: '<span class="badge badge-danger">Inativo</span>'
         };
         
+        // Se o estudante não tem member_status, mostra botão para criar
+        let statusDisplay;
+        if (!student.has_member_status) {
+            statusDisplay = `
+                <button 
+                    onclick="openMemberModalForStudent(${student.id}, '${student.name.replace(/'/g, "\\'")}')" 
+                    class="btn-primary text-white px-3 py-1 rounded text-xs"
+                    title="Criar registro de membro"
+                >
+                    <i class="fas fa-user-plus mr-1"></i>Criar Membro
+                </button>
+            `;
+        } else {
+            statusDisplay = statusBadges[student.status] || student.status;
+        }
+        
         return `
             <tr class="table-row">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -525,7 +541,7 @@ function renderStudentsTable(students) {
                     ${student.dojo_name || 'N/A'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    ${statusBadges[student.status] || student.status}
+                    ${statusDisplay}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button onclick="viewStudent(${student.id})" class="text-blue-600 hover:text-blue-900" title="Visualizar">
@@ -588,10 +604,8 @@ function searchStudents() {
 }
 
 function filterStudents() {
-    const status = document.getElementById('studentStatusFilter').value;
     const dojoId = document.getElementById('studentDojoFilter').value;
     
-    currentFilters.students.status = status;
     currentFilters.students.dojo_id = dojoId;
     
     loadStudents(1);
@@ -615,13 +629,11 @@ function openStudentModal(studentId = null) {
             document.getElementById('studentBirthDate').value = student.birth_date;
             document.getElementById('studentDojo').value = student.dojo_id;
             document.getElementById('studentStartYear').value = student.started_practicing_year || '';
-            document.getElementById('studentStatus').value = student.status;
             document.getElementById('studentAddress').value = student.address;
             document.getElementById('studentNotes').value = student.notes || '';
         }
     } else {
         title.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Novo Cadastro Básico';
-        document.getElementById('studentStatus').value = 'active';
     }
     
     modal.classList.remove('hidden');
@@ -667,7 +679,6 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         birth_date: document.getElementById('studentBirthDate').value,
         dojo_id: parseInt(document.getElementById('studentDojo').value),
         started_practicing_year: document.getElementById('studentStartYear').value ? parseInt(document.getElementById('studentStartYear').value) : null,
-        status: document.getElementById('studentStatus').value,
         address: document.getElementById('studentAddress').value,
         notes: document.getElementById('studentNotes').value
     };
@@ -903,6 +914,45 @@ async function openMemberModal(memberId = null) {
 function closeMemberModal() {
     document.getElementById('memberModal').classList.add('hidden');
     currentMemberStatusId = null;
+}
+
+async function openMemberModalForStudent(studentId, studentName) {
+    // Esconde todas as seções
+    document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
+    
+    // Remove active de todos os sidebar items
+    document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+    
+    // Mostra a seção de membros
+    document.getElementById('membersSection').classList.remove('hidden');
+    
+    // Adiciona active no sidebar item de membros (terceiro item)
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    if (sidebarItems[2]) {
+        sidebarItems[2].classList.add('active');
+    }
+    
+    // Carrega membros
+    await loadMembers();
+    
+    // Aguarda um pouco para garantir que tudo foi carregado
+    setTimeout(async () => {
+        await openMemberModal();
+        
+        // Pré-seleciona o estudante
+        const selectElement = document.getElementById('memberStudentSelect');
+        if (selectElement) {
+            selectElement.value = studentId;
+        }
+        
+        const hiddenElement = document.getElementById('memberStudentId');
+        if (hiddenElement) {
+            hiddenElement.value = studentId;
+        }
+        
+        // Mensagem de ajuda
+        showNotification(`Criando registro de membro para: ${studentName}`, 'info');
+    }, 300);
 }
 
 function viewMember(memberId) {

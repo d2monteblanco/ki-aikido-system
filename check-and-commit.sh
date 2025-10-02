@@ -64,7 +64,16 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "Icone Ki Adicionado"
+git commit -m "Refactor: Integrar status de Cadastro Básico com área de Membros
+
+- Remove campo status do modelo Student (backend)
+- Status agora vem de MemberStatus.current_status
+- Remove campo status do modal e filtro (frontend)
+- Adiciona botão Criar Membro quando estudante não tem member_status
+- Botão abre modal de membro automaticamente com estudante pré-selecionado
+- Schema do banco atualizado (coluna status removida)
+
+BREAKING CHANGE: Banco de dados precisa ser reinicializado"
 
 if [ $? -eq 0 ]; then
     echo ""

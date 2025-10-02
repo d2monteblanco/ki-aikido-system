@@ -13,7 +13,6 @@ class Student(db.Model):
     dojo_id = db.Column(db.Integer, db.ForeignKey('dojo.id'), nullable=False)
     registration_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     started_practicing_year = db.Column(db.Integer, nullable=True)
-    status = db.Column(db.String(20), nullable=False, default='active')  # active, pending, inactive
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -52,6 +51,11 @@ class Student(db.Model):
         return cleaned if cleaned else None
 
     def to_dict(self):
+        # Busca o status do relacionamento member_status
+        member_status_obj = self.member_status if hasattr(self, 'member_status') else None
+        current_status = member_status_obj.current_status if member_status_obj else None
+        has_member_status = member_status_obj is not None
+        
         return {
             'id': self.id,
             'registration_number': self.registration_number,
@@ -64,7 +68,8 @@ class Student(db.Model):
             'dojo_name': self.dojo.name if self.dojo else None,
             'registration_date': self.registration_date.isoformat() if self.registration_date else None,
             'started_practicing_year': self.started_practicing_year,
-            'status': self.status,
+            'status': current_status,
+            'has_member_status': has_member_status,
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
@@ -72,6 +77,11 @@ class Student(db.Model):
 
     def to_summary(self):
         """Retorna um resumo do Cadastro Básico para listagens"""
+        # Busca o status do relacionamento member_status
+        member_status_obj = self.member_status if hasattr(self, 'member_status') else None
+        current_status = member_status_obj.current_status if member_status_obj else None
+        has_member_status = member_status_obj is not None
+        
         return {
             'id': self.id,
             'registration_number': self.registration_number,
@@ -79,7 +89,8 @@ class Student(db.Model):
             'email': self.email,
             'phone': self.phone,
             'dojo_name': self.dojo.name if self.dojo else None,
-            'status': self.status,
+            'status': current_status,
+            'has_member_status': has_member_status,
             'registration_date': self.registration_date.isoformat() if self.registration_date else None
         }
 

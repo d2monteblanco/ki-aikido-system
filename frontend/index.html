@@ -295,6 +295,14 @@
                             <i class="fas fa-building w-6 mr-3"></i>
                             <span>Dojos</span>
                         </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('profile')">
+                            <i class="fas fa-user-circle w-6 mr-3"></i>
+                            <span>Meu Perfil</span>
+                        </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('users')" id="sidebarUsers">
+                            <i class="fas fa-users-cog w-6 mr-3"></i>
+                            <span>Gerenciar Usuários</span>
+                        </div>
                     </div>
                 </nav>
             </aside>
@@ -543,6 +551,102 @@
                     <!-- Grid de Dojos -->
                     <div id="dojosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Dojos serão inseridos aqui -->
+                    </div>
+                </section>
+
+                <!-- Seção de Perfil do Usuário -->
+                <section id="profileSection" class="section hidden">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-user-circle mr-2"></i>Meu Perfil
+                    </h2>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Card de Informações do Perfil -->
+                        <div class="card p-6 lg:col-span-2">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">
+                                <i class="fas fa-info-circle mr-2"></i>Informações do Perfil
+                            </h3>
+                            <form id="profileForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+                                    <input type="text" id="profileName" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="profileEmail" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Conta</label>
+                                    <input type="text" id="profileRole" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <div id="profileDojoDiv">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Dojo</label>
+                                    <input type="text" id="profileDojo" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <div class="flex gap-3 pt-4">
+                                    <button type="button" onclick="updateProfile()" class="btn-primary text-white px-6 py-2 rounded-lg font-medium">
+                                        <i class="fas fa-save mr-2"></i>Salvar Alterações
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Card de Alterar Senha -->
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">
+                                <i class="fas fa-key mr-2"></i>Alterar Senha
+                            </h3>
+                            <form id="changePasswordForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Senha Atual</label>
+                                    <input type="password" id="currentPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nova Senha</label>
+                                    <input type="password" id="newPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha</label>
+                                    <input type="password" id="confirmPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                                </div>
+                                <button type="submit" class="w-full btn-success text-white px-6 py-2 rounded-lg font-medium">
+                                    <i class="fas fa-lock mr-2"></i>Alterar Senha
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de Gerenciamento de Usuários (Admin) -->
+                <section id="usersSection" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">
+                            <i class="fas fa-users-cog mr-2"></i>Gerenciar Usuários
+                        </h2>
+                        <button onclick="openUserModal()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-user-plus mr-2"></i>Novo Usuário
+                        </button>
+                    </div>
+
+                    <!-- Tabela de Usuários -->
+                    <div class="card overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dojo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Usuários serão inseridos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
             </main>
@@ -908,6 +1012,108 @@
                             <i class="fas fa-save mr-2"></i>Salvar
                         </button>
                         <button type="button" onclick="closeDojoModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Usuário -->
+    <div id="userModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeUserModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold" id="userModalTitle">
+                        <i class="fas fa-user-plus mr-2"></i>Novo Usuário
+                    </h3>
+                </div>
+                
+                <form id="userForm" class="p-6 space-y-4">
+                    <input type="hidden" id="userId">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                        <input type="text" id="userFormName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" id="userFormEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div id="userPasswordDiv">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha *</label>
+                        <input type="password" id="userFormPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Conta *</label>
+                        <select id="userFormRole" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                            <option value="">Selecione...</option>
+                            <option value="admin">Administrador</option>
+                            <option value="dojo_user">Usuário de Dojo</option>
+                        </select>
+                    </div>
+                    
+                    <div id="userDojoDiv">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dojo *</label>
+                        <select id="userFormDojo" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="userFormActive" checked class="mr-2">
+                        <label for="userFormActive" class="text-sm font-medium text-gray-700">Usuário ativo</label>
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-save mr-2"></i>Salvar
+                        </button>
+                        <button type="button" onclick="closeUserModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Reset de Senha -->
+    <div id="resetPasswordModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeResetPasswordModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <h3 class="text-2xl font-bold">
+                        <i class="fas fa-key mr-2"></i>Resetar Senha
+                    </h3>
+                </div>
+                
+                <form id="resetPasswordForm" class="p-6 space-y-4">
+                    <input type="hidden" id="resetPasswordUserId">
+                    
+                    <p class="text-gray-600 mb-4">Digite a nova senha para o usuário: <strong id="resetPasswordUserName"></strong></p>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nova Senha *</label>
+                        <input type="password" id="resetPasswordNew" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha *</label>
+                        <input type="password" id="resetPasswordConfirm" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
+                    </div>
+                    
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-check mr-2"></i>Resetar
+                        </button>
+                        <button type="button" onclick="closeResetPasswordModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
                             <i class="fas fa-times mr-2"></i>Cancelar
                         </button>
                     </div>

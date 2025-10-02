@@ -184,6 +184,11 @@ async function loadInitialData() {
         if (currentUser.role !== 'admin') {
             document.getElementById('sidebarDojos').classList.add('hidden');
             document.getElementById('newDojoBtn')?.classList.add('hidden');
+            document.getElementById('sidebarUsers').classList.add('hidden');
+        } else {
+            document.getElementById('sidebarDojos').classList.remove('hidden');
+            document.getElementById('newDojoBtn')?.classList.remove('hidden');
+            document.getElementById('sidebarUsers').classList.remove('hidden');
         }
         
         // Carregar constantes
@@ -255,7 +260,9 @@ function showSection(section) {
         'dashboard': 'dashboardSection',
         'students': 'studentsSection',
         'members': 'membersSection',
-        'dojos': 'dojosSection'
+        'dojos': 'dojosSection',
+        'profile': 'profileSection',
+        'users': 'usersSection'
     };
     
     document.getElementById(sectionMap[section]).classList.remove('hidden');
@@ -272,6 +279,10 @@ function showSection(section) {
         loadDojos();
     } else if (section === 'dashboard') {
         loadStats();
+    } else if (section === 'profile') {
+        loadProfile();
+    } else if (section === 'users') {
+        loadUsers();
     }
 }
 
@@ -1837,5 +1848,394 @@ window.addEventListener('DOMContentLoaded', () => {
         
         // Carregar dados iniciais
         loadInitialData();
+    }
+});
+
+// =========================================
+// Gerenciamento de Perfil
+// =========================================
+
+async function loadProfile() {
+    try {
+        const data = await apiRequest('/profile');
+        
+        // Preencher formulário de perfil
+        document.getElementById('profileName').value = data.name || '';
+        document.getElementById('profileEmail').value = data.email || '';
+        document.getElementById('profileRole').value = data.role === 'admin' ? 'Administrador' : 'Usuário de Dojo';
+        
+        if (data.dojo_name) {
+            document.getElementById('profileDojo').value = data.dojo_name;
+            document.getElementById('profileDojoDiv').classList.remove('hidden');
+        } else {
+            document.getElementById('profileDojoDiv').classList.add('hidden');
+        }
+        
+    } catch (error) {
+        showNotification('Erro ao carregar perfil: ' + error.message, 'error');
+    }
+}
+
+async function updateProfile() {
+    showLoading();
+    
+    try {
+        const formData = {
+            name: document.getElementById('profileName').value
+        };
+        
+        await apiRequest('/profile', {
+            method: 'PUT',
+            body: JSON.stringify(formData)
+        });
+        
+        // Atualizar dados do usuário atual
+        currentUser.name = formData.name;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        document.getElementById('userName').textContent = currentUser.name;
+        
+        showNotification('Perfil atualizado com sucesso!', 'success');
+        
+    } catch (error) {
+        showNotification('Erro ao atualizar perfil: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Event listener para formulário de alterar senha
+document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validar senhas
+    if (newPassword !== confirmPassword) {
+        showNotification('As senhas não coincidem!', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showNotification('A nova senha deve ter pelo menos 6 caracteres!', 'error');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        await apiRequest('/profile/change-password', {
+            method: 'POST',
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword
+            })
+        });
+        
+        showNotification('Senha alterada com sucesso!', 'success');
+        
+        // Limpar formulário
+        document.getElementById('changePasswordForm').reset();
+        
+    } catch (error) {
+        showNotification('Erro ao alterar senha: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+});
+
+// =========================================
+// Gerenciamento de Usuários (Admin)
+// =========================================
+
+async function loadUsers() {
+    showLoading();
+    
+    try {
+        const data = await apiRequest('/users');
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = '';
+        
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                        <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
+                        <p>Nenhum usuário encontrado</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        data.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.className = 'table-row';
+            
+            const roleText = user.role === 'admin' ? 'Administrador' : 'Usuário de Dojo';
+            const statusBadge = user.is_active 
+                ? '<span class="badge badge-success">Ativo</span>'
+                : '<span class="badge badge-danger">Inativo</span>';
+            
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <i class="fas fa-user-circle text-2xl text-gray-400 mr-3"></i>
+                        <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.email}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${roleText}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.dojo_name || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="openResetPasswordModal(${user.id}, '${user.name}')" class="text-blue-600 hover:text-blue-900" title="Resetar Senha">
+                        <i class="fas fa-key"></i>
+                    </button>
+                    <button onclick="toggleUserStatus(${user.id})" class="text-${user.is_active ? 'orange' : 'green'}-600 hover:text-${user.is_active ? 'orange' : 'green'}-900" title="${user.is_active ? 'Desativar' : 'Ativar'}">
+                        <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                    </button>
+                    ${currentUser.id !== user.id ? `
+                        <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+        });
+        
+    } catch (error) {
+        showNotification('Erro ao carregar usuários: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function openUserModal(userId = null) {
+    document.getElementById('userModal').classList.remove('hidden');
+    
+    if (userId) {
+        document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-edit mr-2"></i>Editar Usuário';
+        document.getElementById('userPasswordDiv').classList.add('hidden');
+        document.getElementById('userFormPassword').removeAttribute('required');
+        loadUserData(userId);
+    } else {
+        document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus mr-2"></i>Novo Usuário';
+        document.getElementById('userPasswordDiv').classList.remove('hidden');
+        document.getElementById('userFormPassword').setAttribute('required', 'required');
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        updateUserDojoField();
+    }
+    
+    // Carregar dojos no select
+    loadDojosForUserForm();
+}
+
+function closeUserModal() {
+    document.getElementById('userModal').classList.add('hidden');
+    document.getElementById('userForm').reset();
+}
+
+async function loadDojosForUserForm() {
+    try {
+        const data = await apiRequest('/dojos');
+        const select = document.getElementById('userFormDojo');
+        select.innerHTML = '<option value="">Selecione...</option>';
+        
+        data.forEach(dojo => {
+            const option = document.createElement('option');
+            option.value = dojo.id;
+            option.textContent = dojo.name;
+            select.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar dojos:', error);
+    }
+}
+
+async function loadUserData(userId) {
+    showLoading();
+    
+    try {
+        const data = await apiRequest(`/users/${userId}`);
+        
+        document.getElementById('userId').value = data.id;
+        document.getElementById('userFormName').value = data.name;
+        document.getElementById('userFormEmail').value = data.email;
+        document.getElementById('userFormRole').value = data.role;
+        document.getElementById('userFormDojo').value = data.dojo_id || '';
+        document.getElementById('userFormActive').checked = data.is_active;
+        
+        updateUserDojoField();
+        
+    } catch (error) {
+        showNotification('Erro ao carregar dados do usuário: ' + error.message, 'error');
+        closeUserModal();
+    } finally {
+        hideLoading();
+    }
+}
+
+function updateUserDojoField() {
+    const role = document.getElementById('userFormRole').value;
+    const dojoDiv = document.getElementById('userDojoDiv');
+    const dojoSelect = document.getElementById('userFormDojo');
+    
+    if (role === 'admin') {
+        dojoDiv.classList.add('hidden');
+        dojoSelect.removeAttribute('required');
+        dojoSelect.value = '';
+    } else {
+        dojoDiv.classList.remove('hidden');
+        dojoSelect.setAttribute('required', 'required');
+    }
+}
+
+// Event listener para mudança no tipo de conta
+document.getElementById('userFormRole').addEventListener('change', updateUserDojoField);
+
+// Event listener para formulário de usuário
+document.getElementById('userForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    showLoading();
+    
+    const userId = document.getElementById('userId').value;
+    const formData = {
+        name: document.getElementById('userFormName').value,
+        email: document.getElementById('userFormEmail').value,
+        role: document.getElementById('userFormRole').value,
+        dojo_id: document.getElementById('userFormDojo').value || null,
+        is_active: document.getElementById('userFormActive').checked
+    };
+    
+    // Adicionar senha apenas se for novo usuário
+    if (!userId) {
+        formData.password = document.getElementById('userFormPassword').value;
+    }
+    
+    try {
+        if (userId) {
+            await apiRequest(`/users/${userId}`, {
+                method: 'PUT',
+                body: JSON.stringify(formData)
+            });
+            showNotification('Usuário atualizado com sucesso!', 'success');
+        } else {
+            await apiRequest('/users', {
+                method: 'POST',
+                body: JSON.stringify(formData)
+            });
+            showNotification('Usuário criado com sucesso!', 'success');
+        }
+        
+        closeUserModal();
+        await loadUsers();
+        
+    } catch (error) {
+        showNotification('Erro ao salvar usuário: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+});
+
+function editUser(userId) {
+    openUserModal(userId);
+}
+
+async function deleteUser(userId) {
+    if (!confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        await apiRequest(`/users/${userId}`, {
+            method: 'DELETE'
+        });
+        
+        showNotification('Usuário excluído com sucesso!', 'success');
+        await loadUsers();
+        
+    } catch (error) {
+        showNotification('Erro ao excluir usuário: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function toggleUserStatus(userId) {
+    showLoading();
+    
+    try {
+        const data = await apiRequest(`/users/${userId}/toggle-status`, {
+            method: 'POST'
+        });
+        
+        showNotification(data.message, 'success');
+        await loadUsers();
+        
+    } catch (error) {
+        showNotification('Erro ao alterar status do usuário: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function openResetPasswordModal(userId, userName) {
+    document.getElementById('resetPasswordModal').classList.remove('hidden');
+    document.getElementById('resetPasswordUserId').value = userId;
+    document.getElementById('resetPasswordUserName').textContent = userName;
+    document.getElementById('resetPasswordForm').reset();
+}
+
+function closeResetPasswordModal() {
+    document.getElementById('resetPasswordModal').classList.add('hidden');
+    document.getElementById('resetPasswordForm').reset();
+}
+
+// Event listener para formulário de reset de senha
+document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const userId = document.getElementById('resetPasswordUserId').value;
+    const newPassword = document.getElementById('resetPasswordNew').value;
+    const confirmPassword = document.getElementById('resetPasswordConfirm').value;
+    
+    // Validar senhas
+    if (newPassword !== confirmPassword) {
+        showNotification('As senhas não coincidem!', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showNotification('A senha deve ter pelo menos 6 caracteres!', 'error');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        await apiRequest(`/users/${userId}/reset-password`, {
+            method: 'POST',
+            body: JSON.stringify({ new_password: newPassword })
+        });
+        
+        showNotification('Senha resetada com sucesso!', 'success');
+        closeResetPasswordModal();
+        
+    } catch (error) {
+        showNotification('Erro ao resetar senha: ' + error.message, 'error');
+    } finally {
+        hideLoading();
     }
 });

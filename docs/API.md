@@ -935,3 +935,371 @@ POST /api/graduations/{id}/set-current
 }
 ```
 
+## 👤 Gerenciamento de Perfil e Usuários
+
+### Obter Perfil do Usuário Atual
+Retorna as informações do perfil do usuário logado.
+
+```http
+GET /api/profile
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "name": "Administrador Geral",
+  "email": "admin@kiaikido.com",
+  "role": "admin",
+  "dojo_id": null,
+  "dojo_name": null,
+  "is_active": true,
+  "created_at": "2025-08-11T12:41:49.101659"
+}
+```
+
+### Atualizar Perfil do Usuário Atual
+Atualiza as informações do perfil do usuário logado.
+
+```http
+PUT /api/profile
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Request Body:**
+```json
+{
+  "name": "Novo Nome do Usuário"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "name": "Novo Nome do Usuário",
+  "email": "admin@kiaikido.com",
+  "role": "admin",
+  "dojo_id": null,
+  "dojo_name": null,
+  "is_active": true,
+  "created_at": "2025-08-11T12:41:49.101659"
+}
+```
+
+### Alterar Senha do Usuário Atual
+Permite ao usuário alterar sua própria senha.
+
+```http
+POST /api/profile/change-password
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Request Body:**
+```json
+{
+  "current_password": "senha_atual",
+  "new_password": "nova_senha"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+**Erros:**
+- `401` - Senha atual incorreta
+- `400` - Campos obrigatórios faltando
+
+### Listar Todos os Usuários
+Lista todos os usuários do sistema. **Requer privilégios de administrador.**
+
+```http
+GET /api/users
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Response (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Administrador Geral",
+    "email": "admin@kiaikido.com",
+    "role": "admin",
+    "dojo_id": null,
+    "dojo_name": null,
+    "is_active": true,
+    "created_at": "2025-08-11T12:41:49.101659"
+  },
+  {
+    "id": 2,
+    "name": "Responsável Florianópolis",
+    "email": "florianopolis@kiaikido.com",
+    "role": "dojo_user",
+    "dojo_id": 1,
+    "dojo_name": "Florianópolis Ki-Aikido Dojo",
+    "is_active": true,
+    "created_at": "2025-08-11T12:41:49.101662"
+  }
+]
+```
+
+### Criar Novo Usuário
+Cria um novo usuário no sistema. **Requer privilégios de administrador.**
+
+```http
+POST /api/users
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Request Body:**
+```json
+{
+  "name": "Nome do Usuário",
+  "email": "usuario@kiaikido.com",
+  "password": "senha123",
+  "role": "dojo_user",
+  "dojo_id": 1,
+  "is_active": true
+}
+```
+
+**Campos:**
+- `name` (obrigatório): Nome completo do usuário
+- `email` (obrigatório): Email do usuário (deve ser único)
+- `password` (obrigatório): Senha do usuário
+- `role` (obrigatório): Tipo de conta - "admin" ou "dojo_user"
+- `dojo_id` (opcional): ID do dojo (obrigatório se role = "dojo_user")
+- `is_active` (opcional): Status do usuário (padrão: true)
+
+**Response (201):**
+```json
+{
+  "id": 8,
+  "name": "Nome do Usuário",
+  "email": "usuario@kiaikido.com",
+  "role": "dojo_user",
+  "dojo_id": 1,
+  "dojo_name": "Florianópolis Ki-Aikido Dojo",
+  "is_active": true,
+  "created_at": "2025-10-02T22:21:02.625271"
+}
+```
+
+**Erros:**
+- `400` - Email já existe ou campos obrigatórios faltando
+- `403` - Usuário não tem privilégios de administrador
+
+### Obter Usuário por ID
+Retorna informações de um usuário específico.
+
+```http
+GET /api/users/{user_id}
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Permissões:**
+- Usuário pode ver seu próprio perfil
+- Admin pode ver qualquer perfil
+
+**Response (200):**
+```json
+{
+  "id": 2,
+  "name": "Responsável Florianópolis",
+  "email": "florianopolis@kiaikido.com",
+  "role": "dojo_user",
+  "dojo_id": 1,
+  "dojo_name": "Florianópolis Ki-Aikido Dojo",
+  "is_active": true,
+  "created_at": "2025-08-11T12:41:49.101662"
+}
+```
+
+### Atualizar Usuário
+Atualiza informações de um usuário.
+
+```http
+PUT /api/users/{user_id}
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Permissões:**
+- Usuário pode editar seu próprio nome
+- Admin pode editar todos os campos de qualquer usuário
+
+**Request Body (Usuário normal):**
+```json
+{
+  "name": "Novo Nome"
+}
+```
+
+**Request Body (Admin):**
+```json
+{
+  "name": "Novo Nome",
+  "email": "novoemail@kiaikido.com",
+  "role": "admin",
+  "dojo_id": null,
+  "is_active": true
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": 2,
+  "name": "Novo Nome",
+  "email": "novoemail@kiaikido.com",
+  "role": "admin",
+  "dojo_id": null,
+  "dojo_name": null,
+  "is_active": true,
+  "created_at": "2025-08-11T12:41:49.101662"
+}
+```
+
+### Excluir Usuário
+Exclui um usuário do sistema. **Requer privilégios de administrador.**
+
+```http
+DELETE /api/users/{user_id}
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Restrições:**
+- Não é possível excluir a própria conta
+
+**Response (204):**
+```
+No Content
+```
+
+**Erros:**
+- `400` - Tentativa de excluir a própria conta
+- `403` - Usuário não tem privilégios de administrador
+- `404` - Usuário não encontrado
+
+### Resetar Senha de Usuário
+Reseta a senha de um usuário específico. **Requer privilégios de administrador.**
+
+```http
+POST /api/users/{user_id}/reset-password
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Request Body:**
+```json
+{
+  "new_password": "nova_senha_123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Password reset successfully"
+}
+```
+
+**Erros:**
+- `400` - Nova senha não fornecida
+- `403` - Usuário não tem privilégios de administrador
+- `404` - Usuário não encontrado
+
+### Ativar/Desativar Usuário
+Alterna o status ativo/inativo de um usuário. **Requer privilégios de administrador.**
+
+```http
+POST /api/users/{user_id}/toggle-status
+```
+
+**Headers:**
+```http
+Authorization: Bearer {token}
+```
+
+**Restrições:**
+- Não é possível desativar a própria conta
+
+**Response (200):**
+```json
+{
+  "message": "User deactivated successfully",
+  "user": {
+    "id": 8,
+    "name": "Usuário Teste",
+    "email": "teste@kiaikido.com",
+    "role": "dojo_user",
+    "dojo_id": 1,
+    "dojo_name": "Florianópolis Ki-Aikido Dojo",
+    "is_active": false,
+    "created_at": "2025-10-02T22:21:02.625271"
+  }
+}
+```
+
+**Erros:**
+- `400` - Tentativa de desativar a própria conta
+- `403` - Usuário não tem privilégios de administrador
+- `404` - Usuário não encontrado
+
+---
+
+## 📝 Notas de Segurança
+
+### Autenticação e Autorização
+- Todas as rotas de usuário (exceto login) requerem autenticação via token JWT
+- Rotas administrativas verificam se o usuário tem role "admin"
+- Usuários normais só podem modificar seus próprios dados
+- Senhas são sempre armazenadas com hash usando Werkzeug
+
+### Validações
+- Emails devem ser únicos no sistema
+- Usuários de dojo devem ter um dojo_id associado
+- Administradores não podem ter dojo_id
+- Senhas devem ter no mínimo 6 caracteres (validação frontend)
+- Não é possível excluir ou desativar a própria conta
+

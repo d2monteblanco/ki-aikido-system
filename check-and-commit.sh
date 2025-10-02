@@ -64,7 +64,7 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "feat: limpeza dos modais
+git commit -m "feat: Criação da área de perfil e gerenciamento de usúários do site
 "
 
 if [ $? -eq 0 ]; then

@@ -12,6 +12,7 @@ from src.routes.dojos import dojos_bp
 from src.routes.member_status import member_status_bp
 from src.routes.member_graduations import member_graduations_bp
 from src.routes.member_qualifications import member_qualifications_bp
+from src.routes.user import user_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -39,6 +40,7 @@ app.register_blueprint(dojos_bp, url_prefix='/api')
 app.register_blueprint(member_status_bp, url_prefix='/api')
 app.register_blueprint(member_graduations_bp, url_prefix='/api')
 app.register_blueprint(member_qualifications_bp, url_prefix='/api')
+app.register_blueprint(user_bp, url_prefix='/api')
 
 # Inicializar banco de dados
 db.init_app(app)

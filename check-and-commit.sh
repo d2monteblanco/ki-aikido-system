@@ -67,12 +67,11 @@ echo "💾 Fazendo commit..."
 git commit -m "Fix: Filtro de dojo adaptado para usuários não-admin
 
    - Admin vê Todos + lista completa de dojos
-   - Usuário de dojo vê APENAS seu dojo (sem Todos)
+   - Usuário de dojo vê APENAS seu dojo sem Todos
    - Campo desabilitado para usuários de dojo
    - CSS adicionado para visual de campo desabilitado
 
-   Arquivos: frontend/app.js, frontend/index.html
-"
+   Arquivos: frontend/app.js, frontend/index.html"
 
 if [ $? -eq 0 ]; then
     echo ""

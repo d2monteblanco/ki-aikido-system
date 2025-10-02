@@ -1,0 +1,145 @@
+/**
+ * Design Tokens - Sistema Ki Aikido
+ * Centraliza todas as variáveis de design para fácil manutenção
+ */
+
+:root {
+  /* === CORES PRINCIPAIS === */
+  
+  /* Primary - Ki Aikido Purple */
+  --ki-primary-50: #f5f3ff;
+  --ki-primary-100: #ede9fe;
+  --ki-primary-200: #ddd6fe;
+  --ki-primary-300: #c4b5fd;
+  --ki-primary-400: #a78bfa;
+  --ki-primary-500: #667eea;
+  --ki-primary-600: #764ba2;
+  --ki-primary-700: #6d28d9;
+  --ki-primary-800: #5b21b6;
+  --ki-primary-900: #4c1d95;
+  
+  /* Semantic Colors */
+  --ki-success: #10b981;
+  --ki-success-light: #d1fae5;
+  --ki-success-dark: #065f46;
+  
+  --ki-danger: #ef4444;
+  --ki-danger-light: #fee2e2;
+  --ki-danger-dark: #991b1b;
+  
+  --ki-warning: #f59e0b;
+  --ki-warning-light: #fef3c7;
+  --ki-warning-dark: #92400e;
+  
+  --ki-info: #3b82f6;
+  --ki-info-light: #dbeafe;
+  --ki-info-dark: #1e40af;
+  
+  /* Neutrals */
+  --ki-gray-50: #f9fafb;
+  --ki-gray-100: #f3f4f6;
+  --ki-gray-200: #e5e7eb;
+  --ki-gray-300: #d1d5db;
+  --ki-gray-400: #9ca3af;
+  --ki-gray-500: #6b7280;
+  --ki-gray-600: #4b5563;
+  --ki-gray-700: #374151;
+  --ki-gray-800: #1f2937;
+  --ki-gray-900: #111827;
+  
+  /* === TIPOGRAFIA === */
+  --ki-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ki-font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  
+  --ki-text-xs: 0.75rem;      /* 12px */
+  --ki-text-sm: 0.875rem;     /* 14px */
+  --ki-text-base: 1rem;       /* 16px */
+  --ki-text-lg: 1.125rem;     /* 18px */
+  --ki-text-xl: 1.25rem;      /* 20px */
+  --ki-text-2xl: 1.5rem;      /* 24px */
+  --ki-text-3xl: 1.875rem;    /* 30px */
+  --ki-text-4xl: 2.25rem;     /* 36px */
+  --ki-text-5xl: 3rem;        /* 48px */
+  
+  --ki-font-light: 300;
+  --ki-font-normal: 400;
+  --ki-font-medium: 500;
+  --ki-font-semibold: 600;
+  --ki-font-bold: 700;
+  
+  --ki-line-height-tight: 1.25;
+  --ki-line-height-normal: 1.5;
+  --ki-line-height-relaxed: 1.75;
+  
+  /* === ESPAÇAMENTO === */
+  --ki-space-0: 0;
+  --ki-space-1: 0.25rem;      /* 4px */
+  --ki-space-2: 0.5rem;       /* 8px */
+  --ki-space-3: 0.75rem;      /* 12px */
+  --ki-space-4: 1rem;         /* 16px */
+  --ki-space-5: 1.25rem;      /* 20px */
+  --ki-space-6: 1.5rem;       /* 24px */
+  --ki-space-8: 2rem;         /* 32px */
+  --ki-space-10: 2.5rem;      /* 40px */
+  --ki-space-12: 3rem;        /* 48px */
+  --ki-space-16: 4rem;        /* 64px */
+  --ki-space-20: 5rem;        /* 80px */
+  --ki-space-24: 6rem;        /* 96px */
+  
+  /* === SOMBRAS === */
+  --ki-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ki-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --ki-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --ki-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --ki-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --ki-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --ki-shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  
+  /* === BORDER RADIUS === */
+  --ki-radius-none: 0;
+  --ki-radius-sm: 0.375rem;   /* 6px */
+  --ki-radius-md: 0.5rem;     /* 8px */
+  --ki-radius-lg: 0.75rem;    /* 12px */
+  --ki-radius-xl: 1rem;       /* 16px */
+  --ki-radius-2xl: 1.5rem;    /* 24px */
+  --ki-radius-3xl: 2rem;      /* 32px */
+  --ki-radius-full: 9999px;
+  
+  /* === TRANSIÇÕES === */
+  --ki-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ki-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ki-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ki-transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* === Z-INDEX === */
+  --ki-z-base: 0;
+  --ki-z-dropdown: 1000;
+  --ki-z-sticky: 1100;
+  --ki-z-fixed: 1200;
+  --ki-z-modal-backdrop: 1300;
+  --ki-z-modal: 1400;
+  --ki-z-popover: 1500;
+  --ki-z-tooltip: 1600;
+  --ki-z-notification: 9999;
+  
+  /* === BREAKPOINTS (para referência em JS) === */
+  --ki-breakpoint-sm: 640px;
+  --ki-breakpoint-md: 768px;
+  --ki-breakpoint-lg: 1024px;
+  --ki-breakpoint-xl: 1280px;
+  --ki-breakpoint-2xl: 1536px;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+  --ki-bg-primary: #111827;
+  --ki-bg-secondary: #1f2937;
+  --ki-bg-tertiary: #374151;
+  
+  --ki-text-primary: #f9fafb;
+  --ki-text-secondary: #d1d5db;
+  --ki-text-tertiary: #9ca3af;
+  
+  --ki-border-primary: #374151;
+  --ki-border-secondary: #4b5563;
+}

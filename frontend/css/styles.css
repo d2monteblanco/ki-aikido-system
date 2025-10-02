@@ -1,0 +1,532 @@
+/**
+ * Estilos Principais - Sistema Ki Aikido
+ * Implementa as melhorias do QUICK_WINS_UI.md
+ */
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+body {
+  font-family: var(--ki-font-sans);
+  font-size: var(--ki-text-base);
+  line-height: var(--ki-line-height-normal);
+  color: var(--ki-gray-900);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tipografia */
+h1 { 
+  font-size: var(--ki-text-4xl); 
+  font-weight: var(--ki-font-bold);
+  line-height: var(--ki-line-height-tight);
+  margin-bottom: var(--ki-space-6);
+}
+
+h2 { 
+  font-size: var(--ki-text-3xl); 
+  font-weight: var(--ki-font-semibold);
+  line-height: var(--ki-line-height-tight);
+  margin-bottom: var(--ki-space-4);
+}
+
+h3 { 
+  font-size: var(--ki-text-2xl); 
+  font-weight: var(--ki-font-semibold);
+  line-height: var(--ki-line-height-normal);
+  margin-bottom: var(--ki-space-3);
+}
+
+h4 { 
+  font-size: var(--ki-text-xl); 
+  font-weight: var(--ki-font-medium);
+  margin-bottom: var(--ki-space-2);
+}
+
+p {
+  margin-bottom: var(--ki-space-4);
+  color: var(--ki-gray-700);
+}
+
+small {
+  font-size: var(--ki-text-sm);
+  color: var(--ki-gray-600);
+}
+
+/* ========================================
+   ANIMAÇÕES E TRANSIÇÕES
+   ======================================== */
+
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: var(--ki-transition-base);
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.slide-in { animation: slideIn 0.3s ease-out; }
+.fade-in { animation: fadeIn 0.2s ease-in; }
+.pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 0px, #f8f8f8 40px, #f0f0f0 80px);
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+/* ========================================
+   COMPONENTS - BUTTONS
+   ======================================== */
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ki-space-2);
+  padding: var(--ki-space-3) var(--ki-space-6);
+  border-radius: var(--ki-radius-lg);
+  font-weight: var(--ki-font-medium);
+  transition: all var(--ki-transition-base);
+  cursor: pointer;
+  border: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ki-shadow-lg);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--ki-shadow-sm);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--ki-primary-500) 0%, var(--ki-primary-600) 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--ki-gray-600);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: var(--ki-gray-700);
+}
+
+.btn-success {
+  background: var(--ki-success);
+  color: white;
+}
+
+.btn-success:hover {
+  background: var(--ki-success-dark);
+}
+
+.btn-danger {
+  background: var(--ki-danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--ki-danger-dark);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--ki-gray-500);
+  border-radius: var(--ki-radius-md);
+  cursor: pointer;
+  transition: all var(--ki-transition-fast);
+}
+
+.btn-icon:hover {
+  background: var(--ki-gray-100);
+  color: var(--ki-primary-600);
+  transform: scale(1.1);
+}
+
+/* ========================================
+   COMPONENTS - BADGES
+   ======================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ki-space-2);
+  padding: var(--ki-space-2) var(--ki-space-3);
+  border-radius: var(--ki-radius-full);
+  font-size: var(--ki-text-xs);
+  font-weight: var(--ki-font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--ki-transition-base);
+}
+
+.badge i {
+  font-size: 1em;
+}
+
+.badge-success {
+  background: var(--ki-success-light);
+  color: var(--ki-success-dark);
+  border: 1px solid var(--ki-success);
+}
+
+.badge-danger {
+  background: var(--ki-danger-light);
+  color: var(--ki-danger-dark);
+  border: 1px solid var(--ki-danger);
+}
+
+.badge-warning {
+  background: var(--ki-warning-light);
+  color: var(--ki-warning-dark);
+  border: 1px solid var(--ki-warning);
+}
+
+.badge-info {
+  background: var(--ki-info-light);
+  color: var(--ki-info-dark);
+  border: 1px solid var(--ki-info);
+}
+
+/* ========================================
+   COMPONENTS - CARDS
+   ======================================== */
+
+.card {
+  background: white;
+  border-radius: var(--ki-radius-xl);
+  box-shadow: var(--ki-shadow-md);
+  transition: all var(--ki-transition-base);
+  padding: var(--ki-space-6);
+}
+
+.card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--ki-shadow-xl);
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--ki-space-4);
+  padding: var(--ki-space-6);
+  background: white;
+  border-radius: var(--ki-radius-xl);
+  box-shadow: var(--ki-shadow-md);
+  border-left: 4px solid transparent;
+  transition: all var(--ki-transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: currentColor;
+  opacity: 0.05;
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card-primary {
+  border-left-color: var(--ki-primary-500);
+  color: var(--ki-primary-500);
+}
+
+.stat-card-success {
+  border-left-color: var(--ki-success);
+  color: var(--ki-success);
+}
+
+.stat-card-warning {
+  border-left-color: var(--ki-warning);
+  color: var(--ki-warning);
+}
+
+.stat-card-danger {
+  border-left-color: var(--ki-danger);
+  color: var(--ki-danger);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: currentColor;
+  color: white;
+  border-radius: var(--ki-radius-lg);
+  font-size: var(--ki-text-2xl);
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: var(--ki-text-sm);
+  font-weight: var(--ki-font-medium);
+  color: var(--ki-gray-600);
+  margin-bottom: var(--ki-space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: var(--ki-text-4xl);
+  font-weight: var(--ki-font-bold);
+  color: var(--ki-gray-900);
+  line-height: 1;
+  margin-bottom: var(--ki-space-2);
+}
+
+/* ========================================
+   COMPONENTS - TABLES
+   ======================================== */
+
+.table-container {
+  background: white;
+  border-radius: var(--ki-radius-xl);
+  box-shadow: var(--ki-shadow-md);
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead {
+  background: var(--ki-gray-50);
+}
+
+.table th {
+  padding: var(--ki-space-4) var(--ki-space-6);
+  text-align: left;
+  font-size: var(--ki-text-xs);
+  font-weight: var(--ki-font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ki-gray-600);
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--ki-gray-100);
+  transition: all var(--ki-transition-base);
+}
+
+.table-striped tbody tr:nth-child(even) {
+  background: var(--ki-gray-50);
+}
+
+.table-hover tbody tr:hover {
+  background: var(--ki-primary-50);
+  box-shadow: inset 4px 0 0 var(--ki-primary-500);
+}
+
+.table td {
+  padding: var(--ki-space-4) var(--ki-space-6);
+  font-size: var(--ki-text-sm);
+  color: var(--ki-gray-700);
+}
+
+.table-row {
+  transition: background-color var(--ki-transition-base);
+}
+
+/* ========================================
+   COMPONENTS - FORMS
+   ======================================== */
+
+.input-field {
+  transition: all var(--ki-transition-base);
+  border: 2px solid var(--ki-gray-300);
+  border-radius: var(--ki-radius-md);
+  padding: var(--ki-space-3) var(--ki-space-4);
+  font-size: var(--ki-text-base);
+  width: 100%;
+}
+
+.input-field:focus {
+  border-color: var(--ki-primary-500);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  transform: scale(1.01);
+  outline: none;
+}
+
+.input-field:disabled {
+  background-color: var(--ki-gray-100);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+/* ========================================
+   COMPONENTS - MODALS
+   ======================================== */
+
+/* Todos os containers de modal */
+div[id$="Modal"] {
+  z-index: 9999 !important;
+}
+
+/* Backdrop dos modais */
+div[id$="Modal"] .modal-backdrop {
+  z-index: 1 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+  pointer-events: auto !important;
+}
+
+/* Container flex do conteúdo */
+div[id$="Modal"] > div.flex {
+  z-index: 2 !important;
+  pointer-events: none !important;
+}
+
+/* Conteúdo do modal (o card branco) */
+div[id$="Modal"] > div.flex > div {
+  z-index: 3 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+}
+
+/* ========================================
+   COMPONENTS - NOTIFICATIONS
+   ======================================== */
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: var(--ki-z-notification);
+  min-width: 300px;
+  max-width: 500px;
+}
+
+/* ========================================
+   LAYOUT
+   ======================================== */
+
+.gradient-primary {
+  background: linear-gradient(135deg, var(--ki-primary-500) 0%, var(--ki-primary-600) 100%);
+}
+
+/* Layout Principal - Garantir estrutura estável */
+.flex {
+  display: flex !important;
+}
+
+/* Sidebar - Largura fixa e sem flex-shrink */
+aside {
+  flex-shrink: 0 !important; /* Nunca encolher */
+  flex-grow: 0 !important;   /* Nunca crescer */
+  width: 16rem !important;   /* 256px - mesmo que w-64 do Tailwind */
+  min-width: 16rem !important; /* Garantir largura mínima */
+  max-width: 16rem !important; /* Garantir largura máxima */
+}
+
+/* Main - Ocupar espaço restante */
+main {
+  flex: 1 1 auto !important; /* Crescer e encolher conforme necessário */
+  min-width: 0 !important;   /* Permitir encolhimento abaixo do conteúdo */
+  overflow-x: auto; /* Scroll horizontal se necessário */
+}
+
+.sidebar-item {
+  transition: all var(--ki-transition-base);
+  cursor: pointer;
+  padding: var(--ki-space-3) var(--ki-space-4);
+  border-radius: var(--ki-radius-lg);
+  display: flex;
+  align-items: center;
+  border-left: 4px solid transparent; /* Sempre reserva o espaço */
+  margin-left: -4px; /* Compensa o espaço da borda */
+}
+
+.sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left-color: white; /* Só muda a cor, não adiciona espaço */
+}
+
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--ki-primary-500);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.hidden {
+  display: none !important;
+}

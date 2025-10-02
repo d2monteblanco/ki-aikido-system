@@ -64,8 +64,7 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "fix: alteradas as menções da palavra 
-Alunos para Cadastro Básico"
+git commit -m "Icone Ki Adicionado"
 
 if [ $? -eq 0 ]; then
     echo ""

@@ -64,42 +64,7 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "feat: Implementar modais de detalhes somente leitura para Membros e Cadastros Básicos
-
-   Implementados modais de visualização completa em modo somente leitura, separando
-   corretamente as responsabilidades entre Cadastro Básico e Membro.
-
-    Principais Alterações
-
-     Frontend app.js, index.html
-   - Adicionado modal de detalhes do Cadastro Básico studentDetailsModal
-     - Exibe todas informações pessoais do estudante
-     - Mostra resumo do registro de membro quando existir
-     - Link para navegar aos detalhes completos do membro
-
-   - Adicionado modal de detalhes do Membro memberDetailsModal
-     - Exibe informações de referência nome, dojo, registro
-     - Mostra status completo de membro
-     - Lista histórico completo de graduações
-     - Lista todas as qualificações
-
-   - Corrigido autenticação nas requisições credentials: include
-   - Implementado extração de dados aninhados da API
-   - Adicionado carregamento automático da lista ao navegar entre modais
-
-     Backend member_status.py
-   - Atualizado método to_summary para incluir:
-     - membership_date data de filiação
-     - current_status_display tradução do status
-
-     Funcionalidades
-   - Botão Visualizar olho azul abre modal somente leitura
-   - Botão Editar lápis verde mantém funcionalidade de edição
-   - Navegação fluida entre modais de Cadastro Básico e Membro
-   - Todos os dados exibidos corretamente sem N/A incorretos
-   - Lista de membros carrega automaticamente ao navegar
-
-   Resolve separação de contextos e melhora UX de visualização de dados.
+git commit -m "feat: limpeza dos modais
 "
 
 if [ $? -eq 0 ]; then

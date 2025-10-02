@@ -711,7 +711,6 @@ function openStudentDetailsModal(student, memberData) {
     document.getElementById('detailStudentRegDate').textContent = formatDate(student.registration_date);
     document.getElementById('detailStudentStartYear').textContent = student.started_practicing_year || 'N/A';
     document.getElementById('detailStudentNotesVal').textContent = student.notes || 'Sem observações';
-    document.getElementById('detailStudentCreatedAt').textContent = formatDateTime(student.created_at);
     document.getElementById('detailStudentUpdatedAt').textContent = formatDateTime(student.updated_at);
     
     // Preencher informações de membro se existir
@@ -1143,23 +1142,7 @@ function openMemberDetailsModal(member, student, graduations, qualifications) {
     document.getElementById('detailMemberCreatedAt').textContent = formatDateTime(member.created_at);
     document.getElementById('detailMemberUpdatedAt').textContent = formatDateTime(member.updated_at);
     
-    // Preencher graduações atuais
-    let currentGradsHtml = '';
-    if (member.current_graduations && Object.keys(member.current_graduations).length > 0) {
-        for (const [discipline, grad] of Object.entries(member.current_graduations)) {
-            currentGradsHtml += `
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-2">
-                    <p class="font-semibold text-purple-900">${discipline}</p>
-                    <p class="text-sm text-gray-700">${grad.rank_display || grad.rank_name}</p>
-                    <p class="text-xs text-gray-500">Nível: ${grad.rank_level}</p>
-                </div>
-            `;
-        }
-    } else {
-        currentGradsHtml = '<p class="text-gray-500 text-sm">Nenhuma graduação atual</p>';
-    }
-    document.getElementById('detailCurrentGraduations').innerHTML = currentGradsHtml;
-    
+        
     // Preencher histórico completo de graduações
     renderDetailsGraduations(graduations);
     

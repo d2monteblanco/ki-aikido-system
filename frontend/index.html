@@ -916,7 +916,247 @@
         </div>
     </div>
 
+    <!-- Modal: Detalhes do Cadastro Básico (Somente Leitura) -->
+    <div id="studentDetailsModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeStudentDetailsModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold">
+                            <i class="fas fa-user-circle mr-2"></i>Detalhes do Cadastro Básico
+                        </h3>
+                        <button onclick="closeStudentDetailsModal()" class="text-white hover:text-gray-200">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Informações Pessoais -->
+                    <div class="mb-8">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-user text-purple-600 mr-2"></i>
+                            Informações Pessoais
+                        </h4>
+                        <div class="bg-gray-50 rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Nome Completo</p>
+                                <p class="text-gray-800 font-medium" id="detailStudentFullName">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Email</p>
+                                <p class="text-gray-800" id="detailStudentEmailAddr">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Telefone</p>
+                                <p class="text-gray-800" id="detailStudentPhoneNum">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Nascimento</p>
+                                <p class="text-gray-800" id="detailStudentBirthDateVal">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Dojo</p>
+                                <p class="text-gray-800" id="detailStudentDojoName">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Número de Registro</p>
+                                <p class="text-gray-800" id="detailStudentRegNumber">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Cadastro</p>
+                                <p class="text-gray-800" id="detailStudentRegDate">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Ano de Início da Prática</p>
+                                <p class="text-gray-800" id="detailStudentStartYear">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Criação</p>
+                                <p class="text-gray-800 text-sm" id="detailStudentCreatedAt">-</p>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-1">
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Última Atualização</p>
+                                <p class="text-gray-800 text-sm" id="detailStudentUpdatedAt">-</p>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3">
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Endereço</p>
+                                <p class="text-gray-800" id="detailStudentAddressVal">-</p>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3">
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Observações</p>
+                                <p class="text-gray-800" id="detailStudentNotesVal">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informações de Membro (se existir) -->
+                    <div id="studentMemberSection" class="mb-6 hidden">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-id-card-alt text-purple-600 mr-2"></i>
+                            Registro de Membro
+                        </h4>
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Número de Registro</p>
+                                    <p class="text-gray-800 font-medium" id="detailStudentMemberNumber">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Tipo de Membro</p>
+                                    <p class="text-gray-800" id="detailStudentMemberType">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Status</p>
+                                    <p class="text-gray-800" id="detailStudentMemberStatus">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Filiação</p>
+                                    <p class="text-gray-800" id="detailStudentMembershipDate">-</p>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-purple-300">
+                                <button id="viewMemberDetailsBtn" class="btn-primary text-white px-4 py-2 rounded-lg text-sm">
+                                    <i class="fas fa-eye mr-2"></i>Ver Detalhes Completos do Membro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão Fechar -->
+                    <div class="flex justify-end pt-4 border-t">
+                        <button onclick="closeStudentDetailsModal()" class="btn-secondary text-white px-8 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do Membro (Somente Leitura) -->
+    <div id="memberDetailsModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeMemberDetailsModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold">
+                            <i class="fas fa-user-circle mr-2"></i>Detalhes do Membro
+                        </h3>
+                        <button onclick="closeMemberDetailsModal()" class="text-white hover:text-gray-200">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Informações de Referência do Estudante -->
+                    <div class="mb-8">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-user text-purple-600 mr-2"></i>
+                            Informações de Referência
+                        </h4>
+                        <div class="bg-gray-50 rounded-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Nome</p>
+                                <p class="text-gray-800 font-medium" id="detailMemberStudentName">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Dojo</p>
+                                <p class="text-gray-800" id="detailMemberStudentDojo">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Número de Registro (Cadastro)</p>
+                                <p class="text-gray-800" id="detailMemberStudentRegNumber">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informações do Status de Membro -->
+                    <div class="mb-8">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-id-card-alt text-purple-600 mr-2"></i>
+                            Status de Membro
+                        </h4>
+                        <div class="bg-gray-50 rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Número de Registro (Membro)</p>
+                                <p class="text-gray-800 font-medium" id="detailMemberRegisteredNumber">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Filiação</p>
+                                <p class="text-gray-800" id="detailMemberMembershipDate">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Tipo de Membro</p>
+                                <p class="text-gray-800" id="detailMemberType">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Status Atual</p>
+                                <p class="text-gray-800" id="detailMemberStatus">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Último Ano de Atividade</p>
+                                <p class="text-gray-800" id="detailMemberLastActivityYear">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Criação</p>
+                                <p class="text-gray-800 text-sm" id="detailMemberCreatedAt">-</p>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-1">
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Última Atualização</p>
+                                <p class="text-gray-800 text-sm" id="detailMemberUpdatedAt">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graduações Atuais -->
+                    <div class="mb-8">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-star text-purple-600 mr-2"></i>
+                            Graduações Atuais
+                        </h4>
+                        <div id="detailCurrentGraduations">
+                            <!-- Graduações atuais serão inseridas aqui -->
+                        </div>
+                    </div>
+
+                    <!-- Histórico Completo de Graduações -->
+                    <div class="mb-8">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-medal text-purple-600 mr-2"></i>
+                            Histórico de Graduações
+                        </h4>
+                        <div id="detailGraduationsList" class="space-y-3">
+                            <!-- Histórico de graduações será inserido aqui -->
+                        </div>
+                    </div>
+
+                    <!-- Qualificações -->
+                    <div class="mb-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-certificate text-green-600 mr-2"></i>
+                            Qualificações
+                        </h4>
+                        <div id="detailQualificationsList" class="space-y-3">
+                            <!-- Qualificações serão inseridas aqui -->
+                        </div>
+                    </div>
+
+                    <!-- Botão Fechar -->
+                    <div class="flex justify-end pt-4 border-t">
+                        <button onclick="closeMemberDetailsModal()" class="btn-secondary text-white px-8 py-3 rounded-lg font-medium">
+                            <i class="fas fa-times mr-2"></i>Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Script Principal -->
-    <script src="app.js"></script>
+    <script src="app.js?v=20250102-1445"></script>
 </body>
 </html>

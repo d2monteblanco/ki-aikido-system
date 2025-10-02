@@ -81,7 +81,8 @@ async function apiRequest(endpoint, options = {}) {
     try {
         const response = await fetch(url, {
             ...options,
-            headers
+            headers,
+            credentials: 'include'  // Importante: envia cookies de sessão
         });
         
         const data = await response.json();
@@ -652,7 +653,130 @@ function closeStudentModal() {
 }
 
 function viewStudent(studentId) {
-    editStudent(studentId);
+    viewStudentDetails(studentId);
+}
+
+async function viewStudentDetails(studentId) {
+    showLoading();
+    
+    try {
+        // Buscar dados completos do estudante
+        const response = await apiRequest(`/students/${studentId}`);
+        console.log('Student data received:', response);
+        
+        // Verificar se os dados vêm aninhados em uma propriedade 'student'
+        const student = response.student || response;
+        console.log('Student object extracted:', student);
+        
+        // Se o estudante tem registro de membro, buscar também
+        let memberData = null;
+        if (student.has_member_status) {
+            try {
+                const members = await apiRequest(`/member-status?student_id=${studentId}`);
+                console.log('Member data received:', members);
+                if (members.members && members.members.length > 0) {
+                    memberData = members.members[0];
+                    console.log('Member object extracted:', memberData);
+                }
+            } catch (error) {
+                console.log('Membro não encontrado:', error);
+            }
+        }
+        
+        // Abrir modal de detalhes
+        openStudentDetailsModal(student, memberData);
+    } catch (error) {
+        console.error('Erro ao carregar detalhes:', error);
+        showNotification('Erro ao carregar detalhes do estudante: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function openStudentDetailsModal(student, memberData) {
+    const modal = document.getElementById('studentDetailsModal');
+    
+    console.log('Opening student details modal with data:', student);
+    console.log('Student name:', student.name);
+    console.log('Student email:', student.email);
+    
+    // Preencher informações do cadastro básico
+    document.getElementById('detailStudentFullName').textContent = student.name || 'N/A';
+    document.getElementById('detailStudentEmailAddr').textContent = student.email || 'N/A';
+    document.getElementById('detailStudentPhoneNum').textContent = student.phone || 'N/A';
+    document.getElementById('detailStudentBirthDateVal').textContent = formatDate(student.birth_date);
+    document.getElementById('detailStudentAddressVal').textContent = student.address || 'N/A';
+    document.getElementById('detailStudentDojoName').textContent = student.dojo_name || 'N/A';
+    document.getElementById('detailStudentRegNumber').textContent = student.registration_number || 'N/A';
+    document.getElementById('detailStudentRegDate').textContent = formatDate(student.registration_date);
+    document.getElementById('detailStudentStartYear').textContent = student.started_practicing_year || 'N/A';
+    document.getElementById('detailStudentNotesVal').textContent = student.notes || 'Sem observações';
+    document.getElementById('detailStudentCreatedAt').textContent = formatDateTime(student.created_at);
+    document.getElementById('detailStudentUpdatedAt').textContent = formatDateTime(student.updated_at);
+    
+    // Preencher informações de membro se existir
+    const memberSection = document.getElementById('studentMemberSection');
+    if (memberData) {
+        console.log('Member data to display:', memberData);
+        console.log('Member registered_number:', memberData.registered_number);
+        console.log('Member type display:', memberData.member_type_display);
+        console.log('Member status display:', memberData.current_status_display);
+        console.log('Member membership_date:', memberData.membership_date);
+        
+        memberSection.classList.remove('hidden');
+        
+        const numberEl = document.getElementById('detailStudentMemberNumber');
+        const typeEl = document.getElementById('detailStudentMemberType');
+        const statusEl = document.getElementById('detailStudentMemberStatus');
+        const dateEl = document.getElementById('detailStudentMembershipDate');
+        
+        console.log('HTML Elements found:', {
+            numberEl: !!numberEl,
+            typeEl: !!typeEl,
+            statusEl: !!statusEl,
+            dateEl: !!dateEl
+        });
+        
+        if (numberEl) numberEl.textContent = memberData.registered_number || 'N/A';
+        if (typeEl) typeEl.textContent = memberData.member_type_display || 'N/A';
+        if (statusEl) statusEl.textContent = memberData.current_status_display || 'N/A';
+        if (dateEl) dateEl.textContent = memberData.membership_date ? formatDate(memberData.membership_date) : 'N/A';
+        
+        console.log('Values set:', {
+            number: numberEl?.textContent,
+            type: typeEl?.textContent,
+            status: statusEl?.textContent,
+            date: dateEl?.textContent
+        });
+        
+        // Link para ver detalhes completos do membro
+        const viewMemberBtn = document.getElementById('viewMemberDetailsBtn');
+        viewMemberBtn.onclick = async () => {
+            closeStudentDetailsModal();
+            // Trocar para aba de membros e abrir detalhes
+            document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('membersSection').classList.remove('hidden');
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            if (sidebarItems[2]) sidebarItems[2].classList.add('active');
+            
+            // Carregar lista de membros primeiro
+            await loadMembers();
+            
+            // Depois abrir o modal de detalhes
+            setTimeout(() => viewMemberDetails(memberData.id), 300);
+        };
+    } else {
+        console.log('No member data - hiding section');
+        memberSection.classList.add('hidden');
+    }
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+}
+
+function closeStudentDetailsModal() {
+    document.getElementById('studentDetailsModal').classList.add('hidden');
 }
 
 function editStudent(studentId) {
@@ -964,7 +1088,173 @@ async function openMemberModalForStudent(studentId, studentName) {
 }
 
 function viewMember(memberId) {
-    editMember(memberId);
+    viewMemberDetails(memberId);
+}
+
+async function viewMemberDetails(memberId) {
+    showLoading();
+    
+    try {
+        // Buscar dados completos do membro
+        const memberResponse = await apiRequest(`/member-status/${memberId}`);
+        console.log('Member data received:', memberResponse);
+        const member = memberResponse; // Member já vem direto, não aninhado
+        
+        const studentResponse = await apiRequest(`/students/${member.student_id}`);
+        console.log('Student data for member received:', studentResponse);
+        const student = studentResponse.student || studentResponse; // Student vem aninhado em {student: {...}}
+        
+        const graduations = await apiRequest(`/member-status/${memberId}/graduations`);
+        console.log('Graduations received:', graduations);
+        
+        const qualifications = await apiRequest(`/member-status/${memberId}/qualifications`);
+        console.log('Qualifications received:', qualifications);
+        
+        console.log('Extracted objects:', { member, student, graduations, qualifications });
+        
+        // Abrir modal de detalhes
+        openMemberDetailsModal(member, student, graduations, qualifications);
+    } catch (error) {
+        console.error('Erro ao carregar detalhes do membro:', error);
+        showNotification('Erro ao carregar detalhes do membro: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function openMemberDetailsModal(member, student, graduations, qualifications) {
+    const modal = document.getElementById('memberDetailsModal');
+    
+    console.log('Opening member details modal with:', { member, student, graduations, qualifications });
+    console.log('Student name for member:', student.name);
+    console.log('Member registered_number:', member.registered_number);
+    
+    // Preencher informações básicas do estudante (apenas nome e dojo para referência)
+    document.getElementById('detailMemberStudentName').textContent = student.name || 'N/A';
+    document.getElementById('detailMemberStudentDojo').textContent = student.dojo_name || 'N/A';
+    document.getElementById('detailMemberStudentRegNumber').textContent = student.registration_number || 'N/A';
+    
+    // Preencher informações do status de membro
+    document.getElementById('detailMemberRegisteredNumber').textContent = member.registered_number || 'N/A';
+    document.getElementById('detailMemberMembershipDate').textContent = formatDate(member.membership_date);
+    document.getElementById('detailMemberType').textContent = member.member_type_display || 'N/A';
+    document.getElementById('detailMemberStatus').textContent = member.current_status_display || 'N/A';
+    document.getElementById('detailMemberLastActivityYear').textContent = member.last_activity_year || 'N/A';
+    document.getElementById('detailMemberCreatedAt').textContent = formatDateTime(member.created_at);
+    document.getElementById('detailMemberUpdatedAt').textContent = formatDateTime(member.updated_at);
+    
+    // Preencher graduações atuais
+    let currentGradsHtml = '';
+    if (member.current_graduations && Object.keys(member.current_graduations).length > 0) {
+        for (const [discipline, grad] of Object.entries(member.current_graduations)) {
+            currentGradsHtml += `
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-2">
+                    <p class="font-semibold text-purple-900">${discipline}</p>
+                    <p class="text-sm text-gray-700">${grad.rank_display || grad.rank_name}</p>
+                    <p class="text-xs text-gray-500">Nível: ${grad.rank_level}</p>
+                </div>
+            `;
+        }
+    } else {
+        currentGradsHtml = '<p class="text-gray-500 text-sm">Nenhuma graduação atual</p>';
+    }
+    document.getElementById('detailCurrentGraduations').innerHTML = currentGradsHtml;
+    
+    // Preencher histórico completo de graduações
+    renderDetailsGraduations(graduations);
+    
+    // Preencher qualificações
+    renderDetailsQualifications(qualifications);
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+}
+
+function closeMemberDetailsModal() {
+    document.getElementById('memberDetailsModal').classList.add('hidden');
+}
+
+function renderDetailsGraduations(graduations) {
+    const container = document.getElementById('detailGraduationsList');
+    
+    if (!graduations || graduations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4 text-gray-500">
+                <i class="fas fa-medal text-2xl text-gray-300 mb-2 block"></i>
+                <p class="text-sm">Nenhuma graduação registrada</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar por data de exame (mais recente primeiro)
+    const sortedGrads = [...graduations].sort((a, b) => {
+        if (!a.examination_date) return 1;
+        if (!b.examination_date) return -1;
+        return new Date(b.examination_date) - new Date(a.examination_date);
+    });
+    
+    container.innerHTML = sortedGrads.map(grad => `
+        <div class="border rounded-lg p-4 ${grad.is_current ? 'border-purple-600 bg-purple-50' : 'border-gray-200 bg-white'}">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-medal ${grad.is_current ? 'text-purple-600' : 'text-gray-400'} mr-2"></i>
+                        <h4 class="font-bold text-gray-800">${grad.rank_display}</h4>
+                        ${grad.is_current ? '<span class="ml-2 px-2 py-1 bg-purple-600 text-white text-xs rounded-full">Atual</span>' : ''}
+                    </div>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <p><strong>Disciplina:</strong> ${grad.discipline}</p>
+                        <p><strong>Nível:</strong> ${grad.rank_level}</p>
+                        ${grad.examination_date ? `<p><strong>Data do Exame:</strong> ${formatDate(grad.examination_date)}</p>` : ''}
+                        ${grad.certificate_number ? `<p><strong>Número do Certificado:</strong> ${grad.certificate_number}</p>` : ''}
+                        <p><strong>Status do Certificado:</strong> ${grad.certificate_status_display}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderDetailsQualifications(qualifications) {
+    const container = document.getElementById('detailQualificationsList');
+    
+    if (!qualifications || qualifications.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4 text-gray-500">
+                <i class="fas fa-certificate text-2xl text-gray-300 mb-2 block"></i>
+                <p class="text-sm">Nenhuma qualificação registrada</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar por data de obtenção (mais recente primeiro)
+    const sortedQuals = [...qualifications].sort((a, b) => {
+        if (!a.date_obtained) return 1;
+        if (!b.date_obtained) return -1;
+        return new Date(b.date_obtained) - new Date(a.date_obtained);
+    });
+    
+    container.innerHTML = sortedQuals.map(qual => `
+        <div class="border rounded-lg p-4 ${qual.is_active ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-gray-50'}">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-certificate ${qual.is_active ? 'text-green-600' : 'text-gray-400'} mr-2"></i>
+                        <h4 class="font-bold text-gray-800">${qual.qualification_display}</h4>
+                        ${qual.is_active ? '<span class="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full">Ativa</span>' : '<span class="ml-2 px-2 py-1 bg-gray-400 text-white text-xs rounded-full">Inativa</span>'}
+                    </div>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <p><strong>Tipo:</strong> ${qual.qualification_type_display || qual.qualification_type}</p>
+                        ${qual.qualification_level ? `<p><strong>Nível:</strong> ${qual.qualification_level}</p>` : ''}
+                        ${qual.date_obtained ? `<p><strong>Data de Obtenção:</strong> ${formatDate(qual.date_obtained)}</p>` : ''}
+                        ${qual.certificate_number ? `<p><strong>Número do Certificado:</strong> ${qual.certificate_number}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 function editMember(memberId) {

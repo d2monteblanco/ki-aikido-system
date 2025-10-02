@@ -329,3 +329,5 @@ python3 -c "from src.main import app, init_database; app.app_context().push(); i
 cd backend && source venv/bin/activate
 python3 -m py_compile src/**/*.py
 ```
+
+Generate no more than one report file for each completed task.

@@ -84,9 +84,11 @@ class MemberStatus(db.Model):
             'student_id': self.student_id,
             'student_name': self.student.name if self.student else None,
             'registered_number': self.registered_number,
+            'membership_date': self.membership_date.isoformat() if self.membership_date else None,
             'member_type': self.member_type,
             'member_type_display': self.MEMBER_TYPES.get(self.member_type, self.member_type),
             'current_status': self.current_status,
+            'current_status_display': self.STATUS_TYPES.get(self.current_status, self.current_status),
             'current_graduations': {
                 discipline: {
                     'rank_name': grad.rank_name,

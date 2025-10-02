@@ -23,7 +23,7 @@ class Student(db.Model):
 
     @staticmethod
     def generate_registration_number(dojo_id):
-        """Gera um número de registro único para o aluno"""
+        """Gera um número de registro único para o Cadastro Básico"""
         # Busca o último número de registro para o dojo
         last_student = Student.query.filter_by(dojo_id=dojo_id).order_by(Student.id.desc()).first()
         
@@ -71,7 +71,7 @@ class Student(db.Model):
         }
 
     def to_summary(self):
-        """Retorna um resumo do aluno para listagens"""
+        """Retorna um resumo do Cadastro Básico para listagens"""
         return {
             'id': self.id,
             'registration_number': self.registration_number,

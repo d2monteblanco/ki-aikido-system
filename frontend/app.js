@@ -194,7 +194,7 @@ async function loadInitialData() {
         // Carregar estatísticas
         await loadStats();
         
-        // Carregar alunos
+        // Carregar Cadastros Básicos
         await loadStudents();
         
     } catch (error) {
@@ -283,7 +283,7 @@ async function loadDojos() {
         const data = await apiRequest('/dojos');
         allDojos = data.dojos || [];
         
-        // Atualizar filtro de dojos na tela de alunos
+        // Atualizar filtro de dojos na tela de Cadastro Básico
         updateDojoFilters();
         
         // Atualizar grid de dojos
@@ -299,7 +299,7 @@ function updateDojoFilters() {
     const studentDojoSelect = document.getElementById('studentDojo');
     const memberStudentSelect = document.getElementById('memberStudentSelect');
     
-    // Filtro de alunos
+    // Filtro de Cadastro Básicos
     if (studentDojoFilter) {
         studentDojoFilter.innerHTML = '<option value="">Todos</option>';
         allDojos.forEach(dojo => {
@@ -307,7 +307,7 @@ function updateDojoFilters() {
         });
     }
     
-    // Select de dojo no formulário de aluno
+    // Select de dojo no formulário de Cadastro Básico
     if (studentDojoSelect) {
         studentDojoSelect.innerHTML = '<option value="">Selecione...</option>';
         allDojos.forEach(dojo => {
@@ -375,7 +375,7 @@ function renderDojosGrid() {
                 <div class="grid grid-cols-2 gap-4 text-center">
                     <div>
                         <p class="text-2xl font-bold text-purple-600">${dojo.student_count || 0}</p>
-                        <p class="text-xs text-gray-600">Alunos</p>
+                        <p class="text-xs text-gray-600">Cadastro Básico</p>
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-blue-600">${dojo.active_members || 0}</p>
@@ -462,7 +462,7 @@ document.getElementById('dojoForm').addEventListener('submit', async (e) => {
 });
 
 // =========================================
-// Alunos
+// Cadastro Básicos
 // =========================================
 
 async function loadStudents(page = 1) {
@@ -482,7 +482,7 @@ async function loadStudents(page = 1) {
         renderStudentsPagination(data.pagination);
         
     } catch (error) {
-        showNotification('Erro ao carregar alunos: ' + error.message, 'error');
+        showNotification('Erro ao carregar Cadastro Básico: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
@@ -496,7 +496,7 @@ function renderStudentsTable(students) {
             <tr>
                 <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-users text-6xl text-gray-300 mb-4 block"></i>
-                    Nenhum aluno encontrado
+                    Nenhum Cadastro Básico encontrado
                 </td>
             </tr>
         `;
@@ -605,7 +605,7 @@ function openStudentModal(studentId = null) {
     form.reset();
     
     if (studentId) {
-        title.innerHTML = '<i class="fas fa-user-edit mr-2"></i>Editar Aluno';
+        title.innerHTML = '<i class="fas fa-user-edit mr-2"></i>Editar Cadastro Básico';
         const student = allStudents.find(s => s.id === studentId);
         if (student) {
             document.getElementById('studentId').value = student.id;
@@ -620,7 +620,7 @@ function openStudentModal(studentId = null) {
             document.getElementById('studentNotes').value = student.notes || '';
         }
     } else {
-        title.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Novo Aluno';
+        title.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Novo Cadastro Básico';
         document.getElementById('studentStatus').value = 'active';
     }
     
@@ -640,17 +640,17 @@ function editStudent(studentId) {
 }
 
 async function deleteStudent(studentId) {
-    if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
+    if (!confirm('Tem certeza que deseja excluir este Cadastro Básico?')) return;
     
     showLoading();
     
     try {
         await apiRequest(`/students/${studentId}`, { method: 'DELETE' });
-        showNotification('Aluno excluído com sucesso!', 'success');
+        showNotification('Cadastro Básico excluído com sucesso!', 'success');
         await loadStudents(currentPage.students);
         await loadStats();
     } catch (error) {
-        showNotification('Erro ao excluir aluno: ' + error.message, 'error');
+        showNotification('Erro ao excluir Cadastro Básico: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
@@ -680,13 +680,13 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
                 method: 'PUT',
                 body: JSON.stringify(formData)
             });
-            showNotification('Aluno atualizado com sucesso!', 'success');
+            showNotification('Cadastro Básico atualizado com sucesso!', 'success');
         } else {
             await apiRequest('/students', {
                 method: 'POST',
                 body: JSON.stringify(formData)
             });
-            showNotification('Aluno criado com sucesso!', 'success');
+            showNotification('Cadastro Básico criado com sucesso!', 'success');
         }
         
         closeStudentModal();
@@ -694,7 +694,7 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
         await loadStats();
         
     } catch (error) {
-        showNotification('Erro ao salvar aluno: ' + error.message, 'error');
+        showNotification('Erro ao salvar Cadastro Básico: ' + error.message, 'error');
     } finally {
         hideLoading();
     }
@@ -857,7 +857,7 @@ async function openMemberModal(memberId = null) {
     
     form.reset();
     
-    // Carregar lista de alunos para seleção
+    // Carregar lista de Cadastros Básicos para seleção
     await loadStudentsForMemberSelect();
     
     if (memberId) {
@@ -935,7 +935,7 @@ async function loadStudentsForMemberSelect() {
         const data = await apiRequest('/students?per_page=1000');
         const select = document.getElementById('memberStudentSelect');
         
-        select.innerHTML = '<option value="">Selecione um aluno...</option>';
+        select.innerHTML = '<option value="">Selecione um Cadastro Básico...</option>';
         data.students.forEach(student => {
             select.innerHTML += `<option value="${student.id}">${student.name} - ${student.registration_number}</option>`;
         });

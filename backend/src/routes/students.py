@@ -9,7 +9,7 @@ students_bp = Blueprint('students', __name__)
 @students_bp.route('/students', methods=['GET'])
 @login_required
 def get_students():
-    """Lista alunos com controle de acesso por dojo"""
+    """Lista Cadastros Básicos com controle de acesso por dojo"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -76,7 +76,7 @@ def get_students():
 @students_bp.route('/students/<int:student_id>', methods=['GET'])
 @login_required
 def get_student(student_id):
-    """Obtém um aluno específico"""
+    """Obtém um Cadastro Básico específico"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -86,7 +86,7 @@ def get_student(student_id):
         if not student:
             return jsonify({'error': 'Student not found'}), 404
         
-        # Verifica se o usuário pode acessar este aluno
+        # Verifica se o usuário pode acessar este Cadastro Básico
         if not current_user.can_access_dojo(student.dojo_id):
             return jsonify({'error': 'Access denied'}), 403
         
@@ -98,7 +98,7 @@ def get_student(student_id):
 @students_bp.route('/students', methods=['POST'])
 @login_required
 def create_student():
-    """Cria um novo aluno"""
+    """Cria um novo Cadastro Básico"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -128,7 +128,7 @@ def create_student():
         if not dojo:
             return jsonify({'error': 'Dojo not found'}), 404
         
-        # Verifica se o usuário pode criar alunos neste dojo
+        # Verifica se o usuário pode criar Cadastro Básico neste dojo
         if not current_user.can_access_dojo(dojo_id):
             return jsonify({'error': 'Access denied'}), 403
         
@@ -164,7 +164,7 @@ def create_student():
                 except ValueError:
                     return jsonify({'error': 'Invalid registration_date format'}), 400
         
-        # Cria o aluno
+        # Cria o Cadastro Básico
         student = Student(
             registration_number=registration_number,
             name=data['name'].strip(),
@@ -194,7 +194,7 @@ def create_student():
 @students_bp.route('/students/<int:student_id>', methods=['PUT'])
 @login_required
 def update_student(student_id):
-    """Atualiza um aluno"""
+    """Atualiza um Cadastro Básico"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -204,7 +204,7 @@ def update_student(student_id):
         if not student:
             return jsonify({'error': 'Student not found'}), 404
         
-        # Verifica se o usuário pode acessar este aluno
+        # Verifica se o usuário pode acessar este Cadastro Básico
         if not current_user.can_access_dojo(student.dojo_id):
             return jsonify({'error': 'Access denied'}), 403
         
@@ -268,7 +268,7 @@ def update_student(student_id):
 @students_bp.route('/students/<int:student_id>', methods=['DELETE'])
 @login_required
 def delete_student(student_id):
-    """Exclui um aluno (soft delete)"""
+    """Exclui um Cadastro Básico (soft delete)"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -278,7 +278,7 @@ def delete_student(student_id):
         if not student:
             return jsonify({'error': 'Student not found'}), 404
         
-        # Verifica se o usuário pode acessar este aluno
+        # Verifica se o usuário pode acessar este Cadastro Básico
         if not current_user.can_access_dojo(student.dojo_id):
             return jsonify({'error': 'Access denied'}), 403
         
@@ -296,7 +296,7 @@ def delete_student(student_id):
 @students_bp.route('/students/stats', methods=['GET'])
 @login_required
 def get_students_stats():
-    """Retorna estatísticas dos alunos"""
+    """Retorna estatísticas dos Cadastros Básicos"""
     try:
         current_user = get_current_user()
         if not current_user:

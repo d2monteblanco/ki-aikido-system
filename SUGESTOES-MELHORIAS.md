@@ -7,7 +7,7 @@
 **Complexidade:** Média
 
 **Implementar:**
-- Upload de foto para alunos/membros
+- Upload de foto para Cadasto B�sico/membros
 - Thumbnail na listagem
 - Preview no modal de edição
 - Crop e redimensionamento automático
@@ -30,7 +30,7 @@ profile_photo = db.Column(db.String(255), nullable=True)
 **Complexidade:** Média
 
 **Implementar:**
-- Exportar lista de alunos para Excel/CSV
+- Exportar lista de Cadasto B�sico para Excel/CSV
 - Exportar membros com graduações
 - Gerar PDF com certificados
 - Relatório de estatísticas
@@ -99,9 +99,9 @@ class ActivityLog(db.Model):
 **Complexidade:** Média
 
 **Implementar:**
-- Gráfico de crescimento de alunos ao longo do tempo
+- Gráfico de crescimento de Cadasto B�sico ao longo do tempo
 - Distribuição de graduações (pizza/barras)
-- Alunos por dojo
+- Cadasto B�sico por dojo
 - Taxa de retenção
 - Evolução mensal
 
@@ -118,7 +118,7 @@ new Chart(ctx, {
     data: {
         labels: ['Jan', 'Fev', 'Mar', 'Abr'],
         datasets: [{
-            label: 'Novos Alunos',
+            label: 'Novos Cadasto B�sico',
             data: [12, 19, 3, 5]
         }]
     }
@@ -250,7 +250,7 @@ class Payment(db.Model):
 - Upload de fotos por drag & drop
 - Reordenar graduações
 - Organizar dojos
-- Mover alunos entre dojos
+- Mover Cadasto B�sico entre dojos
 
 ### 15. Tour Guiado (Onboarding)
 **Prioridade:** Baixa  
@@ -355,7 +355,7 @@ class Payment(db.Model):
 **Complexidade:** Média
 
 **Implementar:**
-- Cache de lista de alunos
+- Cache de lista de Cadasto B�sico
 - Invalidação inteligente
 - Service Worker
 - LocalStorage estratégico

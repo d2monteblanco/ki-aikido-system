@@ -10,7 +10,7 @@ echo ""
 
 # Configurar git user se necessário
 git config user.name "Ki Aikido System" 2>/dev/null || true
-git config user.email "admin@kiaikido.com" 2>/dev/null || true
+git config user.email "d2monteblanco@gmail.com" 2>/dev/null || true
 
 echo "📋 Status atual do repositório:"
 echo "────────────────────────────────────────────────────────────────"
@@ -64,35 +64,8 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "fix: Corrigir carregamento de graduações e qualificações
-
-Correções implementadas:
-- Adicionar logs detalhados para debug de constantes
-- Converter updateRankOptions() e updateQualificationLevelOptions() para async
-- Garantir carregamento de constantes antes de abrir modais
-- Adicionar headers CORS explícitos ao endpoint /member-status/constants
-- Corrigir referência LECTURER_LEVELS → INSTRUCTOR_LEVELS no backend
-- Melhorar tratamento de erros quando constantes não carregam
-- Adicionar validação de constantes após carregamento
-
-Problemas resolvidos:
-✅ Modal graduação: lista popula corretamente ao selecionar disciplina
-✅ Modal qualificação: lista de níveis popula ao selecionar tipo
-✅ Erro 500 no endpoint de constantes corrigido
-✅ Erro CORS no endpoint de constantes corrigido
-✅ Cache do navegador não impede mais atualizações
-
-Arquivos principais modificados:
-- frontend/app.js: Funções async e tratamento de erro robusto
-- backend/src/routes/member_status.py: CORS + correção constante
-
-Documentação e scripts adicionados:
-- CORRECAO-GRADUACOES-QUALIFICACOES.md
-- CORRECAO-CORS-CONSTANTES.md
-- CORRECAO-ERRO-500.md
-- SOLUCAO-FINAL-CACHE.md
-- restart-backend.sh
-- test_constants.py"
+git commit -m "fix: alteradas as menções da palavra 
+Alunos para Cadastro Básico"
 
 if [ $? -eq 0 ]; then
     echo ""

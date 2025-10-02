@@ -18,15 +18,15 @@ Sistema completo para gestão centralizada de academias de Ki Aikido no Brasil, 
 ## ✨ Características
 
 ### 🔐 **Controle de Acesso**
-- **Administradores**: Acesso completo a todos os dojos e alunos
-- **Usuários de Dojo**: Acesso restrito apenas aos alunos do seu dojo
+- **Administradores**: Acesso completo a todos os dojos e Cadastros B�sicos
+- **Usuários de Dojo**: Acesso restrito apenas aos Cadastros B�sicos do seu dojo
 - Autenticação segura com sessões
 
-### 👥 **Gestão de Alunos**
+### 👥 **Gestão de Cadastros B�sicos**
 - Cadastro completo baseado na planilha real de inscrições
 - Geração automática de números de registro (formato KIA-XXX-XXXX)
 - Busca e filtros avançados
-- Status de alunos (Ativo, Pendente, Inativo)
+- Status de Cadastros B�sicos(Ativo, Pendente, Inativo)
 - Controle de dados para processos com o Japão
 
 ### 🏢 **Gestão de Dojos**
@@ -135,8 +135,8 @@ Use uma das credenciais de demonstração:
 
 ### 4. Funcionalidades Principais
 - **Dashboard**: Visualizar estatísticas gerais
-- **Gestão de Alunos**: Cadastrar, editar, buscar alunos
-- **Controle de Acesso**: Cada dojo vê apenas seus alunos
+- **Gestão de Cadastros B�sicos**: Cadastrar, editar, buscar Cadastros B�sicos
+- **Controle de Acesso**: Cada dojo vê apenas seus Cadastros B�sicos
 - **Relatórios**: Exportar dados para processos burocráticos
 
 ## 🔄 Atualização
@@ -226,12 +226,12 @@ ki-aikido-system/
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Usuário atual
 
-#### Alunos
-- `GET /api/students` - Listar alunos (com paginação e filtros)
-- `POST /api/students` - Criar aluno
-- `GET /api/students/{id}` - Detalhes do aluno
-- `PUT /api/students/{id}` - Atualizar aluno
-- `DELETE /api/students/{id}` - Excluir aluno
+#### Cadastros B�sicos
+- `GET /api/students` - Listar Cadastros B�sicos(com paginação e filtros)
+- `POST /api/students` - Criar Cadastros B�sicos
+- `GET /api/students/{id}` - Detalhes do Cadastro B�sico
+- `PUT /api/students/{id}` - Atualizar Cadastro B�sico
+- `DELETE /api/students/{id}` - Excluir Cadastro B�sico
 - `GET /api/students/stats` - Estatísticas
 
 #### Dojos
@@ -246,11 +246,11 @@ curl -X POST http://localhost:5000/api/auth/login \
   -d '{"email":"admin@kiaikido.com","password":"123456"}' \
   -c cookies.txt
 
-# Listar alunos
+# Listar Cadastros B�sicos
 curl -X GET http://localhost:5000/api/students \
   -b cookies.txt
 
-# Criar aluno
+# Criar Cadastro B�sico
 curl -X POST http://localhost:5000/api/students \
   -H "Content-Type: application/json" \
   -b cookies.txt \

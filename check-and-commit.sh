@@ -64,7 +64,7 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "fix: reorganização visual do sidebar
+git commit -m "fix: reorganização visual dos modais
 "
 
 if [ $? -eq 0 ]; then

@@ -64,7 +64,9 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "fix: reorganização visual dos modais
+git commit -m "
+fix: ajuste de identidade visual
+fix: refatoração das ações de tabela
 "
 
 if [ $? -eq 0 ]; then

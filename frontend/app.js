@@ -13,6 +13,11 @@ let allStudents = [];
 let constants = null;
 let currentMemberStatusId = null;
 
+// Seleção de registros nas tabelas
+let selectedStudent = null;
+let selectedMember = null;
+let selectedUser = null;
+
 // =========================================
 // Utilitários
 // =========================================
@@ -249,6 +254,16 @@ async function loadStats() {
 // =========================================
 
 function showSection(section) {
+    // Resetar todas as seleções ao trocar de seção
+    selectedStudent = null;
+    selectedMember = null;
+    selectedUser = null;
+    
+    // Atualizar estado dos botões
+    updateStudentActionButtons();
+    updateMemberActionButtons();
+    updateUserActionButtons();
+    
     // Esconder todas as seções
     document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
     
@@ -514,12 +529,14 @@ function renderStudentsTable(students) {
     if (students.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-users text-6xl text-gray-300 mb-4 block"></i>
                     Nenhum Cadastro Básico encontrado
                 </td>
             </tr>
         `;
+        selectedStudent = null;
+        updateStudentActionButtons();
         return;
     }
     
@@ -546,8 +563,11 @@ function renderStudentsTable(students) {
             statusDisplay = statusBadges[student.status] || student.status;
         }
         
+        const isSelected = selectedStudent && selectedStudent.id === student.id;
+        const rowClass = isSelected ? 'table-row table-row-selected' : 'table-row hover:bg-gray-50';
+        
         return `
-            <tr class="table-row">
+            <tr class="${rowClass}" onclick="selectStudent(${student.id})" style="cursor: pointer;">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     ${student.registration_number}
                 </td>
@@ -563,20 +583,38 @@ function renderStudentsTable(students) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     ${statusDisplay}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button onclick="viewStudent(${student.id})" class="text-blue-600 hover:text-blue-900" title="Visualizar">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editStudent(${student.id})" class="text-green-600 hover:text-green-900" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteStudent(${student.id})" class="text-red-600 hover:text-red-900" title="Excluir">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
+}
+
+// Função para selecionar um estudante
+function selectStudent(studentId) {
+    const student = allStudents.find(s => s.id === studentId);
+    if (student) {
+        if (selectedStudent && selectedStudent.id === studentId) {
+            // Desselecionar se clicar novamente
+            selectedStudent = null;
+        } else {
+            selectedStudent = student;
+        }
+        renderStudentsTable(allStudents);
+        updateStudentActionButtons();
+    }
+}
+
+// Função para atualizar estado dos botões de ação
+function updateStudentActionButtons() {
+    const viewBtn = document.getElementById('studentViewBtn');
+    const editBtn = document.getElementById('studentEditBtn');
+    const deleteBtn = document.getElementById('studentDeleteBtn');
+    
+    if (viewBtn && editBtn && deleteBtn) {
+        const isDisabled = !selectedStudent;
+        viewBtn.disabled = isDisabled;
+        editBtn.disabled = isDisabled;
+        deleteBtn.disabled = isDisabled;
+    }
 }
 
 function renderStudentsPagination(pagination) {
@@ -663,8 +701,13 @@ function closeStudentModal() {
     document.getElementById('studentModal').classList.add('hidden');
 }
 
-function viewStudent(studentId) {
-    viewStudentDetails(studentId);
+function viewStudent(studentId = null) {
+    const id = studentId || (selectedStudent ? selectedStudent.id : null);
+    if (!id) {
+        showNotification('Selecione um cadastro básico primeiro', 'warning');
+        return;
+    }
+    viewStudentDetails(id);
 }
 
 async function viewStudentDetails(studentId) {
@@ -789,18 +832,30 @@ function closeStudentDetailsModal() {
     document.getElementById('studentDetailsModal').classList.add('hidden');
 }
 
-function editStudent(studentId) {
-    openStudentModal(studentId);
+function editStudent(studentId = null) {
+    const id = studentId || (selectedStudent ? selectedStudent.id : null);
+    if (!id) {
+        showNotification('Selecione um cadastro básico primeiro', 'warning');
+        return;
+    }
+    openStudentModal(id);
 }
 
-async function deleteStudent(studentId) {
+async function deleteStudent(studentId = null) {
+    const id = studentId || (selectedStudent ? selectedStudent.id : null);
+    if (!id) {
+        showNotification('Selecione um cadastro básico primeiro', 'warning');
+        return;
+    }
+    
     if (!confirm('Tem certeza que deseja excluir este Cadastro Básico?')) return;
     
     showLoading();
     
     try {
-        await apiRequest(`/students/${studentId}`, { method: 'DELETE' });
+        await apiRequest(`/students/${id}`, { method: 'DELETE' });
         showNotification('Cadastro Básico excluído com sucesso!', 'success');
+        selectedStudent = null;
         await loadStudents(currentPage.students);
         await loadStats();
     } catch (error) {
@@ -888,12 +943,14 @@ function renderMembersTable(members) {
     if (members.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-id-card text-6xl text-gray-300 mb-4 block"></i>
                     Nenhum membro encontrado
                 </td>
             </tr>
         `;
+        selectedMember = null;
+        updateMemberActionButtons();
         return;
     }
     
@@ -916,8 +973,11 @@ function renderMembersTable(members) {
             graduationsText = grads.map(([disc, grad]) => `${grad.rank_name}`).join(', ') || 'Nenhuma';
         }
         
+        const isSelected = selectedMember && selectedMember.id === member.id;
+        const rowClass = isSelected ? 'table-row table-row-selected' : 'table-row hover:bg-gray-50';
+        
         return `
-            <tr class="table-row">
+            <tr class="${rowClass}" onclick="selectMember(${member.id})" style="cursor: pointer;">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     ${member.registered_number || 'N/A'}
                 </td>
@@ -933,20 +993,38 @@ function renderMembersTable(members) {
                 <td class="px-6 py-4 text-sm text-gray-600">
                     ${graduationsText}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button onclick="viewMember(${member.id})" class="text-blue-600 hover:text-blue-900" title="Visualizar">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button onclick="editMember(${member.id})" class="text-green-600 hover:text-green-900" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteMember(${member.id})" class="text-red-600 hover:text-red-900" title="Excluir">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
+}
+
+// Função para selecionar um membro
+function selectMember(memberId) {
+    const member = allMembers.find(m => m.id === memberId);
+    if (member) {
+        if (selectedMember && selectedMember.id === memberId) {
+            // Desselecionar se clicar novamente
+            selectedMember = null;
+        } else {
+            selectedMember = member;
+        }
+        renderMembersTable(allMembers);
+        updateMemberActionButtons();
+    }
+}
+
+// Função para atualizar estado dos botões de ação de membros
+function updateMemberActionButtons() {
+    const viewBtn = document.getElementById('memberViewBtn');
+    const editBtn = document.getElementById('memberEditBtn');
+    const deleteBtn = document.getElementById('memberDeleteBtn');
+    
+    if (viewBtn && editBtn && deleteBtn) {
+        const isDisabled = !selectedMember;
+        viewBtn.disabled = isDisabled;
+        editBtn.disabled = isDisabled;
+        deleteBtn.disabled = isDisabled;
+    }
 }
 
 function renderMembersPagination(pagination) {
@@ -1097,8 +1175,13 @@ async function openMemberModalForStudent(studentId, studentName) {
     }, 300);
 }
 
-function viewMember(memberId) {
-    viewMemberDetails(memberId);
+function viewMember(memberId = null) {
+    const id = memberId || (selectedMember ? selectedMember.id : null);
+    if (!id) {
+        showNotification('Selecione um membro primeiro', 'warning');
+        return;
+    }
+    viewMemberDetails(id);
 }
 
 async function viewMemberDetails(memberId) {
@@ -1251,18 +1334,30 @@ function renderDetailsQualifications(qualifications) {
     `).join('');
 }
 
-function editMember(memberId) {
-    openMemberModal(memberId);
+function editMember(memberId = null) {
+    const id = memberId || (selectedMember ? selectedMember.id : null);
+    if (!id) {
+        showNotification('Selecione um membro primeiro', 'warning');
+        return;
+    }
+    openMemberModal(id);
 }
 
-async function deleteMember(memberId) {
+async function deleteMember(memberId = null) {
+    const id = memberId || (selectedMember ? selectedMember.id : null);
+    if (!id) {
+        showNotification('Selecione um membro primeiro', 'warning');
+        return;
+    }
+    
     if (!confirm('Tem certeza que deseja excluir este membro?')) return;
     
     showLoading();
     
     try {
-        await apiRequest(`/member-status/${memberId}`, { method: 'DELETE' });
+        await apiRequest(`/member-status/${id}`, { method: 'DELETE' });
         showNotification('Membro excluído com sucesso!', 'success');
+        selectedMember = null;
         await loadMembers(currentPage.members);
         await loadStats();
     } catch (error) {
@@ -1960,23 +2055,29 @@ async function loadUsers() {
         if (data.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                         <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
                         <p>Nenhum usuário encontrado</p>
                     </td>
                 </tr>
             `;
+            selectedUser = null;
+            updateUserActionButtons();
             return;
         }
         
         data.forEach(user => {
             const tr = document.createElement('tr');
-            tr.className = 'table-row';
             
             const roleText = user.role === 'admin' ? 'Administrador' : 'Usuário de Dojo';
             const statusBadge = user.is_active 
                 ? '<span class="badge badge-success">Ativo</span>'
                 : '<span class="badge badge-danger">Inativo</span>';
+            
+            const isSelected = selectedUser && selectedUser.id === user.id;
+            tr.className = isSelected ? 'table-row table-row-selected' : 'table-row hover:bg-gray-50';
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => selectUser(user.id);
             
             tr.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -1989,31 +2090,65 @@ async function loadUsers() {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${roleText}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.dojo_name || '-'}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="openResetPasswordModal(${user.id}, '${user.name}')" class="text-blue-600 hover:text-blue-900" title="Resetar Senha">
-                        <i class="fas fa-key"></i>
-                    </button>
-                    <button onclick="toggleUserStatus(${user.id})" class="text-${user.is_active ? 'orange' : 'green'}-600 hover:text-${user.is_active ? 'orange' : 'green'}-900" title="${user.is_active ? 'Desativar' : 'Ativar'}">
-                        <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
-                    </button>
-                    ${currentUser.id !== user.id ? `
-                        <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900" title="Excluir">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    ` : ''}
-                </td>
             `;
+            
+            // Armazenar dados do usuário no elemento para acesso posterior
+            tr.dataset.userId = user.id;
+            tr.dataset.userName = user.name;
+            tr.dataset.userActive = user.is_active;
             
             tbody.appendChild(tr);
         });
+        
+        // Armazenar todos os usuários globalmente para seleção
+        window.allUsers = data;
         
     } catch (error) {
         showNotification('Erro ao carregar usuários: ' + error.message, 'error');
     } finally {
         hideLoading();
+    }
+}
+
+// Função para selecionar um usuário
+function selectUser(userId) {
+    const user = window.allUsers.find(u => u.id === userId);
+    if (user) {
+        if (selectedUser && selectedUser.id === userId) {
+            // Desselecionar se clicar novamente
+            selectedUser = null;
+        } else {
+            selectedUser = user;
+        }
+        loadUsers(); // Re-renderizar para atualizar visual
+        updateUserActionButtons();
+    }
+}
+
+// Função para atualizar estado dos botões de ação de usuários
+function updateUserActionButtons() {
+    const editBtn = document.getElementById('userEditBtn');
+    const resetPwdBtn = document.getElementById('userResetPasswordBtn');
+    const toggleStatusBtn = document.getElementById('userToggleStatusBtn');
+    const deleteBtn = document.getElementById('userDeleteBtn');
+    
+    if (editBtn && resetPwdBtn && toggleStatusBtn && deleteBtn) {
+        const isDisabled = !selectedUser;
+        const canDelete = selectedUser && currentUser && selectedUser.id !== currentUser.id;
+        
+        editBtn.disabled = isDisabled;
+        resetPwdBtn.disabled = isDisabled;
+        toggleStatusBtn.disabled = isDisabled;
+        deleteBtn.disabled = !canDelete;
+        
+        // Atualizar texto e ícone do botão de toggle status
+        if (selectedUser) {
+            const icon = selectedUser.is_active ? 'ban' : 'check-circle';
+            const title = selectedUser.is_active ? 'Desativar usuário' : 'Ativar usuário';
+            
+            toggleStatusBtn.innerHTML = `<i class="fas fa-${icon}"></i>`;
+            toggleStatusBtn.title = title;
+        }
     }
 }
 
@@ -2147,11 +2282,27 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     }
 });
 
-function editUser(userId) {
-    openUserModal(userId);
+function editUser(userId = null) {
+    const id = userId || (selectedUser ? selectedUser.id : null);
+    if (!id) {
+        showNotification('Selecione um usuário primeiro', 'warning');
+        return;
+    }
+    openUserModal(id);
 }
 
-async function deleteUser(userId) {
+async function deleteUser(userId = null) {
+    const id = userId || (selectedUser ? selectedUser.id : null);
+    if (!id) {
+        showNotification('Selecione um usuário primeiro', 'warning');
+        return;
+    }
+    
+    if (currentUser && id === currentUser.id) {
+        showNotification('Você não pode excluir seu próprio usuário', 'error');
+        return;
+    }
+    
     if (!confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
         return;
     }
@@ -2159,11 +2310,12 @@ async function deleteUser(userId) {
     showLoading();
     
     try {
-        await apiRequest(`/users/${userId}`, {
+        await apiRequest(`/users/${id}`, {
             method: 'DELETE'
         });
         
         showNotification('Usuário excluído com sucesso!', 'success');
+        selectedUser = null;
         await loadUsers();
         
     } catch (error) {
@@ -2173,15 +2325,22 @@ async function deleteUser(userId) {
     }
 }
 
-async function toggleUserStatus(userId) {
+async function toggleUserStatus(userId = null) {
+    const id = userId || (selectedUser ? selectedUser.id : null);
+    if (!id) {
+        showNotification('Selecione um usuário primeiro', 'warning');
+        return;
+    }
+    
     showLoading();
     
     try {
-        const data = await apiRequest(`/users/${userId}/toggle-status`, {
+        const data = await apiRequest(`/users/${id}/toggle-status`, {
             method: 'POST'
         });
         
         showNotification(data.message, 'success');
+        selectedUser = null;
         await loadUsers();
         
     } catch (error) {
@@ -2191,10 +2350,18 @@ async function toggleUserStatus(userId) {
     }
 }
 
-function openResetPasswordModal(userId, userName) {
+function openResetPasswordModal(userId = null, userName = null) {
+    const id = userId || (selectedUser ? selectedUser.id : null);
+    const name = userName || (selectedUser ? selectedUser.name : null);
+    
+    if (!id || !name) {
+        showNotification('Selecione um usuário primeiro', 'warning');
+        return;
+    }
+    
     document.getElementById('resetPasswordModal').classList.remove('hidden');
-    document.getElementById('resetPasswordUserId').value = userId;
-    document.getElementById('resetPasswordUserName').textContent = userName;
+    document.getElementById('resetPasswordUserId').value = id;
+    document.getElementById('resetPasswordUserName').textContent = name;
     document.getElementById('resetPasswordForm').reset();
 }
 

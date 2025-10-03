@@ -179,6 +179,35 @@ small {
   transform: scale(1.1);
 }
 
+/* Botões de ação com ícone (para toolbars) */
+.btn-icon-action {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--ki-radius-lg);
+  cursor: pointer;
+  transition: all var(--ki-transition-base);
+  font-size: 1.125rem; /* 18px */
+}
+
+.btn-icon-action:hover:not(:disabled) {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-icon-action:active:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.btn-icon-action:disabled {
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}
+
 /* ========================================
    COMPONENTS - BADGES
    ======================================== */
@@ -384,7 +413,16 @@ small {
 }
 
 .table-row {
-  transition: background-color var(--ki-transition-base);
+  transition: background-color var(--ki-transition-base), border-color var(--ki-transition-base), box-shadow var(--ki-transition-base);
+}
+
+.table-row-selected {
+  background-color: rgb(243 232 255) !important; /* purple-50 */
+  border-left: 4px solid rgb(147 51 234) !important; /* purple-600 */
+}
+
+.table-row-selected:hover {
+  background-color: rgb(243 232 255) !important; /* Mantém a mesma cor no hover */
 }
 
 /* ========================================

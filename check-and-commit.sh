@@ -64,7 +64,7 @@ fi
 
 echo ""
 echo "💾 Fazendo commit..."
-git commit -m "feat: melhoras visuais
+git commit -m "fix: limpeza de arquivos
 "
 
 if [ $? -eq 0 ]; then

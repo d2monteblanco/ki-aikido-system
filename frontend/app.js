@@ -1017,12 +1017,16 @@ function selectMember(memberId) {
 function updateMemberActionButtons() {
     const viewBtn = document.getElementById('memberViewBtn');
     const editBtn = document.getElementById('memberEditBtn');
+    const graduationsBtn = document.getElementById('memberGraduationsBtn');
+    const qualificationsBtn = document.getElementById('memberQualificationsBtn');
     const deleteBtn = document.getElementById('memberDeleteBtn');
     
-    if (viewBtn && editBtn && deleteBtn) {
+    if (viewBtn && editBtn && graduationsBtn && qualificationsBtn && deleteBtn) {
         const isDisabled = !selectedMember;
         viewBtn.disabled = isDisabled;
         editBtn.disabled = isDisabled;
+        graduationsBtn.disabled = isDisabled;
+        qualificationsBtn.disabled = isDisabled;
         deleteBtn.disabled = isDisabled;
     }
 }
@@ -1110,10 +1114,6 @@ async function openMemberModal(memberId = null) {
             
             currentMemberStatusId = member.id;
             
-            // Carregar graduações e qualificações
-            await loadMemberGraduations(member.id);
-            await loadMemberQualifications(member.id);
-            
         } catch (error) {
             showNotification('Erro ao carregar membro: ' + error.message, 'error');
         } finally {
@@ -1128,7 +1128,6 @@ async function openMemberModal(memberId = null) {
     }
     
     modal.classList.remove('hidden');
-    showMemberTab('info');
 }
 
 function closeMemberModal() {
@@ -1433,44 +1432,204 @@ document.getElementById('memberForm').addEventListener('submit', async (e) => {
 });
 
 // =========================================
-// Tabs do Modal de Membro
+// Gerenciamento de Graduações e Qualificações
 // =========================================
 
-function showMemberTab(tab) {
-    // Esconder todos os conteúdos
-    document.getElementById('memberInfoTabContent').classList.add('hidden');
-    document.getElementById('memberGraduationsTabContent').classList.add('hidden');
-    document.getElementById('memberQualificationsTabContent').classList.add('hidden');
+// Funções para abrir modais de gerenciamento
+async function manageMemberGraduations() {
+    if (!selectedMember) return;
     
-    // Remover active de todas as tabs
-    document.getElementById('memberInfoTab').classList.remove('border-purple-600', 'text-purple-600');
-    document.getElementById('memberInfoTab').classList.add('text-gray-500');
-    document.getElementById('memberGraduationsTab').classList.remove('border-purple-600', 'text-purple-600');
-    document.getElementById('memberGraduationsTab').classList.add('text-gray-500');
-    document.getElementById('memberQualificationsTab').classList.remove('border-purple-600', 'text-purple-600');
-    document.getElementById('memberQualificationsTab').classList.add('text-gray-500');
+    const modal = document.getElementById('manageGraduationsModal');
+    const memberName = document.getElementById('manageGraduationsMemberName');
     
-    // Mostrar conteúdo selecionado
-    if (tab === 'info') {
-        document.getElementById('memberInfoTabContent').classList.remove('hidden');
-        document.getElementById('memberInfoTab').classList.add('border-purple-600', 'text-purple-600');
-        document.getElementById('memberInfoTab').classList.remove('text-gray-500');
-    } else if (tab === 'graduations') {
-        document.getElementById('memberGraduationsTabContent').classList.remove('hidden');
-        document.getElementById('memberGraduationsTab').classList.add('border-purple-600', 'text-purple-600');
-        document.getElementById('memberGraduationsTab').classList.remove('text-gray-500');
-        
-        if (currentMemberStatusId) {
-            loadMemberGraduations(currentMemberStatusId);
+    memberName.textContent = selectedMember.student_name;
+    currentMemberStatusId = selectedMember.id;
+    
+    modal.classList.remove('hidden');
+    
+    // Carregar graduações do membro
+    await loadGraduationsForManage(selectedMember.id);
+}
+
+function closeManageGraduationsModal() {
+    document.getElementById('manageGraduationsModal').classList.add('hidden');
+    currentMemberStatusId = null;
+}
+
+async function manageMemberQualifications() {
+    if (!selectedMember) return;
+    
+    const modal = document.getElementById('manageQualificationsModal');
+    const memberName = document.getElementById('manageQualificationsMemberName');
+    
+    memberName.textContent = selectedMember.student_name;
+    currentMemberStatusId = selectedMember.id;
+    
+    modal.classList.remove('hidden');
+    
+    // Carregar qualificações do membro
+    await loadQualificationsForManage(selectedMember.id);
+}
+
+function closeManageQualificationsModal() {
+    document.getElementById('manageQualificationsModal').classList.add('hidden');
+    currentMemberStatusId = null;
+}
+
+// Funções para carregar listas de gerenciamento
+async function loadGraduationsForManage(memberStatusId) {
+    try {
+        const graduations = await apiRequest(`/member-status/${memberStatusId}/graduations`);
+        renderManageGraduations(graduations);
+    } catch (error) {
+        console.error('Error loading graduations:', error);
+        showNotification('Erro ao carregar graduações: ' + error.message, 'error');
+    }
+}
+
+function renderManageGraduations(graduations) {
+    const container = document.getElementById('manageGraduationsList');
+    
+    if (!graduations || graduations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-medal text-4xl text-gray-300 mb-2 block"></i>
+                Nenhuma graduação registrada
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = graduations.map(grad => `
+        <div class="border rounded-lg p-4 ${grad.is_current ? 'border-purple-600 bg-purple-50' : 'border-gray-200'}">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-medal text-purple-600 mr-2"></i>
+                        <h4 class="font-bold text-gray-800">${grad.rank_display}</h4>
+                        ${grad.is_current ? '<span class="ml-2 badge badge-success text-xs">Atual</span>' : ''}
+                    </div>
+                    <p class="text-sm text-gray-600"><strong>Disciplina:</strong> ${grad.discipline}</p>
+                    ${grad.examination_date ? `<p class="text-sm text-gray-600"><strong>Data do Exame:</strong> ${formatDate(grad.examination_date)}</p>` : ''}
+                    ${grad.certificate_number ? `<p class="text-sm text-gray-600"><strong>Certificado:</strong> ${grad.certificate_number}</p>` : ''}
+                    <p class="text-sm text-gray-600"><strong>Status:</strong> ${grad.certificate_status_display}</p>
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <button onclick="editGraduationFromManage(${grad.id})" class="text-blue-600 hover:text-blue-900" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteGraduationFromManage(${grad.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadQualificationsForManage(memberStatusId) {
+    try {
+        const qualifications = await apiRequest(`/member-status/${memberStatusId}/qualifications`);
+        renderManageQualifications(qualifications);
+    } catch (error) {
+        console.error('Error loading qualifications:', error);
+        showNotification('Erro ao carregar qualificações: ' + error.message, 'error');
+    }
+}
+
+function renderManageQualifications(qualifications) {
+    const container = document.getElementById('manageQualificationsList');
+    
+    if (!qualifications || qualifications.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-certificate text-4xl text-gray-300 mb-2 block"></i>
+                Nenhuma qualificação registrada
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = qualifications.map(qual => {
+        // Montar o título com tipo e nível
+        let title = qual.qualification_type_display || qual.qualification_type || 'Qualificação';
+        const level = qual.qualification_level || qual.level;
+        if (level) {
+            title += ` - ${level}`;
         }
-    } else if (tab === 'qualifications') {
-        document.getElementById('memberQualificationsTabContent').classList.remove('hidden');
-        document.getElementById('memberQualificationsTab').classList.add('border-purple-600', 'text-purple-600');
-        document.getElementById('memberQualificationsTab').classList.remove('text-gray-500');
         
-        if (currentMemberStatusId) {
-            loadMemberQualifications(currentMemberStatusId);
-        }
+        return `
+            <div class="border rounded-lg p-4 ${qual.is_active ? 'border-green-600 bg-green-50' : 'border-gray-200'}">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-certificate text-green-600 mr-2"></i>
+                            <h4 class="font-bold text-gray-800">${title}</h4>
+                            ${qual.is_active ? '<span class="ml-2 badge badge-success text-xs">Ativo</span>' : '<span class="ml-2 badge badge-danger text-xs">Inativo</span>'}
+                        </div>
+                        ${qual.date_obtained ? `<p class="text-sm text-gray-600"><strong>Data de Obtenção:</strong> ${formatDate(qual.date_obtained)}</p>` : ''}
+                        ${qual.certificate_number ? `<p class="text-sm text-gray-600"><strong>Certificado:</strong> ${qual.certificate_number}</p>` : ''}
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        <button onclick="editQualificationFromManage(${qual.id})" class="text-blue-600 hover:text-blue-900" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteQualificationFromManage(${qual.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Funções para abrir modais de graduação/qualificação a partir do manage
+function openGraduationModalFromManage() {
+    openGraduationModal();
+}
+
+async function editGraduationFromManage(graduationId) {
+    await loadGraduationForEdit(graduationId);
+    document.getElementById('graduationModal').classList.remove('hidden');
+}
+
+async function deleteGraduationFromManage(graduationId) {
+    if (!confirm('Tem certeza que deseja excluir esta graduação?')) return;
+    
+    showLoading();
+    try {
+        await apiRequest(`/graduations/${graduationId}`, { method: 'DELETE' });
+        showNotification('Graduação excluída com sucesso!', 'success');
+        await loadGraduationsForManage(currentMemberStatusId);
+    } catch (error) {
+        showNotification('Erro ao excluir graduação: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function openQualificationModalFromManage() {
+    openQualificationModal();
+}
+
+async function editQualificationFromManage(qualificationId) {
+    await loadQualificationForEdit(qualificationId);
+    document.getElementById('qualificationModal').classList.remove('hidden');
+}
+
+async function deleteQualificationFromManage(qualificationId) {
+    if (!confirm('Tem certeza que deseja excluir esta qualificação?')) return;
+    
+    showLoading();
+    try {
+        await apiRequest(`/qualifications/${qualificationId}`, { method: 'DELETE' });
+        showNotification('Qualificação excluída com sucesso!', 'success');
+        await loadQualificationsForManage(currentMemberStatusId);
+    } catch (error) {
+        showNotification('Erro ao excluir qualificação: ' + error.message, 'error');
+    } finally {
+        hideLoading();
     }
 }
 
@@ -1549,14 +1708,17 @@ async function openGraduationModal(graduationId = null) {
     
     const modal = document.getElementById('graduationModal');
     const form = document.getElementById('graduationForm');
+    const title = document.getElementById('graduationModalTitle');
     
     form.reset();
     document.getElementById('graduationMemberStatusId').value = currentMemberStatusId;
     
     if (graduationId) {
+        title.innerHTML = '<i class="fas fa-medal mr-2"></i>Editar Graduação';
         // Carregar dados da graduação para edição
-        loadGraduationForEdit(graduationId);
+        await loadGraduationForEdit(graduationId);
     } else {
+        title.innerHTML = '<i class="fas fa-medal mr-2"></i>Nova Graduação';
         document.getElementById('graduationIsCurrent').checked = true;
         document.getElementById('graduationCertificateStatus').value = 'pending';
     }
@@ -1693,7 +1855,11 @@ document.getElementById('graduationForm').addEventListener('submit', async (e) =
         }
         
         closeGraduationModal();
-        await loadMemberGraduations(currentMemberStatusId);
+        
+        // Recarregar lista se estiver no modal de gerenciamento
+        if (currentMemberStatusId && !document.getElementById('manageGraduationsModal').classList.contains('hidden')) {
+            await loadGraduationsForManage(currentMemberStatusId);
+        }
         
     } catch (error) {
         showNotification('Erro ao salvar graduação: ' + error.message, 'error');
@@ -1775,13 +1941,16 @@ async function openQualificationModal(qualificationId = null) {
     
     const modal = document.getElementById('qualificationModal');
     const form = document.getElementById('qualificationForm');
+    const title = document.getElementById('qualificationModalTitle');
     
     form.reset();
     document.getElementById('qualificationMemberStatusId').value = currentMemberStatusId;
     
     if (qualificationId) {
-        loadQualificationForEdit(qualificationId);
+        title.innerHTML = '<i class="fas fa-certificate mr-2"></i>Editar Qualificação';
+        await loadQualificationForEdit(qualificationId);
     } else {
+        title.innerHTML = '<i class="fas fa-certificate mr-2"></i>Nova Qualificação';
         document.getElementById('qualificationIsActive').checked = true;
     }
     
@@ -1915,7 +2084,11 @@ document.getElementById('qualificationForm').addEventListener('submit', async (e
         }
         
         closeQualificationModal();
-        await loadMemberQualifications(currentMemberStatusId);
+        
+        // Recarregar lista se estiver no modal de gerenciamento
+        if (currentMemberStatusId && !document.getElementById('manageQualificationsModal').classList.contains('hidden')) {
+            await loadQualificationsForManage(currentMemberStatusId);
+        }
         
     } catch (error) {
         showNotification('Erro ao salvar qualificação: ' + error.message, 'error');

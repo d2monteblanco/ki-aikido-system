@@ -65,7 +65,12 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-fix: Padronização visual dos modais
+fix: PADRONIZAÇÃO DOS MODAIS
+CORREÇÃO DO LOADING NA SELEÇÃO DE USUÁRIOS
+REFATORAÇÃO DOS MODAIS DE MEMBROS
+CORREÇÃO DE Z-INDEX DOS MODAIS
+MELHORIAS NA EXIBIÇÃO DE QUALIFICAÇÕES
+
 "
 
 if [ $? -eq 0 ]; then

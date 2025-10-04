@@ -455,9 +455,15 @@ small {
    COMPONENTS - MODALS
    ======================================== */
 
-/* Todos os containers de modal */
+/* Modais de gerenciamento (nível base) */
 div[id$="Modal"] {
-  z-index: 9999 !important;
+  z-index: 9999;
+}
+
+/* Modais de formulário (acima dos de gerenciamento) */
+#graduationModal,
+#qualificationModal {
+  z-index: 10010 !important;
 }
 
 /* Backdrop dos modais */

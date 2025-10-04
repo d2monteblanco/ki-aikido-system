@@ -20,6 +20,15 @@ class Dojo(db.Model):
         return f'<Dojo {self.name}>'
 
     def to_dict(self):
+        # Calcular membros ativos (estudantes com member_status ativo)
+        from src.models.member_status import MemberStatus
+        active_members = 0
+        if self.students:
+            for student in self.students:
+                member_status = MemberStatus.query.filter_by(student_id=student.id).first()
+                if member_status and member_status.current_status == 'active':
+                    active_members += 1
+        
         return {
             'id': self.id,
             'name': self.name,
@@ -30,16 +39,33 @@ class Dojo(db.Model):
             'registration_number': self.registration_number,
             'is_active': self.is_active,
             'student_count': len(self.students) if self.students else 0,
+            'active_members': active_members,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
     def get_stats(self):
         """Retorna estatísticas do dojo"""
-        active_students = [s for s in self.students if s.status == 'active']
+        from src.models.member_status import MemberStatus
+        
+        # Contar estudantes por status em member_status
+        active_count = 0
+        inactive_count = 0
+        pending_count = 0
+        
+        for student in self.students:
+            member_status = MemberStatus.query.filter_by(student_id=student.id).first()
+            if member_status:
+                if member_status.current_status == 'active':
+                    active_count += 1
+                elif member_status.current_status == 'inactive':
+                    inactive_count += 1
+                elif member_status.current_status == 'pending':
+                    pending_count += 1
+        
         return {
             'total_students': len(self.students),
-            'active_students': len(active_students),
-            'pending_students': len([s for s in self.students if s.status == 'pending']),
-            'inactive_students': len([s for s in self.students if s.status == 'inactive'])
+            'active_students': active_count,
+            'pending_students': pending_count,
+            'inactive_students': inactive_count
         }
 

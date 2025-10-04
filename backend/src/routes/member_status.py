@@ -115,9 +115,13 @@ def create_member_status():
         return jsonify({'error': 'Estudante já possui status de membro'}), 400
     
     try:
+        # Converter string vazia para None no registered_number
+        reg_num = data.get('registered_number')
+        registered_number = reg_num if reg_num and str(reg_num).strip() else None
+        
         member_status = MemberStatus(
             student_id=data['student_id'],
-            registered_number=data.get('registered_number'),
+            registered_number=registered_number,
             membership_date=datetime.strptime(data['membership_date'], '%Y-%m-%d').date() if data.get('membership_date') else None,
             member_type=data.get('member_type', 'student'),
             current_status=data.get('current_status', 'active'),
@@ -150,7 +154,9 @@ def update_member_status(id):
     try:
         # Atualizar campos
         if 'registered_number' in data:
-            member_status.registered_number = data['registered_number']
+            # Converter string vazia para None para evitar conflito com UNIQUE constraint
+            reg_num = data['registered_number']
+            member_status.registered_number = reg_num if reg_num and reg_num.strip() else None
         if 'membership_date' in data:
             member_status.membership_date = datetime.strptime(data['membership_date'], '%Y-%m-%d').date() if data['membership_date'] else None
         if 'member_type' in data:

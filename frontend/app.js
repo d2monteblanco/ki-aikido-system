@@ -602,6 +602,9 @@ function renderStudentsTable(students) {
         
         return `
             <tr class="${rowClass}" onclick="selectStudent(${student.id})" style="cursor: pointer;">
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    ${statusDisplay}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     ${student.registration_number}
                 </td>
@@ -613,9 +616,6 @@ function renderStudentsTable(students) {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     ${student.dojo_name || 'N/A'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    ${statusDisplay}
                 </td>
             </tr>
         `;
@@ -1012,6 +1012,9 @@ function renderMembersTable(members) {
         
         return `
             <tr class="${rowClass}" onclick="selectMember(${member.id})" style="cursor: pointer;">
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    ${statusBadges[member.current_status] || member.current_status}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     ${member.registered_number || 'N/A'}
                 </td>
@@ -1020,9 +1023,6 @@ function renderMembersTable(members) {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     ${typeBadges[member.member_type] || member.member_type}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    ${statusBadges[member.current_status] || member.current_status}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">
                     ${graduationsText}

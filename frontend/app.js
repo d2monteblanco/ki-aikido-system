@@ -2044,64 +2044,71 @@ document.getElementById('changePasswordForm').addEventListener('submit', async (
 // Gerenciamento de Usuários (Admin)
 // =========================================
 
+// Função para renderizar a tabela de usuários (sem fazer nova requisição)
+function renderUsersTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                    <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
+                    <p>Nenhum usuário encontrado</p>
+                </td>
+            </tr>
+        `;
+        selectedUser = null;
+        updateUserActionButtons();
+        return;
+    }
+    
+    users.forEach(user => {
+        const tr = document.createElement('tr');
+        
+        const roleText = user.role === 'admin' ? 'Administrador' : 'Usuário de Dojo';
+        const statusBadge = user.is_active 
+            ? '<span class="badge badge-success">Ativo</span>'
+            : '<span class="badge badge-danger">Inativo</span>';
+        
+        const isSelected = selectedUser && selectedUser.id === user.id;
+        tr.className = isSelected ? 'table-row table-row-selected' : 'table-row hover:bg-gray-50';
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => selectUser(user.id);
+        
+        tr.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                    <i class="fas fa-user-circle text-2xl text-gray-400 mr-3"></i>
+                    <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.email}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${roleText}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.dojo_name || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+        `;
+        
+        // Armazenar dados do usuário no elemento para acesso posterior
+        tr.dataset.userId = user.id;
+        tr.dataset.userName = user.name;
+        tr.dataset.userActive = user.is_active;
+        
+        tbody.appendChild(tr);
+    });
+}
+
 async function loadUsers() {
     showLoading();
     
     try {
         const data = await apiRequest('/users');
-        const tbody = document.getElementById('usersTableBody');
-        tbody.innerHTML = '';
-        
-        if (data.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                        <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
-                        <p>Nenhum usuário encontrado</p>
-                    </td>
-                </tr>
-            `;
-            selectedUser = null;
-            updateUserActionButtons();
-            return;
-        }
-        
-        data.forEach(user => {
-            const tr = document.createElement('tr');
-            
-            const roleText = user.role === 'admin' ? 'Administrador' : 'Usuário de Dojo';
-            const statusBadge = user.is_active 
-                ? '<span class="badge badge-success">Ativo</span>'
-                : '<span class="badge badge-danger">Inativo</span>';
-            
-            const isSelected = selectedUser && selectedUser.id === user.id;
-            tr.className = isSelected ? 'table-row table-row-selected' : 'table-row hover:bg-gray-50';
-            tr.style.cursor = 'pointer';
-            tr.onclick = () => selectUser(user.id);
-            
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <i class="fas fa-user-circle text-2xl text-gray-400 mr-3"></i>
-                        <div class="text-sm font-medium text-gray-900">${user.name}</div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.email}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${roleText}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${user.dojo_name || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
-            `;
-            
-            // Armazenar dados do usuário no elemento para acesso posterior
-            tr.dataset.userId = user.id;
-            tr.dataset.userName = user.name;
-            tr.dataset.userActive = user.is_active;
-            
-            tbody.appendChild(tr);
-        });
         
         // Armazenar todos os usuários globalmente para seleção
         window.allUsers = data;
+        
+        // Renderizar tabela
+        renderUsersTable(data);
         
     } catch (error) {
         showNotification('Erro ao carregar usuários: ' + error.message, 'error');
@@ -2120,7 +2127,7 @@ function selectUser(userId) {
         } else {
             selectedUser = user;
         }
-        loadUsers(); // Re-renderizar para atualizar visual
+        renderUsersTable(window.allUsers); // Re-renderizar para atualizar visual
         updateUserActionButtons();
     }
 }

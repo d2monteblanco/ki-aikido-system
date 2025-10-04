@@ -65,8 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-fix: ajuste de identidade visual
-fix: refatoração das ações de tabela
+fix: Padronização visual dos modais
 "
 
 if [ $? -eq 0 ]; then

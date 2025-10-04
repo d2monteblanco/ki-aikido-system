@@ -567,22 +567,24 @@
     <div id="studentModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeStudentModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold" id="studentModalTitle">
-                        <i class="fas fa-user-plus mr-2"></i>Novo Cadastro Básico
-                    </h3>
-                <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-save mr-2"></i>Salvar
-                        </button>
-                        <button type="button" onclick="closeStudentModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </button>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold" id="studentModalTitle">
+                            <i class="fas fa-user-plus mr-2"></i>Novo Cadastro Básico
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('studentForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>Salvar
+                            </button>
+                            <button type="button" onclick="closeStudentModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <form id="studentForm" class="p-6 space-y-4">
+                <form id="studentForm" class="p-6 space-y-4 overflow-y-auto flex-1">
                     <input type="hidden" id="studentId">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -639,22 +641,24 @@
     <div id="memberModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeMemberModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold" id="memberModalTitle">
-                        <i class="fas fa-id-card mr-2"></i>Novo Membro
-                    </h3>
-                <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-save mr-2"></i>Salvar
-                        </button>
-                        <button type="button" onclick="closeMemberModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                       </button>
-                   </div>    
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold" id="memberModalTitle">
+                            <i class="fas fa-id-card mr-2"></i>Novo Membro
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('memberForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>Salvar
+                            </button>
+                            <button type="button" onclick="closeMemberModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="p-6">
+                <div class="p-6 overflow-y-auto flex-1">
                     <!-- Tabs -->
                     <div class="flex border-b mb-6">
                         <button class="px-6 py-3 font-medium border-b-2 border-purple-600 text-purple-600" id="memberInfoTab" onclick="showMemberTab('info')">
@@ -669,7 +673,7 @@
                     </div>
                     
                     <!-- Tab: Informações -->
-                    <div id="memberInfoTabContent">
+                    <div id="memberInfoTabContent" class="min-h-[400px]">
                         <form id="memberForm" class="space-y-4">
                             <input type="hidden" id="memberId">
                             <input type="hidden" id="memberStudentId">
@@ -721,7 +725,7 @@
                     </div>
                     
                     <!-- Tab: Graduações -->
-                    <div id="memberGraduationsTabContent" class="hidden">
+                    <div id="memberGraduationsTabContent" class="hidden min-h-[400px]">
                         <div class="mb-4">
                             <button onclick="openGraduationModal()" class="btn-primary text-white px-4 py-2 rounded-lg">
                                 <i class="fas fa-plus mr-2"></i>Nova Graduação
@@ -733,7 +737,7 @@
                     </div>
                     
                     <!-- Tab: Qualificações -->
-                    <div id="memberQualificationsTabContent" class="hidden">
+                    <div id="memberQualificationsTabContent" class="hidden min-h-[400px]">
                         <div class="mb-4">
                             <button onclick="openQualificationModal()" class="btn-primary text-white px-4 py-2 rounded-lg">
                                 <i class="fas fa-plus mr-2"></i>Nova Qualificação
@@ -752,14 +756,24 @@
     <div id="graduationModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeGraduationModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold">
-                        <i class="fas fa-medal mr-2"></i>Nova Graduação
-                    </h3>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold">
+                            <i class="fas fa-medal mr-2"></i>Nova Graduação
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('graduationForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>Salvar
+                            </button>
+                            <button type="button" onclick="closeGraduationModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
-                <form id="graduationForm" class="p-6 space-y-4">
+                <form id="graduationForm" class="p-6 space-y-4 overflow-y-auto flex-1">
                     <input type="hidden" id="graduationId">
                     <input type="hidden" id="graduationMemberStatusId">
                     
@@ -802,15 +816,6 @@
                         <input type="checkbox" id="graduationIsCurrent" class="mr-2">
                         <label for="graduationIsCurrent" class="text-sm font-medium text-gray-700">Graduação Atual</label>
                     </div>
-                    
-                    <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-save mr-2"></i>Salvar
-                        </button>
-                        <button type="button" onclick="closeGraduationModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -820,14 +825,24 @@
     <div id="qualificationModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeQualificationModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold">
-                        <i class="fas fa-certificate mr-2"></i>Nova Qualificação
-                    </h3>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold">
+                            <i class="fas fa-certificate mr-2"></i>Nova Qualificação
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('qualificationForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>Salvar
+                            </button>
+                            <button type="button" onclick="closeQualificationModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
-                <form id="qualificationForm" class="p-6 space-y-4">
+                <form id="qualificationForm" class="p-6 space-y-4 overflow-y-auto flex-1">
                     <input type="hidden" id="qualificationId">
                     <input type="hidden" id="qualificationMemberStatusId">
                     
@@ -861,15 +876,6 @@
                         <input type="checkbox" id="qualificationIsActive" checked class="mr-2">
                         <label for="qualificationIsActive" class="text-sm font-medium text-gray-700">Qualificação Ativa</label>
                     </div>
-                    
-                    <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-save mr-2"></i>Salvar
-                        </button>
-                        <button type="button" onclick="closeQualificationModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -879,22 +885,24 @@
     <div id="dojoModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeDojoModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold" id="dojoModalTitle">
-                        <i class="fas fa-building mr-2"></i>Novo Dojo
-                    </h3>
-                    <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-save mr-2"></i>Salvar
-                        </button>
-                        <button type="button" onclick="closeDojoModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </button>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold" id="dojoModalTitle">
+                            <i class="fas fa-building mr-2"></i>Novo Dojo
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('dojoForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>Salvar
+                            </button>
+                            <button type="button" onclick="closeDojoModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <form id="dojoForm" class="p-6 space-y-4">
+                <form id="dojoForm" class="p-6 space-y-4 overflow-y-auto flex-1">
                     <input type="hidden" id="dojoId">
                     
                     <div>
@@ -926,8 +934,6 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Número de Registro</label>
                         <input type="text" id="dojoRegistrationNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                     </div>
-                    
-                    
                 </form>
             </div>
         </div>
@@ -937,22 +943,24 @@
     <div id="userModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeUserModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold" id="userModalTitle">
-                        <i class="fas fa-user-plus mr-2"></i>Novo Usuário
-                    </h3>
-                    <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-save mr-2"></i>Salvar
-                        </button>
-                        <button type="button" onclick="closeUserModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </button>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold" id="userModalTitle">
+                            <i class="fas fa-user-plus mr-2"></i>Novo Usuário
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('userForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>Salvar
+                            </button>
+                            <button type="button" onclick="closeUserModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <form id="userForm" class="p-6 space-y-4">
+                <form id="userForm" class="p-6 space-y-4 overflow-y-auto flex-1">
                     <input type="hidden" id="userId">
                     
                     <div>
@@ -990,7 +998,6 @@
                         <input type="checkbox" id="userFormActive" checked class="mr-2">
                         <label for="userFormActive" class="text-sm font-medium text-gray-700">Usuário ativo</label>
                     </div>
-                                        
                 </form>
             </div>
         </div>
@@ -1000,22 +1007,24 @@
     <div id="resetPasswordModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeResetPasswordModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
-                    <h3 class="text-2xl font-bold">
-                        <i class="fas fa-key mr-2"></i>Resetar Senha
-                    </h3>
-                    <div class="flex space-x-4 pt-4">
-                        <button type="submit" class="flex-1 btn-success text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-check mr-2"></i>Resetar
-                        </button>
-                        <button type="button" onclick="closeResetPasswordModal()" class="flex-1 btn-secondary text-white px-6 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </button>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold">
+                            <i class="fas fa-key mr-2"></i>Resetar Senha
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="document.getElementById('resetPasswordForm').requestSubmit()" class="btn-success text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-check mr-2"></i>Resetar
+                            </button>
+                            <button type="button" onclick="closeResetPasswordModal()" class="btn-secondary text-white px-6 py-2.5 rounded-lg font-medium">
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <form id="resetPasswordForm" class="p-6 space-y-4">
+                <form id="resetPasswordForm" class="p-6 space-y-4 overflow-y-auto flex-1">
                     <input type="hidden" id="resetPasswordUserId">
                     
                     <p class="text-gray-600 mb-4">Digite a nova senha para o usuário: <strong id="resetPasswordUserName"></strong></p>
@@ -1029,7 +1038,6 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha *</label>
                         <input type="password" id="resetPasswordConfirm" required class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                     </div>
-                                        
                 </form>
             </div>
         </div>

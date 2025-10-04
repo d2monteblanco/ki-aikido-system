@@ -144,6 +144,45 @@ def update_dojo(dojo_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@dojos_bp.route('/dojos/<int:dojo_id>', methods=['DELETE'])
+@admin_required
+def delete_dojo(dojo_id):
+    """Exclui um dojo (apenas admin)"""
+    try:
+        dojo = Dojo.query.get(dojo_id)
+        if not dojo:
+            return jsonify({'error': 'Dojo not found'}), 404
+        
+        # Verifica se há estudantes vinculados ao dojo
+        from src.models.student import Student
+        student_count = Student.query.filter_by(dojo_id=dojo_id).count()
+        
+        if student_count > 0:
+            return jsonify({
+                'error': f'Cannot delete dojo. There are {student_count} student(s) linked to this dojo. Please reassign or delete them first.'
+            }), 400
+        
+        # Verifica se há usuários vinculados ao dojo
+        user_count = User.query.filter_by(dojo_id=dojo_id).count()
+        
+        if user_count > 0:
+            return jsonify({
+                'error': f'Cannot delete dojo. There are {user_count} user(s) linked to this dojo. Please reassign or delete them first.'
+            }), 400
+        
+        # Se não há dependências, pode excluir
+        db.session.delete(dojo)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Dojo deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 @dojos_bp.route('/dojos/<int:dojo_id>/stats', methods=['GET'])
 @login_required
 def get_dojo_stats(dojo_id):

@@ -379,9 +379,14 @@ function renderDojosGrid() {
                     </p>
                 </div>
                 ${currentUser.role === 'admin' ? `
-                    <button onclick="editDojo(${dojo.id})" class="text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-edit"></i>
-                    </button>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="editDojo(${dojo.id})" class="text-blue-600 hover:text-blue-800" title="Editar Dojo">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteDojo(${dojo.id}, '${dojo.name.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800" title="Excluir Dojo">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 ` : ''}
             </div>
             
@@ -454,6 +459,35 @@ function closeDojoModal() {
 
 function editDojo(dojoId) {
     openDojoModal(dojoId);
+}
+
+async function deleteDojo(dojoId, dojoName) {
+    // Confirmar exclusão
+    const confirmed = confirm(
+        `Tem certeza que deseja excluir o dojo "${dojoName}"?\n\n` +
+        `ATENÇÃO: Esta ação não pode ser desfeita!\n` +
+        `Todos os estudantes vinculados a este dojo também serão afetados.`
+    );
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        await apiRequest(`/dojos/${dojoId}`, {
+            method: 'DELETE'
+        });
+        
+        showNotification('Dojo excluído com sucesso!', 'success');
+        await loadDojos();
+        
+    } catch (error) {
+        showNotification('Erro ao excluir dojo: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
 }
 
 document.getElementById('dojoForm').addEventListener('submit', async (e) => {

@@ -455,15 +455,28 @@ small {
    COMPONENTS - MODALS
    ======================================== */
 
-/* Modais de gerenciamento (nível base) */
-div[id$="Modal"] {
-  z-index: 9999;
+/* CAMADA 1 (z-50): Modais de DETALHES/VISUALIZAÇÃO */
+#studentDetailsModal,
+#memberDetailsModal,
+#userDetailsModal,
+#dojoModal {
+  z-index: 50 !important;
 }
 
-/* Modais de formulário (acima dos de gerenciamento) */
+/* CAMADA 2 (z-60): Modais de GERENCIAMENTO e EDIÇÃO PRINCIPAL */
+#studentModal,
+#memberModal,
+#userModal,
+#manageGraduationsModal,
+#manageQualificationsModal,
+#resetPasswordModal {
+  z-index: 60 !important;
+}
+
+/* CAMADA 3 (z-70): Modais de FORMULÁRIO INDIVIDUAL (abrem sobre gerenciamento) */
 #graduationModal,
 #qualificationModal {
-  z-index: 10010 !important;
+  z-index: 70 !important;
 }
 
 /* Backdrop dos modais */

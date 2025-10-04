@@ -255,18 +255,6 @@
                             <i class="fas fa-users mr-2"></i>Cadastro Básico
                         </h2>
                         <div class="flex items-center gap-2">
-                            <!-- Botões de ação (apenas ícones) -->
-                            <button id="studentViewBtn" onclick="viewStudent()" class="btn-icon-action text-blue-600 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Visualizar selecionado" disabled>
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button id="studentEditBtn" onclick="editStudent()" class="btn-icon-action text-green-600 hover:bg-green-50 hover:text-green-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Editar selecionado" disabled>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button id="studentDeleteBtn" onclick="deleteStudent()" class="btn-icon-action text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Excluir selecionado" disabled>
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <!-- Separador visual -->
-                            <div class="h-8 w-px bg-gray-300 mx-1"></div>
                             <!-- Botão de novo -->
                             <button onclick="openStudentModal()" class="btn-primary text-white px-5 py-2.5 rounded-lg font-medium hover:shadow-lg transition-all">
                                 <i class="fas fa-user-plus mr-2"></i>Novo
@@ -338,24 +326,6 @@
                             <i class="fas fa-id-card mr-2"></i>Membros
                         </h2>
                         <div class="flex items-center gap-2">
-                            <!-- Botões de ação (apenas ícones) -->
-                            <button id="memberViewBtn" onclick="viewMember()" class="btn-icon-action text-blue-600 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Visualizar selecionado" disabled>
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button id="memberEditBtn" onclick="editMember()" class="btn-icon-action text-green-600 hover:bg-green-50 hover:text-green-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Editar selecionado" disabled>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button id="memberGraduationsBtn" onclick="manageMemberGraduations()" class="btn-icon-action text-purple-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Gerenciar graduações" disabled>
-                                <i class="fas fa-medal"></i>
-                            </button>
-                            <button id="memberQualificationsBtn" onclick="manageMemberQualifications()" class="btn-icon-action text-amber-600 hover:bg-amber-50 hover:text-amber-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Gerenciar qualificações" disabled>
-                                <i class="fas fa-certificate"></i>
-                            </button>
-                            <button id="memberDeleteBtn" onclick="deleteMember()" class="btn-icon-action text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Excluir selecionado" disabled>
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <!-- Separador visual -->
-                            <div class="h-8 w-px bg-gray-300 mx-1"></div>
                             <!-- Botão de novo -->
                             <button onclick="openMemberModal()" class="btn-primary text-white px-5 py-2.5 rounded-lg font-medium hover:shadow-lg transition-all">
                                 <i class="fas fa-user-plus mr-2"></i>Novo
@@ -523,21 +493,6 @@
                             <i class="fas fa-users-cog mr-2"></i>Gerenciar Usuários
                         </h2>
                         <div class="flex items-center gap-2">
-                            <!-- Botões de ação (apenas ícones) -->
-                            <button id="userEditBtn" onclick="editUser()" class="btn-icon-action text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Editar selecionado" disabled>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button id="userResetPasswordBtn" onclick="openResetPasswordModal()" class="btn-icon-action text-blue-600 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Resetar senha" disabled>
-                                <i class="fas fa-key"></i>
-                            </button>
-                            <button id="userToggleStatusBtn" onclick="toggleUserStatus()" class="btn-icon-action text-orange-600 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Alterar status" disabled>
-                                <i class="fas fa-ban"></i>
-                            </button>
-                            <button id="userDeleteBtn" onclick="deleteUser()" class="btn-icon-action text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed" title="Excluir selecionado" disabled>
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <!-- Separador visual -->
-                            <div class="h-8 w-px bg-gray-300 mx-1"></div>
                             <!-- Botão de novo -->
                             <button onclick="openUserModal()" class="btn-primary text-white px-5 py-2.5 rounded-lg font-medium hover:shadow-lg transition-all">
                                 <i class="fas fa-user-plus mr-2"></i>Novo
@@ -644,7 +599,7 @@
     </div>
 
     <!-- Modal: Membro -->
-    <div id="memberModal" class="fixed inset-0 z-50 hidden">
+    <div id="memberModal" class="fixed inset-0 z-[60] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeMemberModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -715,7 +670,7 @@
     </div>
 
     <!-- Modal: Graduação -->
-    <div id="graduationModal" class="fixed inset-0 hidden">
+    <div id="graduationModal" class="fixed inset-0 z-[70] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeGraduationModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -784,7 +739,7 @@
     </div>
 
     <!-- Modal: Gerenciar Graduações do Membro -->
-    <div id="manageGraduationsModal" class="fixed inset-0 z-50 hidden">
+    <div id="manageGraduationsModal" class="fixed inset-0 z-[60] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeManageGraduationsModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -814,7 +769,7 @@
     </div>
 
     <!-- Modal: Qualificação -->
-    <div id="qualificationModal" class="fixed inset-0 hidden">
+    <div id="qualificationModal" class="fixed inset-0 z-[70] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeQualificationModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -874,7 +829,7 @@
     </div>
 
     <!-- Modal: Gerenciar Qualificações do Membro -->
-    <div id="manageQualificationsModal" class="fixed inset-0 z-50 hidden">
+    <div id="manageQualificationsModal" class="fixed inset-0 z-[60] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeManageQualificationsModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -962,7 +917,7 @@
     </div>
 
     <!-- Modal: Usuário -->
-    <div id="userModal" class="fixed inset-0 z-50 hidden">
+    <div id="userModal" class="fixed inset-0 z-[60] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeUserModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -1026,7 +981,7 @@
     </div>
 
     <!-- Modal: Reset de Senha -->
-    <div id="resetPasswordModal" class="fixed inset-0 z-50 hidden">
+    <div id="resetPasswordModal" class="fixed inset-0 z-[60] hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeResetPasswordModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col slide-in">
@@ -1069,19 +1024,27 @@
     <div id="studentDetailsModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeStudentDetailsModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
+            <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
                     <div class="flex items-center justify-between">
                         <h3 class="text-2xl font-bold">
                             <i class="fas fa-user-circle mr-2"></i>Detalhes do Cadastro Básico
                         </h3>
-                        <button onclick="closeStudentDetailsModal()" class="btn-secondary text-white px-8 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Fechar
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="editStudent(selectedStudent.id)" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition-colors" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteStudent()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="closeStudentDetailsModal()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors" title="Fechar">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="p-6">
+                <div class="p-6 overflow-y-auto flex-1">
                     <!-- Informações Pessoais -->
                     <div class="mb-8">
                         <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -1180,19 +1143,33 @@
     <div id="memberDetailsModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-backdrop fixed inset-0" onclick="closeMemberDetailsModal()"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto slide-in">
-                <div class="gradient-primary text-white p-6 rounded-t-xl">
+            <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
                     <div class="flex items-center justify-between">
                         <h3 class="text-2xl font-bold">
                             <i class="fas fa-user-circle mr-2"></i>Detalhes do Membro
                         </h3>
-                        <button onclick="closeMemberDetailsModal()" class="btn-secondary text-white px-8 py-3 rounded-lg font-medium">
-                            <i class="fas fa-times mr-2"></i>Fechar
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="editMember(selectedMember.id)" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition-colors" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="manageMemberGraduations()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors" title="Graduações">
+                                <i class="fas fa-graduation-cap"></i>
+                            </button>
+                            <button onclick="manageMemberQualifications()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-colors" title="Qualificações">
+                                <i class="fas fa-certificate"></i>
+                            </button>
+                            <button onclick="deleteMember()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="closeMemberDetailsModal()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors" title="Fechar">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="p-6">
+                <div class="p-6 overflow-y-auto flex-1">
                     <!-- Informações de Referência do Estudante -->
                     <div class="mb-8">
                         <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -1242,10 +1219,7 @@
                                 <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Último Ano de Atividade</p>
                                 <p class="text-gray-800" id="detailMemberLastActivityYear">-</p>
                             </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Criação</p>
-                                <p class="text-gray-800 text-sm" id="detailMemberCreatedAt">-</p>
-                            </div>
+                            
                             <div class="md:col-span-2 lg:col-span-1">
                                 <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Última Atualização</p>
                                 <p class="text-gray-800 text-sm" id="detailMemberUpdatedAt">-</p>
@@ -1276,6 +1250,72 @@
                         </div>
                     </div>
                     
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do Usuário -->
+    <div id="userDetailsModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeUserDetailsModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col slide-in">
+                <div class="gradient-primary text-white p-6 rounded-t-xl flex-shrink-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold">
+                            <i class="fas fa-user mr-2"></i>Detalhes do Usuário
+                        </h3>
+                        <div class="flex gap-2">
+                            <button onclick="editUser(selectedUser.id)" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition-colors" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="openResetPasswordModal(selectedUser.id, selectedUser.name)" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-600 transition-colors" title="Resetar Senha">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <button onclick="toggleUserStatus(selectedUser.id)" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors" title="Ativar/Desativar">
+                                <i class="fas fa-toggle-on"></i>
+                            </button>
+                            <button onclick="deleteUser(selectedUser.id)" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="closeUserDetailsModal()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors" title="Fechar">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <!-- Informações do Usuário -->
+                    <div class="mb-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-user text-purple-600 mr-2"></i>
+                            Informações do Usuário
+                        </h4>
+                        <div class="bg-gray-50 rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Nome</p>
+                                <p class="text-gray-800 font-medium" id="detailUserName">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Email</p>
+                                <p class="text-gray-800" id="detailUserEmail">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Função</p>
+                                <p class="text-gray-800" id="detailUserRole">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Status</p>
+                                <p id="detailUserStatus">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Dojo</p>
+                                <p class="text-gray-800" id="detailUserDojo">-</p>
+                            </div>
+                            
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -260,9 +260,9 @@ function showSection(section) {
     selectedUser = null;
     
     // Atualizar estado dos botões
-    updateStudentActionButtons();
-    updateMemberActionButtons();
-    updateUserActionButtons();
+    // updateStudentActionButtons(); // Removido: botões agora estão nos modais
+    // updateMemberActionButtons(); // Removido: botões agora estão nos modais
+    // updateUserActionButtons(); // Removido: botões agora estão nos modais
     
     // Esconder todas as seções
     document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
@@ -570,7 +570,7 @@ function renderStudentsTable(students) {
             </tr>
         `;
         selectedStudent = null;
-        updateStudentActionButtons();
+        // updateStudentActionButtons(); // Removido: botões agora estão nos modais
         return;
     }
     
@@ -626,18 +626,15 @@ function renderStudentsTable(students) {
 function selectStudent(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (student) {
-        if (selectedStudent && selectedStudent.id === studentId) {
-            // Desselecionar se clicar novamente
-            selectedStudent = null;
-        } else {
-            selectedStudent = student;
-        }
+        selectedStudent = student;
         renderStudentsTable(allStudents);
-        updateStudentActionButtons();
+        // Abrir modal de detalhes automaticamente
+        viewStudentDetails(studentId);
     }
 }
 
-// Função para atualizar estado dos botões de ação
+// Função para atualizar estado dos botões de ação (DESABILITADA - botões agora estão nos modais)
+/*
 function updateStudentActionButtons() {
     const viewBtn = document.getElementById('studentViewBtn');
     const editBtn = document.getElementById('studentEditBtn');
@@ -650,6 +647,7 @@ function updateStudentActionButtons() {
         deleteBtn.disabled = isDisabled;
     }
 }
+*/
 
 function renderStudentsPagination(pagination) {
     const info = document.getElementById('studentsPaginationInfo');
@@ -984,7 +982,7 @@ function renderMembersTable(members) {
             </tr>
         `;
         selectedMember = null;
-        updateMemberActionButtons();
+        // updateMemberActionButtons(); // Removido: botões agora estão nos modais
         return;
     }
     
@@ -1036,18 +1034,15 @@ function renderMembersTable(members) {
 function selectMember(memberId) {
     const member = allMembers.find(m => m.id === memberId);
     if (member) {
-        if (selectedMember && selectedMember.id === memberId) {
-            // Desselecionar se clicar novamente
-            selectedMember = null;
-        } else {
-            selectedMember = member;
-        }
+        selectedMember = member;
         renderMembersTable(allMembers);
-        updateMemberActionButtons();
+        // Abrir modal de detalhes automaticamente
+        viewMemberDetails(memberId);
     }
 }
 
-// Função para atualizar estado dos botões de ação de membros
+// Função para atualizar estado dos botões de ação de membros (DESABILITADA - botões agora estão nos modais)
+/*
 function updateMemberActionButtons() {
     const viewBtn = document.getElementById('memberViewBtn');
     const editBtn = document.getElementById('memberEditBtn');
@@ -1064,6 +1059,7 @@ function updateMemberActionButtons() {
         deleteBtn.disabled = isDisabled;
     }
 }
+*/
 
 function renderMembersPagination(pagination) {
     const info = document.getElementById('membersPaginationInfo');
@@ -1266,7 +1262,6 @@ function openMemberDetailsModal(member, student, graduations, qualifications) {
     document.getElementById('detailMemberType').textContent = member.member_type_display || 'N/A';
     document.getElementById('detailMemberStatus').textContent = member.current_status_display || 'N/A';
     document.getElementById('detailMemberLastActivityYear').textContent = member.last_activity_year || 'N/A';
-    document.getElementById('detailMemberCreatedAt').textContent = formatDateTime(member.created_at);
     document.getElementById('detailMemberUpdatedAt').textContent = formatDateTime(member.updated_at);
     
         
@@ -2266,7 +2261,7 @@ function renderUsersTable(users) {
             </tr>
         `;
         selectedUser = null;
-        updateUserActionButtons();
+        // updateUserActionButtons(); // Removido: botões agora estão nos modais
         return;
     }
     
@@ -2328,18 +2323,69 @@ async function loadUsers() {
 function selectUser(userId) {
     const user = window.allUsers.find(u => u.id === userId);
     if (user) {
-        if (selectedUser && selectedUser.id === userId) {
-            // Desselecionar se clicar novamente
-            selectedUser = null;
-        } else {
-            selectedUser = user;
-        }
-        renderUsersTable(window.allUsers); // Re-renderizar para atualizar visual
-        updateUserActionButtons();
+        selectedUser = user;
+        renderUsersTable(window.allUsers);
+        // Abrir modal de detalhes automaticamente
+        viewUserDetails(userId);
     }
 }
 
-// Função para atualizar estado dos botões de ação de usuários
+async function viewUserDetails(userId) {
+    showLoading();
+    
+    try {
+        const data = await apiRequest(`/users/${userId}`);
+        console.log('User data received:', data);
+        
+        // O backend retorna o objeto user diretamente, não dentro de data.user
+        const user = data.user || data;
+        console.log('User object:', user);
+        
+        if (!user) {
+            throw new Error('Dados do usuário não encontrados');
+        }
+        
+        // Preencher informações do usuário
+        document.getElementById('detailUserName').textContent = user.name || '-';
+        document.getElementById('detailUserEmail').textContent = user.email || '-';
+        
+        // Role
+        const roleBadges = {
+            'admin': '<span class="badge badge-danger">Administrador</span>',
+            'dojo_admin': '<span class="badge badge-warning">Gerente de Dojo</span>',
+            'instructor': '<span class="badge badge-info">Instrutor</span>'
+        };
+        document.getElementById('detailUserRole').innerHTML = roleBadges[user.role] || user.role;
+        
+        // Status
+        const statusBadge = user.is_active 
+            ? '<span class="badge badge-success">Ativo</span>' 
+            : '<span class="badge badge-danger">Inativo</span>';
+        document.getElementById('detailUserStatus').innerHTML = statusBadge;
+        
+        // Dojo
+        document.getElementById('detailUserDojo').textContent = user.dojo_name || 'Todos os Dojos (Admin)';
+        
+                
+        // Abrir modal
+        document.getElementById('userDetailsModal').classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error loading user details:', error);
+        showNotification('Erro ao carregar detalhes do usuário: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function closeUserDetailsModal() {
+    document.getElementById('userDetailsModal').classList.add('hidden');
+    selectedUser = null;
+    renderUsersTable(window.allUsers);
+}
+
+// Função para atualizar estado dos botões de ação de usuários (DESABILITADA - botões agora estão nos modais)
+/*
 function updateUserActionButtons() {
     const editBtn = document.getElementById('userEditBtn');
     const resetPwdBtn = document.getElementById('userResetPasswordBtn');
@@ -2365,6 +2411,7 @@ function updateUserActionButtons() {
         }
     }
 }
+*/
 
 function openUserModal(userId = null) {
     document.getElementById('userModal').classList.remove('hidden');

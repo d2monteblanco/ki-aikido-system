@@ -28,6 +28,7 @@ def list_member_status():
     member_type = request.args.get('member_type', '').strip()
     current_status = request.args.get('current_status', '').strip()
     dojo_id = request.args.get('dojo_id', type=int)
+    student_id = request.args.get('student_id', type=int)
     
     # Query base
     query = db.session.query(MemberStatus).join(Student)
@@ -54,6 +55,9 @@ def list_member_status():
     
     if dojo_id:
         query = query.filter(Student.dojo_id == dojo_id)
+    
+    if student_id:
+        query = query.filter(MemberStatus.student_id == student_id)
     
     # Ordenação
     query = query.order_by(Student.name)

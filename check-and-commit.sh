@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-Revisão dos modais"
+Melhora de estabilidade e bug fix"
 
 if [ $? -eq 0 ]; then
     echo ""

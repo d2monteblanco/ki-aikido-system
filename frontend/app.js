@@ -801,6 +801,8 @@ function openStudentDetailsModal(student, memberData) {
     
     // Preencher informações de membro se existir
     const memberSection = document.getElementById('studentMemberSection');
+    const viewMemberHeaderBtn = document.getElementById('viewMemberDetailsHeaderBtn');
+    
     if (memberData) {
         console.log('Member data to display:', memberData);
         console.log('Member registered_number:', memberData.registered_number);
@@ -834,26 +836,31 @@ function openStudentDetailsModal(student, memberData) {
             date: dateEl?.textContent
         });
         
-        // Link para ver detalhes completos do membro
-        const viewMemberBtn = document.getElementById('viewMemberDetailsBtn');
-        viewMemberBtn.onclick = async () => {
+        // Mostrar botão de ver detalhes do membro no header
+        // Capturar o ID do membro no escopo correto
+        const currentMemberId = memberData.id;
+        console.log('=== DEBUG: Setting up member details button ===');
+        console.log('Student name:', student.name);
+        console.log('Member ID captured:', currentMemberId);
+        console.log('Member data:', memberData);
+        
+        // Remover evento anterior se existir
+        viewMemberHeaderBtn.onclick = null;
+        
+        viewMemberHeaderBtn.classList.remove('hidden');
+        viewMemberHeaderBtn.onclick = async () => {
+            console.log('=== DEBUG: Button clicked ===');
+            console.log('Opening member details for ID:', currentMemberId);
             closeStudentDetailsModal();
-            // Trocar para aba de membros e abrir detalhes
-            document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
-            document.getElementById('membersSection').classList.remove('hidden');
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            if (sidebarItems[2]) sidebarItems[2].classList.add('active');
-            
-            // Carregar lista de membros primeiro
-            await loadMembers();
-            
-            // Depois abrir o modal de detalhes
-            setTimeout(() => viewMemberDetails(memberData.id), 300);
+            // Abrir diretamente o modal de detalhes do membro
+            await viewMemberDetails(currentMemberId);
         };
     } else {
-        console.log('No member data - hiding section');
+        console.log('No member data - hiding section and button');
         memberSection.classList.add('hidden');
+        // Esconder botão de ver detalhes do membro no header e limpar evento
+        viewMemberHeaderBtn.onclick = null;
+        viewMemberHeaderBtn.classList.add('hidden');
     }
     
     // Mostrar modal
@@ -1162,6 +1169,13 @@ async function openMemberModal(memberId = null) {
 
 function closeMemberModal() {
     document.getElementById('memberModal').classList.add('hidden');
+    
+    // Se o modal de detalhes do membro estiver aberto, recarregar os dados
+    const memberDetailsModal = document.getElementById('memberDetailsModal');
+    if (!memberDetailsModal.classList.contains('hidden') && currentMemberStatusId) {
+        refreshMemberDetails(currentMemberStatusId);
+    }
+    
     currentMemberStatusId = null;
 }
 
@@ -1214,10 +1228,12 @@ function viewMember(memberId = null) {
 }
 
 async function viewMemberDetails(memberId) {
+    console.log('=== DEBUG: viewMemberDetails called with ID:', memberId);
     showLoading();
     
     try {
         // Buscar dados completos do membro
+        console.log('Fetching member from API:', `/member-status/${memberId}`);
         const memberResponse = await apiRequest(`/member-status/${memberId}`);
         console.log('Member data received:', memberResponse);
         const member = memberResponse; // Member já vem direto, não aninhado
@@ -1244,12 +1260,66 @@ async function viewMemberDetails(memberId) {
     }
 }
 
+// Função para recarregar apenas os dados do modal de detalhes (sem fechar e abrir)
+async function refreshMemberDetails(memberId) {
+    if (!memberId) {
+        console.warn('refreshMemberDetails: No memberId provided');
+        return;
+    }
+    
+    try {
+        // Buscar dados atualizados
+        const memberResponse = await apiRequest(`/member-status/${memberId}`);
+        const member = memberResponse;
+        
+        const studentResponse = await apiRequest(`/students/${member.student_id}`);
+        const student = studentResponse.student || studentResponse;
+        
+        const graduations = await apiRequest(`/member-status/${memberId}/graduations`);
+        const qualifications = await apiRequest(`/member-status/${memberId}/qualifications`);
+        
+        // Atualizar apenas o conteúdo do modal (sem fechar/abrir)
+        updateMemberDetailsContent(member, student, graduations, qualifications);
+    } catch (error) {
+        console.error('Erro ao recarregar detalhes do membro:', error);
+        showNotification('Erro ao atualizar informações: ' + error.message, 'error');
+    }
+}
+
+// Função para atualizar apenas o conteúdo do modal sem fechar/abrir
+function updateMemberDetailsContent(member, student, graduations, qualifications) {
+    // Atualizar selectedMember com os novos dados
+    selectedMember = member;
+    console.log('selectedMember updated to:', selectedMember);
+    
+    // Atualizar informações básicas do estudante
+    document.getElementById('detailMemberStudentName').textContent = student.name || 'N/A';
+    document.getElementById('detailMemberStudentDojo').textContent = student.dojo_name || 'N/A';
+    document.getElementById('detailMemberStudentRegNumber').textContent = student.registration_number || 'N/A';
+    
+    // Atualizar informações do status de membro
+    document.getElementById('detailMemberRegisteredNumber').textContent = member.registered_number || 'N/A';
+    document.getElementById('detailMemberMembershipDate').textContent = formatDate(member.membership_date);
+    document.getElementById('detailMemberType').textContent = member.member_type_display || 'N/A';
+    document.getElementById('detailMemberStatus').textContent = member.current_status_display || 'N/A';
+    document.getElementById('detailMemberLastActivityYear').textContent = member.last_activity_year || 'N/A';
+    document.getElementById('detailMemberUpdatedAt').textContent = formatDateTime(member.updated_at);
+    
+    // Atualizar graduações e qualificações
+    renderDetailsGraduations(graduations);
+    renderDetailsQualifications(qualifications);
+}
+
 function openMemberDetailsModal(member, student, graduations, qualifications) {
     const modal = document.getElementById('memberDetailsModal');
     
     console.log('Opening member details modal with:', { member, student, graduations, qualifications });
     console.log('Student name for member:', student.name);
     console.log('Member registered_number:', member.registered_number);
+    
+    // Definir selectedMember para que os botões de ação funcionem
+    selectedMember = member;
+    console.log('selectedMember set to:', selectedMember);
     
     // Preencher informações básicas do estudante (apenas nome e dojo para referência)
     document.getElementById('detailMemberStudentName').textContent = student.name || 'N/A';
@@ -1277,6 +1347,8 @@ function openMemberDetailsModal(member, student, graduations, qualifications) {
 
 function closeMemberDetailsModal() {
     document.getElementById('memberDetailsModal').classList.add('hidden');
+    selectedMember = null;
+    console.log('selectedMember cleared');
 }
 
 function renderDetailsGraduations(graduations) {
@@ -1292,11 +1364,20 @@ function renderDetailsGraduations(graduations) {
         return;
     }
     
-    // Ordenar por data de exame (mais recente primeiro)
+    // Ordenar por:
+    // 1. Disciplina (alfabeticamente)
+    // 2. Rank level (nível mais alto primeiro - decrescente)
     const sortedGrads = [...graduations].sort((a, b) => {
-        if (!a.examination_date) return 1;
-        if (!b.examination_date) return -1;
-        return new Date(b.examination_date) - new Date(a.examination_date);
+        // Primeiro, ordenar por disciplina
+        const disciplineCompare = a.discipline.localeCompare(b.discipline);
+        if (disciplineCompare !== 0) {
+            return disciplineCompare;
+        }
+        
+        // Depois, ordenar por rank_level (maior primeiro = grau superior)
+        const levelA = a.rank_level || 0;
+        const levelB = b.rank_level || 0;
+        return levelB - levelA; // Decrescente: níveis maiores primeiro
     });
     
     container.innerHTML = sortedGrads.map(grad => `
@@ -1310,7 +1391,7 @@ function renderDetailsGraduations(graduations) {
                     </div>
                     <div class="space-y-1 text-sm text-gray-600">
                         <p><strong>Disciplina:</strong> ${grad.discipline}</p>
-                        <p><strong>Nível:</strong> ${grad.rank_level}</p>
+                        <p><strong>Nível:</strong> ${grad.rank_level || 'N/A'}</p>
                         ${grad.examination_date ? `<p><strong>Data do Exame:</strong> ${formatDate(grad.examination_date)}</p>` : ''}
                         ${grad.certificate_number ? `<p><strong>Número do Certificado:</strong> ${grad.certificate_number}</p>` : ''}
                         <p><strong>Status do Certificado:</strong> ${grad.certificate_status_display}</p>
@@ -1334,21 +1415,72 @@ function renderDetailsQualifications(qualifications) {
         return;
     }
     
-    // Ordenar por data de obtenção (mais recente primeiro)
-    const sortedQuals = [...qualifications].sort((a, b) => {
-        if (!a.date_obtained) return 1;
-        if (!b.date_obtained) return -1;
-        return new Date(b.date_obtained) - new Date(a.date_obtained);
+    // Filtrar apenas qualificações ativas e pegar a mais alta de cada tipo
+    const activeQuals = qualifications.filter(q => q.is_active);
+    
+    // Agrupar por tipo
+    const byType = {};
+    activeQuals.forEach(qual => {
+        const type = qual.qualification_type;
+        if (!byType[type]) {
+            byType[type] = [];
+        }
+        byType[type].push(qual);
     });
     
-    container.innerHTML = sortedQuals.map(qual => `
-        <div class="border rounded-lg p-4 ${qual.is_active ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-gray-50'}">
+    // Hierarquia de níveis (do mais alto para o mais baixo)
+    const levelHierarchy = ['pleno', 'companheiro', 'assistente'];
+    
+    // Pegar a mais alta de cada tipo
+    const highestQuals = [];
+    Object.entries(byType).forEach(([type, quals]) => {
+        // Ordenar por nível (pleno > companheiro > assistente)
+        const sorted = quals.sort((a, b) => {
+            const aIndex = levelHierarchy.indexOf(a.qualification_level?.toLowerCase());
+            const bIndex = levelHierarchy.indexOf(b.qualification_level?.toLowerCase());
+            
+            // Se ambos têm nível, comparar pelo índice (menor índice = nível mais alto)
+            if (aIndex !== -1 && bIndex !== -1) {
+                return aIndex - bIndex;
+            }
+            
+            // Se um não tem nível, o que tem vem primeiro
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            
+            // Se nenhum tem nível, ordenar por data (mais recente primeiro)
+            if (a.date_obtained && b.date_obtained) {
+                return new Date(b.date_obtained) - new Date(a.date_obtained);
+            }
+            
+            return 0;
+        });
+        
+        // Pegar a primeira (mais alta)
+        if (sorted.length > 0) {
+            highestQuals.push(sorted[0]);
+        }
+    });
+    
+    // Se não houver qualificações ativas, mostrar mensagem
+    if (highestQuals.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4 text-gray-500">
+                <i class="fas fa-certificate text-2xl text-gray-300 mb-2 block"></i>
+                <p class="text-sm">Nenhuma qualificação ativa</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = highestQuals.map(qual => `
+        <div class="border rounded-lg p-4 border-green-600 bg-green-50">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <div class="flex items-center mb-2">
-                        <i class="fas fa-certificate ${qual.is_active ? 'text-green-600' : 'text-gray-400'} mr-2"></i>
+                        <i class="fas fa-certificate text-green-600 mr-2"></i>
                         <h4 class="font-bold text-gray-800">${qual.qualification_display}</h4>
-                        ${qual.is_active ? '<span class="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full">Ativa</span>' : '<span class="ml-2 px-2 py-1 bg-gray-400 text-white text-xs rounded-full">Inativa</span>'}
+                        <span class="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full">Ativa</span>
                     </div>
                     <div class="space-y-1 text-sm text-gray-600">
                         <p><strong>Tipo:</strong> ${qual.qualification_type_display || qual.qualification_type}</p>
@@ -1482,6 +1614,13 @@ async function manageMemberGraduations() {
 
 function closeManageGraduationsModal() {
     document.getElementById('manageGraduationsModal').classList.add('hidden');
+    
+    // Se o modal de detalhes do membro estiver aberto, recarregar os dados
+    const memberDetailsModal = document.getElementById('memberDetailsModal');
+    if (!memberDetailsModal.classList.contains('hidden') && currentMemberStatusId) {
+        refreshMemberDetails(currentMemberStatusId);
+    }
+    
     currentMemberStatusId = null;
 }
 
@@ -1502,6 +1641,13 @@ async function manageMemberQualifications() {
 
 function closeManageQualificationsModal() {
     document.getElementById('manageQualificationsModal').classList.add('hidden');
+    
+    // Se o modal de detalhes do membro estiver aberto, recarregar os dados
+    const memberDetailsModal = document.getElementById('memberDetailsModal');
+    if (!memberDetailsModal.classList.contains('hidden') && currentMemberStatusId) {
+        refreshMemberDetails(currentMemberStatusId);
+    }
+    
     currentMemberStatusId = null;
 }
 

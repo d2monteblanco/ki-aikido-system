@@ -108,13 +108,24 @@ def create_qualification(member_status_id):
             return jsonify({'error': f'{field} é obrigatório'}), 400
     
     try:
+        is_active = data.get('is_active', True)
+        qualification_type = data['qualification_type']
+        
+        # Se a nova qualificação for ativa, inativar outras do mesmo tipo
+        if is_active:
+            MemberQualification.query.filter_by(
+                member_status_id=member_status_id,
+                qualification_type=qualification_type,
+                is_active=True
+            ).update({'is_active': False})
+        
         qualification = MemberQualification(
             member_status_id=member_status_id,
-            qualification_type=data['qualification_type'],
+            qualification_type=qualification_type,
             qualification_level=data.get('qualification_level'),
             date_obtained=datetime.strptime(data['date_obtained'], '%Y-%m-%d').date() if data.get('date_obtained') else None,
             certificate_number=data.get('certificate_number'),
-            is_active=data.get('is_active', True)
+            is_active=is_active
         )
         
         db.session.add(qualification)
@@ -149,6 +160,19 @@ def update_qualification(id):
     data = request.get_json()
     
     try:
+        # Verificar se está mudando para ativa
+        new_is_active = data.get('is_active', qualification.is_active)
+        qualification_type = data.get('qualification_type', qualification.qualification_type)
+        
+        # Se está ativando esta qualificação, inativar outras do mesmo tipo
+        if new_is_active and (not qualification.is_active or qualification_type != qualification.qualification_type):
+            MemberQualification.query.filter(
+                MemberQualification.member_status_id == qualification.member_status_id,
+                MemberQualification.qualification_type == qualification_type,
+                MemberQualification.is_active == True,
+                MemberQualification.id != id
+            ).update({'is_active': False})
+        
         # Atualizar campos
         if 'qualification_type' in data:
             qualification.qualification_type = data['qualification_type']

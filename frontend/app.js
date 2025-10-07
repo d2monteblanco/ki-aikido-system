@@ -1352,35 +1352,41 @@ function closeMemberDetailsModal() {
 }
 
 function renderDetailsGraduations(graduations) {
-    const container = document.getElementById('detailGraduationsList');
+    const aikidoContainer = document.getElementById('detailGraduationsAikido');
+    const toitsudoContainer = document.getElementById('detailGraduationsToitsudo');
     
     if (!graduations || graduations.length === 0) {
-        container.innerHTML = `
+        aikidoContainer.innerHTML = `
             <div class="text-center py-4 text-gray-500">
                 <i class="fas fa-medal text-2xl text-gray-300 mb-2 block"></i>
-                <p class="text-sm">Nenhuma graduação registrada</p>
+                <p class="text-sm">Nenhuma graduação</p>
+            </div>
+        `;
+        toitsudoContainer.innerHTML = `
+            <div class="text-center py-4 text-gray-500">
+                <i class="fas fa-medal text-2xl text-gray-300 mb-2 block"></i>
+                <p class="text-sm">Nenhuma graduação</p>
             </div>
         `;
         return;
     }
     
-    // Ordenar por:
-    // 1. Disciplina (alfabeticamente)
-    // 2. Rank level (nível mais alto primeiro - decrescente)
-    const sortedGrads = [...graduations].sort((a, b) => {
-        // Primeiro, ordenar por disciplina
-        const disciplineCompare = a.discipline.localeCompare(b.discipline);
-        if (disciplineCompare !== 0) {
-            return disciplineCompare;
-        }
-        
-        // Depois, ordenar por rank_level (maior primeiro = grau superior)
+    // Separar graduações por disciplina
+    const aikidoGrads = graduations.filter(g => g.discipline === 'Shinshin Toitsu Aikido');
+    const toitsudoGrads = graduations.filter(g => g.discipline === 'Shinshin Toitsudo');
+    
+    // Ordenar por rank_level (maior primeiro = grau superior)
+    const sortByLevel = (a, b) => {
         const levelA = a.rank_level || 0;
         const levelB = b.rank_level || 0;
         return levelB - levelA; // Decrescente: níveis maiores primeiro
-    });
+    };
     
-    container.innerHTML = sortedGrads.map(grad => `
+    aikidoGrads.sort(sortByLevel);
+    toitsudoGrads.sort(sortByLevel);
+    
+    // Função helper para renderizar card de graduação
+    const renderGradCard = (grad) => `
         <div class="border rounded-lg p-4 ${grad.is_current ? 'border-purple-600 bg-purple-50' : 'border-gray-200 bg-white'}">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -1390,16 +1396,39 @@ function renderDetailsGraduations(graduations) {
                         ${grad.is_current ? '<span class="ml-2 px-2 py-1 bg-purple-600 text-white text-xs rounded-full">Atual</span>' : ''}
                     </div>
                     <div class="space-y-1 text-sm text-gray-600">
-                        <p><strong>Disciplina:</strong> ${grad.discipline}</p>
                         <p><strong>Nível:</strong> ${grad.rank_level || 'N/A'}</p>
                         ${grad.examination_date ? `<p><strong>Data do Exame:</strong> ${formatDate(grad.examination_date)}</p>` : ''}
-                        ${grad.certificate_number ? `<p><strong>Número do Certificado:</strong> ${grad.certificate_number}</p>` : ''}
-                        <p><strong>Status do Certificado:</strong> ${grad.certificate_status_display}</p>
+                        ${grad.certificate_number ? `<p><strong>Certificado:</strong> ${grad.certificate_number}</p>` : ''}
+                        <p><strong>Status:</strong> ${grad.certificate_status_display}</p>
                     </div>
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
+    
+    // Renderizar Aikido
+    if (aikidoGrads.length === 0) {
+        aikidoContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-400">
+                <i class="fas fa-medal text-3xl text-gray-300 mb-2 block"></i>
+                <p class="text-sm">Nenhuma graduação</p>
+            </div>
+        `;
+    } else {
+        aikidoContainer.innerHTML = aikidoGrads.map(renderGradCard).join('');
+    }
+    
+    // Renderizar Toitsudo
+    if (toitsudoGrads.length === 0) {
+        toitsudoContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-400">
+                <i class="fas fa-medal text-3xl text-gray-300 mb-2 block"></i>
+                <p class="text-sm">Nenhuma graduação</p>
+            </div>
+        `;
+    } else {
+        toitsudoContainer.innerHTML = toitsudoGrads.map(renderGradCard).join('');
+    }
 }
 
 function renderDetailsQualifications(qualifications) {

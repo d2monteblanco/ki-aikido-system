@@ -39,6 +39,10 @@ def login_required(f):
             except IndexError:
                 return jsonify({'error': 'Invalid token format'}), 401
         
+        # Se não houver token no header, verificar query parameter (para thumbnails/visualizações)
+        if not token and 'token' in request.args:
+            token = request.args.get('token')
+        
         if not token:
             return jsonify({'error': 'Authentication required'}), 401
         

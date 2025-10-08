@@ -587,3 +587,151 @@ main {
 .hidden {
   display: none !important;
 }
+
+/* ============================================
+   Sprint 3 - Estilos para Documentação Física
+   ============================================ */
+
+/* Avatar e fotos */
+.member-avatar {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.member-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.member-photo-large {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.member-photo-large:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge de certificado clicável */
+.certificate-badge {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.certificate-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Animação suave para carregamento de imagens */
+img[src*="documents"] {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Tooltip customizado */
+.has-tooltip {
+    position: relative;
+}
+
+.has-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+    z-index: 1000;
+    animation: tooltipFade 0.2s ease-in;
+}
+
+@keyframes tooltipFade {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Placeholder de avatar com gradiente */
+.avatar-placeholder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.avatar-placeholder-alt {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* Badge pulsante para novos documentos */
+.badge-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* ============================================
+   Sprint 4 - Estilos para Relatórios
+   ============================================ */
+
+/* Tabs de relatório */
+.report-tab {
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid transparent;
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.report-tab:hover {
+    color: #374151;
+    border-bottom-color: #d1d5db;
+}
+
+.report-tab.active {
+    color: #7c3aed;
+    border-bottom-color: #7c3aed;
+}
+
+.report-tab-content {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Lista de pendências */
+.pending-item {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.pending-item:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+

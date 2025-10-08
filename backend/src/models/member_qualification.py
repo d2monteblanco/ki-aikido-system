@@ -11,6 +11,7 @@ class MemberQualification(db.Model):
     qualification_level = db.Column(db.String(100), nullable=True)  # Nível da qualificação
     date_obtained = db.Column(db.Date, nullable=True)  # Data de obtenção
     certificate_number = db.Column(db.String(100), nullable=True)  # Número do certificado
+    document_path = db.Column(db.String(500), nullable=True)  # Caminho do certificado digitalizado (OPCIONAL)
     is_active = db.Column(db.Boolean, default=True)  # Se a qualificação está ativa
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -67,6 +68,8 @@ class MemberQualification(db.Model):
             'qualification_display': self.get_qualification_display(),
             'date_obtained': self.date_obtained.isoformat() if self.date_obtained else None,
             'certificate_number': self.certificate_number,
+            'document_path': self.document_path,
+            'has_document': bool(self.document_path),
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

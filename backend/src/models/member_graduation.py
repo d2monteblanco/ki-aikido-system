@@ -13,6 +13,7 @@ class MemberGraduation(db.Model):
     examination_date = db.Column(db.Date, nullable=True)  # Data do exame
     certificate_number = db.Column(db.String(100), nullable=True)  # Número do certificado
     certificate_status = db.Column(db.String(50), nullable=False, default='pending')  # issued, pending, to-be-filed
+    document_path = db.Column(db.String(500), nullable=True)  # Caminho do certificado digitalizado (OPCIONAL)
     is_current = db.Column(db.Boolean, default=False)  # Indica se é a graduação atual
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -117,6 +118,8 @@ class MemberGraduation(db.Model):
             'certificate_number': self.certificate_number,
             'certificate_status': self.certificate_status,
             'certificate_status_display': self.CERTIFICATE_STATUS.get(self.certificate_status, self.certificate_status),
+            'document_path': self.document_path,
+            'has_document': bool(self.document_path),
             'is_current': self.is_current,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

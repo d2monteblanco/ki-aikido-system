@@ -11,6 +11,7 @@ class MemberStatus(db.Model):
     membership_date = db.Column(db.Date, nullable=True)  # Data de filiação/ingresso
     member_type = db.Column(db.String(50), nullable=False, default='student')  # student, instructor, chief_instructor
     current_status = db.Column(db.String(50), nullable=False, default='active')  # active, inactive, pending
+    photo_path = db.Column(db.String(500), nullable=True)  # Caminho da foto do membro (OPCIONAL)
     last_activity_year = db.Column(db.Integer, nullable=True)  # Último ano de atividade
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -65,6 +66,8 @@ class MemberStatus(db.Model):
             'member_type_display': self.MEMBER_TYPES.get(self.member_type, self.member_type),
             'current_status': self.current_status,
             'current_status_display': self.STATUS_TYPES.get(self.current_status, self.current_status),
+            'photo_path': self.photo_path,
+            'has_photo': bool(self.photo_path),
             'last_activity_year': self.last_activity_year,
             'current_graduations': {
                 discipline: grad.to_dict() for discipline, grad in current_grads.items()

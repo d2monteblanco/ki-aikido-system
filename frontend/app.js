@@ -13,6 +13,11 @@ let allStudents = [];
 let constants = null;
 let currentMemberStatusId = null;
 
+// Document Uploaders
+let memberPhotoUploader = null;
+let graduationDocUploader = null;
+let qualificationDocUploader = null;
+
 // Seleção de registros nas tabelas
 let selectedStudent = null;
 let selectedMember = null;
@@ -101,6 +106,98 @@ async function apiRequest(endpoint, options = {}) {
         console.error('API Error:', error);
         throw error;
     }
+}
+
+// =========================================
+// Funções auxiliares para imagens (com autenticação)
+// =========================================
+
+/**
+ * Carrega uma imagem com autenticação e retorna uma URL blob
+ * Uso: <img src="..." onerror="loadAuthenticatedImage(this, 'path/to/image')"
+ */
+async function loadAuthenticatedImage(imgElement, imagePath) {
+    try {
+        // Usar query parameter para imagens (mais simples que blob)
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            throw new Error('Token não encontrado');
+        }
+        
+        const url = `${API_BASE_URL}/documents/by-path/${imagePath}/view?token=${encodeURIComponent(token)}`;
+        
+        const response = await fetch(url, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar imagem');
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        imgElement.src = blobUrl;
+        
+        // Limpar blob URL quando a imagem não for mais necessária
+        imgElement.addEventListener('load', () => {
+            // Manter o blob por 1 minuto antes de limpar
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar imagem autenticada:', error);
+        // Mostrar placeholder em caso de erro
+        imgElement.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EErro%3C/text%3E%3C/svg%3E';
+    }
+}
+
+/**
+ * Abre um documento em nova aba com autenticação
+ * Uso: onclick="openAuthenticatedDocument('path/to/document')"
+ */
+async function openAuthenticatedDocument(documentPath) {
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showNotification('Sessão expirada. Faça login novamente.', 'error');
+            return;
+        }
+        
+        const url = `${API_BASE_URL}/documents/by-path/${documentPath}/view?token=${encodeURIComponent(token)}`;
+        
+        const response = await fetch(url, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar documento');
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Abrir em nova aba
+        const newWindow = window.open(blobUrl, '_blank');
+        
+        // Limpar blob URL após alguns segundos
+        setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+        }, 10000);
+    } catch (error) {
+        console.error('Erro ao abrir documento:', error);
+        showNotification('Erro ao visualizar documento', 'error');
+    }
+}
+
+/**
+ * Retorna uma URL para thumbnail com autenticação via token em query param
+ * (Alternativa temporária - idealmente usar loadAuthenticatedImage)
+ */
+function getAuthenticatedThumbnailUrl(imagePath, size = 'small') {
+    const url = `${API_BASE_URL}/documents/by-path/${imagePath}/thumbnail/${size}`;
+    if (authToken) {
+        return `${url}?token=${encodeURIComponent(authToken)}`;
+    }
+    return url;
 }
 
 // =========================================
@@ -277,7 +374,8 @@ function showSection(section) {
         'members': 'membersSection',
         'dojos': 'dojosSection',
         'profile': 'profileSection',
-        'users': 'usersSection'
+        'users': 'usersSection',
+        'reports': 'reports'
     };
     
     document.getElementById(sectionMap[section]).classList.remove('hidden');
@@ -298,6 +396,8 @@ function showSection(section) {
         loadProfile();
     } else if (section === 'users') {
         loadUsers();
+    } else if (section === 'reports') {
+        loadReports();
     }
 }
 
@@ -982,7 +1082,7 @@ function renderMembersTable(members) {
     if (members.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-id-card text-6xl text-gray-300 mb-4 block"></i>
                     Nenhum membro encontrado
                 </td>
@@ -1015,8 +1115,21 @@ function renderMembersTable(members) {
         const isSelected = selectedMember && selectedMember.id === member.id;
         const rowClass = isSelected ? 'table-row table-row-selected' : 'table-row hover:bg-gray-50';
         
+        // Avatar/foto do membro - usando thumbnail small para tabela
+        const avatarHtml = member.has_photo 
+            ? `<img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/small?token=${encodeURIComponent(authToken)}" 
+                    class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 member-avatar" 
+                    alt="${member.student_name}"
+                    onerror="this.onerror=null; loadAuthenticatedImage(this, '${member.photo_path}');">`
+            : `<div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                ${member.student_name ? member.student_name.charAt(0).toUpperCase() : '?'}
+               </div>`;
+        
         return `
             <tr class="${rowClass}" onclick="selectMember(${member.id})" style="cursor: pointer;">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${avatarHtml}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     ${statusBadges[member.current_status] || member.current_status}
                 </td>
@@ -1151,6 +1264,35 @@ async function openMemberModal(memberId = null) {
             
             currentMemberStatusId = member.id;
             
+            // Inicializar uploader de foto com foto existente
+            memberPhotoUploader = new DocumentUploader('memberPhotoUploadArea', {
+                documentType: 'member_photo',
+                relatedId: member.id,
+                existingPath: member.photo_path,
+                onDelete: async () => {
+                    // Atualizar member_status para remover photo_path
+                    try {
+                        await apiRequest(`/member-status/${member.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                student_id: member.student_id,
+                                registered_number: member.registered_number,
+                                membership_date: member.membership_date,
+                                member_type: member.member_type,
+                                current_status: member.current_status,
+                                last_activity_year: member.last_activity_year,
+                                photo_path: null
+                            })
+                        });
+                        showNotification('Foto removida com sucesso!', 'success');
+                        return true;
+                    } catch (error) {
+                        showNotification('Erro ao remover foto: ' + error.message, 'error');
+                        return false;
+                    }
+                }
+            });
+            
         } catch (error) {
             showNotification('Erro ao carregar membro: ' + error.message, 'error');
         } finally {
@@ -1162,6 +1304,12 @@ async function openMemberModal(memberId = null) {
         document.getElementById('memberType').value = 'student';
         document.getElementById('memberStatus').value = 'active';
         currentMemberStatusId = null;
+        
+        // Inicializar uploader de foto sem foto existente
+        memberPhotoUploader = new DocumentUploader('memberPhotoUploadArea', {
+            documentType: 'member_photo',
+            relatedId: null
+        });
     }
     
     modal.classList.remove('hidden');
@@ -1321,6 +1469,24 @@ function openMemberDetailsModal(member, student, graduations, qualifications) {
     selectedMember = member;
     console.log('selectedMember set to:', selectedMember);
     
+    // Renderizar foto do membro - usando thumbnail medium no modal
+    const photoContainer = document.getElementById('detailMemberPhotoContainer');
+    if (member.has_photo) {
+        photoContainer.innerHTML = `
+            <img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/medium?token=${encodeURIComponent(authToken)}" 
+                 class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity member-photo-large" 
+                 alt="${student.name}"
+                 onclick="openAuthenticatedDocument('${member.photo_path}')"
+                 onerror="this.onerror=null; loadAuthenticatedImage(this, '${member.photo_path}');">
+        `;
+    } else {
+        photoContainer.innerHTML = `
+            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white text-5xl font-bold">
+                ${student.name ? student.name.charAt(0).toUpperCase() : '?'}
+            </div>
+        `;
+    }
+    
     // Preencher informações básicas do estudante (apenas nome e dojo para referência)
     document.getElementById('detailMemberStudentName').textContent = student.name || 'N/A';
     document.getElementById('detailMemberStudentDojo').textContent = student.dojo_name || 'N/A';
@@ -1388,8 +1554,8 @@ function renderDetailsGraduations(graduations) {
     // Função helper para renderizar card de graduação
     const renderGradCard = (grad) => `
         <div class="border rounded-lg p-4 ${grad.is_current ? 'border-purple-600 bg-purple-50' : 'border-gray-200 bg-white'}">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
+            <div class="flex items-start gap-4">
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center mb-2">
                         <i class="fas fa-medal ${grad.is_current ? 'text-purple-600' : 'text-gray-400'} mr-2"></i>
                         <h4 class="font-bold text-gray-800">${grad.rank_display}</h4>
@@ -1402,6 +1568,16 @@ function renderDetailsGraduations(graduations) {
                         <p><strong>Status:</strong> ${grad.certificate_status_display}</p>
                     </div>
                 </div>
+                ${grad.has_document ? `
+                    <div class="flex-shrink-0">
+                        <img src="${getAuthenticatedThumbnailUrl(grad.document_path, 'small')}" 
+                             class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-purple-300 shadow-sm" 
+                             alt="Certificado"
+                             onclick="openAuthenticatedDocument('${grad.document_path}')"
+                             onerror="this.onerror=null; loadAuthenticatedImage(this, '${grad.document_path}');"
+                             title="Clique para visualizar certificado">
+                    </div>
+                ` : ''}
             </div>
         </div>
     `;
@@ -1504,8 +1680,8 @@ function renderDetailsQualifications(qualifications) {
     
     container.innerHTML = highestQuals.map(qual => `
         <div class="border rounded-lg p-4 border-green-600 bg-green-50">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
+            <div class="flex items-start gap-4">
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center mb-2">
                         <i class="fas fa-certificate text-green-600 mr-2"></i>
                         <h4 class="font-bold text-gray-800">${qual.qualification_display}</h4>
@@ -1518,6 +1694,16 @@ function renderDetailsQualifications(qualifications) {
                         ${qual.certificate_number ? `<p><strong>Número do Certificado:</strong> ${qual.certificate_number}</p>` : ''}
                     </div>
                 </div>
+                ${qual.has_document ? `
+                    <div class="flex-shrink-0">
+                        <img src="${getAuthenticatedThumbnailUrl(qual.document_path, 'small')}" 
+                             class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-green-300 shadow-sm" 
+                             alt="Certificado"
+                             onclick="openAuthenticatedDocument('${qual.document_path}')"
+                             onerror="this.onerror=null; loadAuthenticatedImage(this, '${qual.document_path}');"
+                             title="Clique para visualizar certificado">
+                    </div>
+                ` : ''}
             </div>
         </div>
     `).join('');
@@ -1588,6 +1774,8 @@ document.getElementById('memberForm').addEventListener('submit', async (e) => {
     showLoading();
     
     try {
+        let savedMemberId = memberId;
+        
         if (memberId) {
             await apiRequest(`/member-status/${memberId}`, {
                 method: 'PUT',
@@ -1599,8 +1787,18 @@ document.getElementById('memberForm').addEventListener('submit', async (e) => {
                 method: 'POST',
                 body: JSON.stringify(formData)
             });
+            savedMemberId = result.id;
             currentMemberStatusId = result.id;
             showNotification('Membro criado com sucesso!', 'success');
+        }
+        
+        // Fazer upload da foto se houver
+        if (memberPhotoUploader && memberPhotoUploader.hasFile()) {
+            memberPhotoUploader.setRelatedId(savedMemberId);
+            const uploadResult = await memberPhotoUploader.uploadFile();
+            if (uploadResult) {
+                showNotification('Foto enviada com sucesso!', 'success');
+            }
         }
         
         await loadMembers(currentPage.members);
@@ -1706,8 +1904,8 @@ function renderManageGraduations(graduations) {
     
     container.innerHTML = graduations.map(grad => `
         <div class="border rounded-lg p-4 ${grad.is_current ? 'border-purple-600 bg-purple-50' : 'border-gray-200'}">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
+            <div class="flex items-center gap-4">
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center mb-2">
                         <i class="fas fa-medal text-purple-600 mr-2"></i>
                         <h4 class="font-bold text-gray-800">${grad.rank_display}</h4>
@@ -1718,11 +1916,21 @@ function renderManageGraduations(graduations) {
                     ${grad.certificate_number ? `<p class="text-sm text-gray-600"><strong>Certificado:</strong> ${grad.certificate_number}</p>` : ''}
                     <p class="text-sm text-gray-600"><strong>Status:</strong> ${grad.certificate_status_display}</p>
                 </div>
-                <div class="flex flex-col space-y-2">
-                    <button onclick="editGraduationFromManage(${grad.id})" class="text-blue-600 hover:text-blue-900" title="Editar">
+                ${grad.has_document ? `
+                    <div class="flex-shrink-0">
+                        <img src="${getAuthenticatedThumbnailUrl(grad.document_path, 'small')}" 
+                             class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-purple-300 shadow-sm" 
+                             alt="Certificado"
+                             onclick="openAuthenticatedDocument('${grad.document_path}')"
+                             onerror="this.onerror=null; loadAuthenticatedImage(this, '${grad.document_path}');"
+                             title="Clique para visualizar certificado">
+                    </div>
+                ` : ''}
+                <div class="flex flex-col space-y-2 flex-shrink-0">
+                    <button onclick="editGraduationFromManage(${grad.id})" class="text-blue-600 hover:text-blue-900 p-1" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteGraduationFromManage(${grad.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                    <button onclick="deleteGraduationFromManage(${grad.id})" class="text-red-600 hover:text-red-900 p-1" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1764,8 +1972,8 @@ function renderManageQualifications(qualifications) {
         
         return `
             <div class="border rounded-lg p-4 ${qual.is_active ? 'border-green-600 bg-green-50' : 'border-gray-200'}">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
+                <div class="flex items-center gap-4">
+                    <div class="flex-1 min-w-0">
                         <div class="flex items-center mb-2">
                             <i class="fas fa-certificate text-green-600 mr-2"></i>
                             <h4 class="font-bold text-gray-800">${title}</h4>
@@ -1774,11 +1982,21 @@ function renderManageQualifications(qualifications) {
                         ${qual.date_obtained ? `<p class="text-sm text-gray-600"><strong>Data de Obtenção:</strong> ${formatDate(qual.date_obtained)}</p>` : ''}
                         ${qual.certificate_number ? `<p class="text-sm text-gray-600"><strong>Certificado:</strong> ${qual.certificate_number}</p>` : ''}
                     </div>
-                    <div class="flex flex-col space-y-2">
-                        <button onclick="editQualificationFromManage(${qual.id})" class="text-blue-600 hover:text-blue-900" title="Editar">
+                    ${qual.has_document ? `
+                        <div class="flex-shrink-0">
+                            <img src="${getAuthenticatedThumbnailUrl(qual.document_path, 'small')}" 
+                                 class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-green-300 shadow-sm" 
+                                 alt="Certificado"
+                                 onclick="openAuthenticatedDocument('${qual.document_path}')"
+                                 onerror="this.onerror=null; loadAuthenticatedImage(this, '${qual.document_path}');"
+                                 title="Clique para visualizar certificado">
+                        </div>
+                    ` : ''}
+                    <div class="flex flex-col space-y-2 flex-shrink-0">
+                        <button onclick="editQualificationFromManage(${qual.id})" class="text-blue-600 hover:text-blue-900 p-1" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button onclick="deleteQualificationFromManage(${qual.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                        <button onclick="deleteQualificationFromManage(${qual.id})" class="text-red-600 hover:text-red-900 p-1" title="Excluir">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -1795,6 +2013,39 @@ function openGraduationModalFromManage() {
 
 async function editGraduationFromManage(graduationId) {
     await loadGraduationForEdit(graduationId);
+    
+    // Inicializar uploader com certificado existente
+    showLoading();
+    try {
+        const grad = await apiRequest(`/graduations/${graduationId}`);
+        graduationDocUploader = new DocumentUploader('graduationDocUploadArea', {
+            documentType: 'graduation',
+            relatedId: graduationId,
+            existingPath: grad.document_path,
+            onDelete: async () => {
+                // Atualizar graduação para remover document_path
+                try {
+                    await apiRequest(`/graduations/${graduationId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            ...grad,
+                            document_path: null
+                        })
+                    });
+                    showNotification('Certificado removido com sucesso!', 'success');
+                    return true;
+                } catch (error) {
+                    showNotification('Erro ao remover certificado: ' + error.message, 'error');
+                    return false;
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao carregar graduação para uploader:', error);
+    } finally {
+        hideLoading();
+    }
+    
     document.getElementById('graduationModal').classList.remove('hidden');
 }
 
@@ -1819,6 +2070,39 @@ function openQualificationModalFromManage() {
 
 async function editQualificationFromManage(qualificationId) {
     await loadQualificationForEdit(qualificationId);
+    
+    // Inicializar uploader com certificado existente
+    showLoading();
+    try {
+        const qual = await apiRequest(`/qualifications/${qualificationId}`);
+        qualificationDocUploader = new DocumentUploader('qualificationDocUploadArea', {
+            documentType: 'qualification',
+            relatedId: qualificationId,
+            existingPath: qual.document_path,
+            onDelete: async () => {
+                // Atualizar qualificação para remover document_path
+                try {
+                    await apiRequest(`/qualifications/${qualificationId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            ...qual,
+                            document_path: null
+                        })
+                    });
+                    showNotification('Certificado removido com sucesso!', 'success');
+                    return true;
+                } catch (error) {
+                    showNotification('Erro ao remover certificado: ' + error.message, 'error');
+                    return false;
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao carregar qualificação para uploader:', error);
+    } finally {
+        hideLoading();
+    }
+    
     document.getElementById('qualificationModal').classList.remove('hidden');
 }
 
@@ -1865,8 +2149,8 @@ function renderMemberGraduations(graduations) {
     
     container.innerHTML = graduations.map(grad => `
         <div class="border rounded-lg p-4 ${grad.is_current ? 'border-purple-600 bg-purple-50' : 'border-gray-200'}">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
+            <div class="flex items-center gap-4">
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center mb-2">
                         <i class="fas fa-medal text-purple-600 mr-2"></i>
                         <h4 class="font-bold text-gray-800">${grad.rank_display}</h4>
@@ -1877,11 +2161,21 @@ function renderMemberGraduations(graduations) {
                     ${grad.certificate_number ? `<p class="text-sm text-gray-600"><strong>Certificado:</strong> ${grad.certificate_number}</p>` : ''}
                     <p class="text-sm text-gray-600"><strong>Status:</strong> ${grad.certificate_status_display}</p>
                 </div>
-                <div class="flex flex-col space-y-2">
-                    <button onclick="editGraduation(${grad.id})" class="text-blue-600 hover:text-blue-900" title="Editar">
+                ${grad.has_document ? `
+                    <div class="flex-shrink-0">
+                        <img src="${getAuthenticatedThumbnailUrl(grad.document_path, 'small')}" 
+                             class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-purple-300 shadow-sm" 
+                             alt="Certificado"
+                             onclick="openAuthenticatedDocument('${grad.document_path}')"
+                             onerror="this.onerror=null; loadAuthenticatedImage(this, '${grad.document_path}');"
+                             title="Clique para visualizar certificado">
+                    </div>
+                ` : ''}
+                <div class="flex flex-col space-y-2 flex-shrink-0">
+                    <button onclick="editGraduation(${grad.id})" class="text-blue-600 hover:text-blue-900 p-1" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteGraduation(${grad.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                    <button onclick="deleteGraduation(${grad.id})" class="text-red-600 hover:text-red-900 p-1" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1916,15 +2210,54 @@ async function openGraduationModal(graduationId = null) {
     
     form.reset();
     document.getElementById('graduationMemberStatusId').value = currentMemberStatusId;
+    document.getElementById('graduationId').value = ''; // Limpar ID para garantir criação de novo registro
     
     if (graduationId) {
         title.innerHTML = '<i class="fas fa-medal mr-2"></i>Editar Graduação';
         // Carregar dados da graduação para edição
         await loadGraduationForEdit(graduationId);
+        
+        // Inicializar uploader com certificado existente
+        showLoading();
+        try {
+            const grad = await apiRequest(`/graduations/${graduationId}`);
+            graduationDocUploader = new DocumentUploader('graduationDocUploadArea', {
+                documentType: 'graduation',
+                relatedId: graduationId,
+                existingPath: grad.document_path,
+                onDelete: async () => {
+                    // Atualizar graduação para remover document_path
+                    try {
+                        await apiRequest(`/graduations/${graduationId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                ...grad,
+                                document_path: null
+                            })
+                        });
+                        showNotification('Certificado removido com sucesso!', 'success');
+                        return true;
+                    } catch (error) {
+                        showNotification('Erro ao remover certificado: ' + error.message, 'error');
+                        return false;
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao carregar graduação para uploader:', error);
+        } finally {
+            hideLoading();
+        }
     } else {
         title.innerHTML = '<i class="fas fa-medal mr-2"></i>Nova Graduação';
         document.getElementById('graduationIsCurrent').checked = true;
         document.getElementById('graduationCertificateStatus').value = 'pending';
+        
+        // Inicializar uploader sem certificado existente
+        graduationDocUploader = new DocumentUploader('graduationDocUploadArea', {
+            documentType: 'graduation',
+            relatedId: null
+        });
     }
     
     modal.classList.remove('hidden');
@@ -2043,6 +2376,8 @@ document.getElementById('graduationForm').addEventListener('submit', async (e) =
     showLoading();
     
     try {
+        let savedGraduationId = graduationId;
+        
         if (graduationId) {
             await apiRequest(`/graduations/${graduationId}`, {
                 method: 'PUT',
@@ -2051,11 +2386,21 @@ document.getElementById('graduationForm').addEventListener('submit', async (e) =
             showNotification('Graduação atualizada com sucesso!', 'success');
         } else {
             const memberStatusId = document.getElementById('graduationMemberStatusId').value;
-            await apiRequest(`/member-status/${memberStatusId}/graduations`, {
+            const result = await apiRequest(`/member-status/${memberStatusId}/graduations`, {
                 method: 'POST',
                 body: JSON.stringify(formData)
             });
+            savedGraduationId = result.id;
             showNotification('Graduação criada com sucesso!', 'success');
+        }
+        
+        // Fazer upload do certificado se houver
+        if (graduationDocUploader && graduationDocUploader.hasFile()) {
+            graduationDocUploader.setRelatedId(savedGraduationId);
+            const uploadResult = await graduationDocUploader.uploadFile();
+            if (uploadResult) {
+                showNotification('Certificado enviado com sucesso!', 'success');
+            }
         }
         
         closeGraduationModal();
@@ -2100,8 +2445,8 @@ function renderMemberQualifications(qualifications) {
     
     container.innerHTML = qualifications.map(qual => `
         <div class="border rounded-lg p-4 ${qual.is_active ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-gray-50'}">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
+            <div class="flex items-center gap-4">
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center mb-2">
                         <i class="fas fa-certificate text-green-600 mr-2"></i>
                         <h4 class="font-bold text-gray-800">${qual.qualification_display}</h4>
@@ -2110,11 +2455,21 @@ function renderMemberQualifications(qualifications) {
                     ${qual.date_obtained ? `<p class="text-sm text-gray-600"><strong>Data de Obtenção:</strong> ${formatDate(qual.date_obtained)}</p>` : ''}
                     ${qual.certificate_number ? `<p class="text-sm text-gray-600"><strong>Certificado:</strong> ${qual.certificate_number}</p>` : ''}
                 </div>
-                <div class="flex flex-col space-y-2">
-                    <button onclick="editQualification(${qual.id})" class="text-blue-600 hover:text-blue-900" title="Editar">
+                ${qual.has_document ? `
+                    <div class="flex-shrink-0">
+                        <img src="${getAuthenticatedThumbnailUrl(qual.document_path, 'small')}" 
+                             class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border-2 border-green-300 shadow-sm" 
+                             alt="Certificado"
+                             onclick="openAuthenticatedDocument('${qual.document_path}')"
+                             onerror="this.onerror=null; loadAuthenticatedImage(this, '${qual.document_path}');"
+                             title="Clique para visualizar certificado">
+                    </div>
+                ` : ''}
+                <div class="flex flex-col space-y-2 flex-shrink-0">
+                    <button onclick="editQualification(${qual.id})" class="text-blue-600 hover:text-blue-900 p-1" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteQualification(${qual.id})" class="text-red-600 hover:text-red-900" title="Excluir">
+                    <button onclick="deleteQualification(${qual.id})" class="text-red-600 hover:text-red-900 p-1" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -2149,13 +2504,52 @@ async function openQualificationModal(qualificationId = null) {
     
     form.reset();
     document.getElementById('qualificationMemberStatusId').value = currentMemberStatusId;
+    document.getElementById('qualificationId').value = ''; // Limpar ID para garantir criação de novo registro
     
     if (qualificationId) {
         title.innerHTML = '<i class="fas fa-certificate mr-2"></i>Editar Qualificação';
         await loadQualificationForEdit(qualificationId);
+        
+        // Inicializar uploader com certificado existente
+        showLoading();
+        try {
+            const qual = await apiRequest(`/qualifications/${qualificationId}`);
+            qualificationDocUploader = new DocumentUploader('qualificationDocUploadArea', {
+                documentType: 'qualification',
+                relatedId: qualificationId,
+                existingPath: qual.document_path,
+                onDelete: async () => {
+                    // Atualizar qualificação para remover document_path
+                    try {
+                        await apiRequest(`/qualifications/${qualificationId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                ...qual,
+                                document_path: null
+                            })
+                        });
+                        showNotification('Certificado removido com sucesso!', 'success');
+                        return true;
+                    } catch (error) {
+                        showNotification('Erro ao remover certificado: ' + error.message, 'error');
+                        return false;
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao carregar qualificação para uploader:', error);
+        } finally {
+            hideLoading();
+        }
     } else {
         title.innerHTML = '<i class="fas fa-certificate mr-2"></i>Nova Qualificação';
         document.getElementById('qualificationIsActive').checked = true;
+        
+        // Inicializar uploader sem certificado existente
+        qualificationDocUploader = new DocumentUploader('qualificationDocUploadArea', {
+            documentType: 'qualification',
+            relatedId: null
+        });
     }
     
     modal.classList.remove('hidden');
@@ -2272,6 +2666,8 @@ document.getElementById('qualificationForm').addEventListener('submit', async (e
     showLoading();
     
     try {
+        let savedQualificationId = qualificationId;
+        
         if (qualificationId) {
             await apiRequest(`/qualifications/${qualificationId}`, {
                 method: 'PUT',
@@ -2280,11 +2676,21 @@ document.getElementById('qualificationForm').addEventListener('submit', async (e
             showNotification('Qualificação atualizada com sucesso!', 'success');
         } else {
             const memberStatusId = document.getElementById('qualificationMemberStatusId').value;
-            await apiRequest(`/member-status/${memberStatusId}/qualifications`, {
+            const result = await apiRequest(`/member-status/${memberStatusId}/qualifications`, {
                 method: 'POST',
                 body: JSON.stringify(formData)
             });
+            savedQualificationId = result.id;
             showNotification('Qualificação criada com sucesso!', 'success');
+        }
+        
+        // Fazer upload do certificado se houver
+        if (qualificationDocUploader && qualificationDocUploader.hasFile()) {
+            qualificationDocUploader.setRelatedId(savedQualificationId);
+            const uploadResult = await qualificationDocUploader.uploadFile();
+            if (uploadResult) {
+                showNotification('Certificado enviado com sucesso!', 'success');
+            }
         }
         
         closeQualificationModal();
@@ -2842,3 +3248,150 @@ document.getElementById('resetPasswordForm').addEventListener('submit', async (e
         hideLoading();
     }
 });
+
+// =========================================
+// Relatórios (Sprint 4)
+// =========================================
+
+async function loadReports() {
+    showLoading();
+    try {
+        // Carregar estatísticas
+        const stats = await apiRequest('/reports/documents/statistics');
+        
+        // Atualizar estatísticas gerais
+        document.getElementById('statMembersWithPhoto').textContent = stats.members.with_photo;
+        document.getElementById('statMembersWithPhotoPerc').textContent = `${stats.members.percentage_with_photo}% do total`;
+        
+        document.getElementById('statGradsWithCert').textContent = stats.graduations.with_certificate;
+        document.getElementById('statGradsWithCertPerc').textContent = `${stats.graduations.percentage_with_certificate}% do total`;
+        
+        document.getElementById('statQualsWithCert').textContent = stats.qualifications.with_certificate;
+        document.getElementById('statQualsWithCertPerc').textContent = `${stats.qualifications.percentage_with_certificate}% do total`;
+        
+        const totalPending = stats.members.without_photo + stats.graduations.without_certificate + stats.qualifications.without_certificate;
+        document.getElementById('statTotalPending').textContent = totalPending;
+        
+        // Carregar pendências
+        const pending = await apiRequest('/reports/documents/pending');
+        
+        // Atualizar badges
+        document.getElementById('badgeMembersPending').textContent = pending.statistics.total_members_without_photo;
+        document.getElementById('badgeGradsPending').textContent = pending.statistics.total_graduations_without_certificate;
+        document.getElementById('badgeQualsPending').textContent = pending.statistics.total_qualifications_without_certificate;
+        
+        // Renderizar listas
+        renderMembersPending(pending.members_without_photo);
+        renderGradsPending(pending.graduations_without_certificate);
+        renderQualsPending(pending.qualifications_without_certificate);
+        
+    } catch (error) {
+        showNotification('Erro ao carregar relatórios: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function renderMembersPending(members) {
+    const container = document.getElementById('membersPendingList');
+    
+    if (members.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-check-circle text-4xl text-green-500 mb-2 block"></i>
+                <p class="text-sm font-medium text-green-600">Todos os membros têm foto cadastrada!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = members.map(member => `
+        <div class="pending-item flex items-center justify-between">
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">${member.student_name}</p>
+                <p class="text-sm text-gray-500">
+                    Registro: ${member.registered_number || 'N/A'} • 
+                    ${member.member_type}
+                </p>
+            </div>
+            <button onclick="editMember(${member.id})" class="btn-primary text-white px-4 py-2 rounded-lg text-sm">
+                <i class="fas fa-camera mr-1"></i>Adicionar Foto
+            </button>
+        </div>
+    `).join('');
+}
+
+function renderGradsPending(graduations) {
+    const container = document.getElementById('gradsPendingList');
+    
+    if (graduations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-check-circle text-4xl text-green-500 mb-2 block"></i>
+                <p class="text-sm font-medium text-green-600">Todas as graduações têm certificado!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = graduations.map(grad => `
+        <div class="pending-item flex items-center justify-between">
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">${grad.student_name}</p>
+                <p class="text-sm text-gray-500">
+                    ${grad.discipline} • ${grad.rank_name} ${grad.examination_date ? '• Exame: ' + formatDate(grad.examination_date) : ''}
+                </p>
+            </div>
+            <button onclick="editGraduation(${grad.id})" class="btn-primary text-white px-4 py-2 rounded-lg text-sm">
+                <i class="fas fa-file-upload mr-1"></i>Adicionar Certificado
+            </button>
+        </div>
+    `).join('');
+}
+
+function renderQualsPending(qualifications) {
+    const container = document.getElementById('qualsPendingList');
+    
+    if (qualifications.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-check-circle text-4xl text-green-500 mb-2 block"></i>
+                <p class="text-sm font-medium text-green-600">Todas as qualificações têm certificado!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = qualifications.map(qual => `
+        <div class="pending-item flex items-center justify-between">
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">${qual.student_name}</p>
+                <p class="text-sm text-gray-500">
+                    ${qual.qualification_type} ${qual.qualification_level ? '• ' + qual.qualification_level : ''} ${qual.date_obtained ? '• ' + formatDate(qual.date_obtained) : ''}
+                </p>
+            </div>
+            <button onclick="editQualification(${qual.id})" class="btn-primary text-white px-4 py-2 rounded-lg text-sm">
+                <i class="fas fa-file-upload mr-1"></i>Adicionar Certificado
+            </button>
+        </div>
+    `).join('');
+}
+
+function showReportTab(tabName) {
+    // Remover active de todas as tabs
+    document.querySelectorAll('.report-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Adicionar active à tab clicada
+    document.querySelector(`.report-tab[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Esconder todos os conteúdos
+    document.querySelectorAll('.report-tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Mostrar conteúdo da tab selecionada
+    document.getElementById(tabName).classList.remove('hidden');
+}
+

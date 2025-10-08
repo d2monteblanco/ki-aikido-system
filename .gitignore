@@ -176,3 +176,7 @@ htmlcov/
 test.db
 test_*.db
 
+
+# Uploaded documents and photos
+backend/src/uploads/
+*.uploaded

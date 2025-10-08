@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-reorganização visual"
+IMPLEMENTAÇÃO DO SISTEMA DE IMAGENS DE DOCUMENTOS"
 
 if [ $? -eq 0 ]; then
     echo ""

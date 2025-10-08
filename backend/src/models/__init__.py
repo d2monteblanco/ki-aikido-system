@@ -4,6 +4,7 @@ from src.models.student import Student
 from src.models.member_status import MemberStatus
 from src.models.member_graduation import MemberGraduation
 from src.models.member_qualification import MemberQualification
+from src.models.document_attachment import DocumentAttachment
 
-__all__ = ['db', 'User', 'Dojo', 'Student', 'MemberStatus', 'MemberGraduation', 'MemberQualification']
+__all__ = ['db', 'User', 'Dojo', 'Student', 'MemberStatus', 'MemberGraduation', 'MemberQualification', 'DocumentAttachment']
 

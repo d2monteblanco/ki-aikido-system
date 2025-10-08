@@ -161,6 +161,10 @@
                             <i class="fas fa-building w-6 mr-3"></i>
                             <span>Dojos</span>
                         </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('reports')">
+                            <i class="fas fa-file-alt w-6 mr-3"></i>
+                            <span>Relatórios</span>
+                        </div>
                         <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('profile')">
                             <i class="fas fa-user-circle w-6 mr-3"></i>
                             <span>Meu Perfil</span>
@@ -381,6 +385,7 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
@@ -517,6 +522,114 @@
                                     <!-- Usuários serão inseridos aqui -->
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Seção de Relatórios -->
+                <section id="reports" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">
+                            <i class="fas fa-file-alt mr-2"></i>Relatórios de Documentação
+                        </h2>
+                        <button onclick="loadReports()" class="btn-primary text-white px-5 py-2.5 rounded-lg font-medium hover:shadow-lg transition-all">
+                            <i class="fas fa-sync mr-2"></i>Atualizar
+                        </button>
+                    </div>
+
+                    <!-- Estatísticas Gerais -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm font-semibold mb-1">Membros com Foto</p>
+                                    <p class="text-3xl font-bold text-purple-600" id="statMembersWithPhoto">-</p>
+                                    <p class="text-xs text-gray-500 mt-1" id="statMembersWithPhotoPerc">-</p>
+                                </div>
+                                <div class="bg-purple-100 p-3 rounded-full">
+                                    <i class="fas fa-camera text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm font-semibold mb-1">Graduações c/ Certificado</p>
+                                    <p class="text-3xl font-bold text-blue-600" id="statGradsWithCert">-</p>
+                                    <p class="text-xs text-gray-500 mt-1" id="statGradsWithCertPerc">-</p>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-medal text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm font-semibold mb-1">Qualificações c/ Certificado</p>
+                                    <p class="text-3xl font-bold text-green-600" id="statQualsWithCert">-</p>
+                                    <p class="text-xs text-gray-500 mt-1" id="statQualsWithCertPerc">-</p>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-certificate text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm font-semibold mb-1">Total Pendente</p>
+                                    <p class="text-3xl font-bold text-red-600" id="statTotalPending">-</p>
+                                    <p class="text-xs text-gray-500 mt-1">Documentos faltando</p>
+                                </div>
+                                <div class="bg-red-100 p-3 rounded-full">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs de Relatórios -->
+                    <div class="card">
+                        <div class="border-b border-gray-200 mb-4">
+                            <nav class="-mb-px flex space-x-8">
+                                <button class="report-tab active" onclick="showReportTab('members-pending')" data-tab="members-pending">
+                                    <i class="fas fa-user-times mr-2"></i>Membros sem Foto
+                                    <span class="ml-2 badge badge-danger text-xs" id="badgeMembersPending">0</span>
+                                </button>
+                                <button class="report-tab" onclick="showReportTab('grads-pending')" data-tab="grads-pending">
+                                    <i class="fas fa-medal mr-2"></i>Graduações Pendentes
+                                    <span class="ml-2 badge badge-warning text-xs" id="badgeGradsPending">0</span>
+                                </button>
+                                <button class="report-tab" onclick="showReportTab('quals-pending')" data-tab="quals-pending">
+                                    <i class="fas fa-certificate mr-2"></i>Qualificações Pendentes
+                                    <span class="ml-2 badge badge-warning text-xs" id="badgeQualsPending">0</span>
+                                </button>
+                            </nav>
+                        </div>
+                        
+                        <!-- Tab: Membros sem Foto -->
+                        <div id="members-pending" class="report-tab-content">
+                            <div id="membersPendingList" class="space-y-2">
+                                <!-- Lista será inserida aqui -->
+                            </div>
+                        </div>
+                        
+                        <!-- Tab: Graduações Pendentes -->
+                        <div id="grads-pending" class="report-tab-content hidden">
+                            <div id="gradsPendingList" class="space-y-2">
+                                <!-- Lista será inserida aqui -->
+                            </div>
+                        </div>
+                        
+                        <!-- Tab: Qualificações Pendentes -->
+                        <div id="quals-pending" class="report-tab-content hidden">
+                            <div id="qualsPendingList" class="space-y-2">
+                                <!-- Lista será inserida aqui -->
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -664,6 +777,14 @@
                             <input type="number" id="memberLastActivityYear" min="1900" max="2100" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-field focus:outline-none">
                         </div>
                     </div>
+                    
+                    <!-- Upload de Foto do Membro -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-camera mr-2"></i>Foto do Membro (Opcional)
+                        </label>
+                        <div id="memberPhotoUploadArea"></div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -732,6 +853,14 @@
                     <div class="flex items-center">
                         <input type="checkbox" id="graduationIsCurrent" class="mr-2">
                         <label for="graduationIsCurrent" class="text-sm font-medium text-gray-700">Graduação Atual</label>
+                    </div>
+                    
+                    <!-- Upload de Certificado de Graduação -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-file-certificate mr-2"></i>Certificado de Graduação (Opcional)
+                        </label>
+                        <div id="graduationDocUploadArea"></div>
                     </div>
                 </form>
             </div>
@@ -822,6 +951,14 @@
                     <div class="flex items-center">
                         <input type="checkbox" id="qualificationIsActive" checked class="mr-2">
                         <label for="qualificationIsActive" class="text-sm font-medium text-gray-700">Qualificação Ativa</label>
+                    </div>
+                    
+                    <!-- Upload de Certificado de Qualificação -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-file-certificate mr-2"></i>Certificado de Qualificação (Opcional)
+                        </label>
+                        <div id="qualificationDocUploadArea"></div>
                     </div>
                 </form>
             </div>
@@ -1168,24 +1305,36 @@
                 </div>
                 
                 <div class="p-6 overflow-y-auto flex-1">
-                    <!-- Informações de Referência do Estudante -->
+                    <!-- Informações de Referência do Estudante com Foto -->
                     <div class="mb-8">
                         <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                             <i class="fas fa-user text-purple-600 mr-2"></i>
                             Informações de Referência
                         </h4>
-                        <div class="bg-gray-50 rounded-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Nome</p>
-                                <p class="text-gray-800 font-medium" id="detailMemberStudentName">-</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Dojo</p>
-                                <p class="text-gray-800" id="detailMemberStudentDojo">-</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Número de Registro (Cadastro)</p>
-                                <p class="text-gray-800" id="detailMemberStudentRegNumber">-</p>
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <!-- Foto do Membro -->
+                                <div class="flex-shrink-0">
+                                    <div id="detailMemberPhotoContainer" class="w-32 h-32 rounded-lg overflow-hidden border-4 border-white shadow-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center">
+                                        <!-- Foto ou avatar será inserido aqui -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Informações -->
+                                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Nome</p>
+                                        <p class="text-gray-800 font-medium" id="detailMemberStudentName">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Dojo</p>
+                                        <p class="text-gray-800" id="detailMemberStudentDojo">-</p>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Número de Registro (Cadastro)</p>
+                                        <p class="text-gray-800" id="detailMemberStudentRegNumber">-</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1340,6 +1489,7 @@
     </div>
 
     <!-- Script Principal -->
-    <script src="app.js?v=20250102-1445"></script>
+    <script src="document-uploader.js?v=20251007225643"></script>
+    <script src="app.js?v=20251007225643"></script>
 </body>
 </html>

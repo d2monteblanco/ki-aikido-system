@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
-from src.models import db, User, Dojo, Student, MemberStatus, MemberGraduation, MemberQualification
+from src.models import db, User, Dojo, Student, MemberStatus, MemberGraduation, MemberQualification, DocumentAttachment
 from src.routes.auth import auth_bp
 from src.routes.students import students_bp
 from src.routes.dojos import dojos_bp
@@ -13,6 +13,8 @@ from src.routes.member_status import member_status_bp
 from src.routes.member_graduations import member_graduations_bp
 from src.routes.member_qualifications import member_qualifications_bp
 from src.routes.user import user_bp
+from src.routes.documents import documents_bp
+from src.routes.reports import reports_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -20,6 +22,11 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 app.config['SECRET_KEY'] = 'ki-aikido-secret-key-2024'
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configuração de uploads
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads', 'documents')
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
+app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png'}
 
 # Configuração de sessão
 app.config['SESSION_COOKIE_SECURE'] = False  # Para desenvolvimento
@@ -41,6 +48,11 @@ app.register_blueprint(member_status_bp, url_prefix='/api')
 app.register_blueprint(member_graduations_bp, url_prefix='/api')
 app.register_blueprint(member_qualifications_bp, url_prefix='/api')
 app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(documents_bp, url_prefix='/api')
+app.register_blueprint(reports_bp, url_prefix='/api')
+
+# Criar diretório de uploads se não existir
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Inicializar banco de dados
 db.init_app(app)

@@ -1,0 +1,332 @@
+# Comandos Prontos - Deploy Google VM
+# Copie e cole estes comandos conforme necessário
+
+# ============================================
+# SETUP INICIAL - MÁQUINA LOCAL
+# ============================================
+
+# 1. Preparar branch production
+cd /caminho/para/ki-aikido-system
+./scripts/deploy/prepare_production.sh
+
+# ============================================
+# SETUP INICIAL - GOOGLE VM (via SSH)
+# ============================================
+
+# 1. Conectar à VM
+ssh usuario@IP_DA_VM
+
+# 2. Instalar dependências do sistema
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-pip python3-venv git nginx supervisor sqlite3
+
+# 3. Criar diretório e configurar permissões
+sudo mkdir -p /opt/ki-aikido-system
+sudo chown $USER:$USER /opt/ki-aikido-system
+
+# 4. Clonar repositório (SUBSTITUA [URL_DO_REPO])
+cd /opt
+git clone -b production [URL_DO_REPO] ki-aikido-system
+
+# 5. Verificar branch
+cd ki-aikido-system
+git branch
+
+# 6. Tornar scripts executáveis
+chmod +x scripts/deploy/*.sh
+
+# 7. Instalar aplicação
+./scripts/deploy/install_vm.sh
+
+# 8. Gerar nova SECRET_KEY
+python3 -c "import secrets; print(secrets.token_hex(32))"
+# COPIE A CHAVE GERADA
+
+# 9. Editar main.py e substituir SECRET_KEY
+nano /opt/ki-aikido-system/backend/src/main.py
+# Encontre a linha: app.config['SECRET_KEY'] = '...'
+# Substitua pela chave gerada acima
+# Salve: Ctrl+X, Y, Enter
+
+# 10. Configurar Nginx
+sudo cp scripts/deploy/nginx.conf /etc/nginx/sites-available/ki-aikido
+sudo ln -s /etc/nginx/sites-available/ki-aikido /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# 11. Testar e reiniciar Nginx
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl enable nginx
+
+# 12. Configurar Supervisor
+sudo cp scripts/deploy/supervisor.conf /etc/supervisor/conf.d/ki-aikido.conf
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start ki-aikido
+
+# 13. Verificar status
+sudo supervisorctl status ki-aikido
+
+# 14. Verificar saúde do sistema
+./scripts/deploy/check_health.sh
+
+# 15. Testar API
+curl http://localhost:5000/api/health
+
+# 16. Testar frontend via Nginx
+curl http://localhost
+
+# 17. Configurar backup automático (opcional)
+./scripts/deploy/setup_auto_backup.sh
+
+# ============================================
+# ACESSAR SISTEMA
+# ============================================
+
+# No navegador:
+# http://[IP_EXTERNO_DA_VM]
+
+# Login padrão:
+# Email: admin@kiaikido.com
+# Senha: 123456
+
+# IMPORTANTE: Alterar senha após primeiro login!
+
+# ============================================
+# CONFIGURAR HTTPS (OPCIONAL MAS RECOMENDADO)
+# ============================================
+
+# Pré-requisito: Ter domínio apontando para IP da VM
+
+# 1. Editar nginx.conf com seu domínio
+sudo nano /etc/nginx/sites-available/ki-aikido
+# Substituir "server_name _;" por "server_name seu-dominio.com;"
+# Salve: Ctrl+X, Y, Enter
+
+# 2. Recarregar Nginx
+sudo nginx -t
+sudo systemctl reload nginx
+
+# 3. Instalar Certbot
+sudo apt install -y certbot python3-certbot-nginx
+
+# 4. Obter certificado SSL (SUBSTITUA SEU-DOMINIO.COM)
+sudo certbot --nginx -d seu-dominio.com -d www.seu-dominio.com
+
+# 5. Testar renovação automática
+sudo certbot renew --dry-run
+
+# ============================================
+# DEPLOY DE ATUALIZAÇÕES - MÁQUINA LOCAL
+# ============================================
+
+# 1. Desenvolver e commitar no branch main
+git checkout main
+git add .
+git commit -m "Descrição das alterações"
+git push origin main
+
+# 2. Preparar para produção
+./scripts/deploy/prepare_production.sh
+# Confirmar push quando solicitado
+
+# ============================================
+# DEPLOY DE ATUALIZAÇÕES - GOOGLE VM
+# ============================================
+
+# 1. Conectar à VM
+ssh usuario@IP_DA_VM
+
+# 2. Ir para diretório da aplicação
+cd /opt/ki-aikido-system
+
+# 3. Executar atualização (faz backup + pull + restart)
+./scripts/deploy/update_vm.sh
+
+# 4. Verificar
+./scripts/deploy/check_health.sh
+
+# ============================================
+# COMANDOS DE MANUTENÇÃO
+# ============================================
+
+# Ver status da aplicação
+sudo supervisorctl status ki-aikido
+
+# Parar aplicação
+sudo supervisorctl stop ki-aikido
+
+# Iniciar aplicação
+sudo supervisorctl start ki-aikido
+
+# Reiniciar aplicação
+sudo supervisorctl restart ki-aikido
+
+# Ver logs em tempo real
+tail -f /opt/ki-aikido-system/logs/app.log
+tail -f /opt/ki-aikido-system/logs/error.log
+
+# Ver últimas 50 linhas dos logs
+tail -n 50 /opt/ki-aikido-system/logs/app.log
+tail -n 50 /opt/ki-aikido-system/logs/error.log
+
+# Verificar saúde do sistema
+cd /opt/ki-aikido-system
+./scripts/deploy/check_health.sh
+
+# Fazer backup manual
+./scripts/deploy/backup_db.sh
+
+# Listar backups disponíveis
+ls -lh /opt/ki-aikido-system/backups/
+
+# Restaurar backup
+./scripts/deploy/restore_db.sh /opt/ki-aikido-system/backups/app_YYYYMMDD_HHMMSS.db
+
+# Ver logs do Nginx
+sudo tail -f /var/log/nginx/ki-aikido-access.log
+sudo tail -f /var/log/nginx/ki-aikido-error.log
+
+# Ver logs do Supervisor
+sudo tail -f /var/log/supervisor/supervisord.log
+
+# Verificar processos Python
+ps aux | grep python
+
+# Verificar espaço em disco
+df -h
+
+# Verificar uso de memória
+free -h
+
+# Verificar porta 5000
+sudo lsof -i :5000
+
+# ============================================
+# ROLLBACK (EM CASO DE PROBLEMA)
+# ============================================
+
+# 1. Parar aplicação
+sudo supervisorctl stop ki-aikido
+
+# 2. Voltar para commit anterior
+cd /opt/ki-aikido-system
+git log --oneline -10  # Ver últimos 10 commits
+git reset --hard HASH_DO_COMMIT_ANTERIOR
+
+# 3. Restaurar backup do banco
+ls -lh backups/  # Listar backups disponíveis
+./scripts/deploy/restore_db.sh backups/app_YYYYMMDD_HHMMSS.db
+
+# 4. Reiniciar aplicação
+sudo supervisorctl start ki-aikido
+
+# 5. Verificar
+./scripts/deploy/check_health.sh
+
+# ============================================
+# TROUBLESHOOTING
+# ============================================
+
+# Aplicação não inicia - Ver logs de erro
+sudo supervisorctl tail -f ki-aikido stderr
+
+# API não responde
+curl -v http://localhost:5000/api/health
+sudo supervisorctl status ki-aikido
+
+# Nginx retorna 502 Bad Gateway
+sudo systemctl status nginx
+curl http://localhost:5000/api/health
+sudo tail -f /var/log/nginx/error.log
+
+# Banco de dados corrompido
+cd /opt/ki-aikido-system
+# Opção 1: Restaurar backup
+./scripts/deploy/restore_db.sh backups/app_LATEST.db
+
+# Opção 2: Recriar banco (PERDE DADOS!)
+sudo supervisorctl stop ki-aikido
+rm backend/src/database/app.db
+cd backend
+source venv/bin/activate
+python3 -c "from src.main import app, init_database; app.app_context().push(); init_database()"
+cd ..
+sudo supervisorctl start ki-aikido
+
+# Limpar cache Python
+cd /opt/ki-aikido-system
+find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null
+find . -type f -name "*.pyc" -delete 2>/dev/null
+
+# Reinstalar dependências Python
+cd /opt/ki-aikido-system/backend
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# ============================================
+# FIREWALL - GOOGLE CLOUD CONSOLE
+# ============================================
+
+# No console web do Google Cloud:
+# VPC Network → Firewall → Create Firewall Rule
+
+# Regra HTTP:
+Nome: allow-http-ki-aikido
+Targets: Specified target tags
+Target tags: http-server
+Source IP ranges: 0.0.0.0/0
+Protocols and ports: tcp:80
+
+# Regra HTTPS (se usar SSL):
+Nome: allow-https-ki-aikido
+Targets: Specified target tags
+Target tags: https-server
+Source IP ranges: 0.0.0.0/0
+Protocols and ports: tcp:443
+
+# Depois, adicionar as tags à instância VM:
+# Compute Engine → VM instances → Editar instância
+# Network tags: http-server, https-server
+
+# ============================================
+# VERIFICAÇÃO FINAL
+# ============================================
+
+# Na VM, executar:
+cd /opt/ki-aikido-system
+./scripts/deploy/check_health.sh
+
+# Deve mostrar todos os componentes com ✓ OK:
+# ✓ Supervisor (ki-aikido)
+# ✓ Nginx
+# ✓ API
+# ✓ Frontend
+# ✓ Banco de dados
+# ✓ Espaço em disco
+# ✓ Memória
+
+# Testar no navegador:
+# http://[IP_EXTERNO_DA_VM]
+
+# ============================================
+# BACKUP MANUAL ANTES DE MANUTENÇÃO
+# ============================================
+
+cd /opt/ki-aikido-system
+./scripts/deploy/backup_db.sh
+sudo supervisorctl stop ki-aikido
+# ... fazer manutenção ...
+sudo supervisorctl start ki-aikido
+
+# ============================================
+# NOTAS
+# ============================================
+
+# - Sempre substitua [URL_DO_REPO] pela URL real do seu repositório
+# - Sempre substitua [IP_DA_VM] pelo IP externo da sua VM
+# - Sempre substitua [usuario] pelo seu nome de usuário SSH
+# - Sempre substitua seu-dominio.com pelo seu domínio real
+# - Mantenha este arquivo como referência rápida
+# - Para documentação completa, ver DEPLOY_QUICKSTART.md

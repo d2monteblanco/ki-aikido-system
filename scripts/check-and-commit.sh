@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-IMPLEMENTAÇÃO DO SISTEMA DE IMAGENS DE DOCUMENTOS"
+ESTRUTURA DE DEPLOY - TESTE"
 
 if [ $? -eq 0 ]; then
     echo ""

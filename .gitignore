@@ -180,3 +180,9 @@ test_*.db
 # Uploaded documents and photos
 backend/src/uploads/
 *.uploaded
+
+# Backups (gerados pelo sistema de deploy)
+backups/
+
+# Cookies de teste
+cookies.txt

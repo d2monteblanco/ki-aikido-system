@@ -264,6 +264,57 @@ curl -X POST http://localhost:5000/api/students \
   }'
 ```
 
+## 🚀 Deploy em Produção
+
+### Deploy em Google Cloud VM
+
+Este sistema está preparado para deploy em Google Cloud VM usando Nginx + Supervisor.
+
+**Guia Rápido**: Ver [DEPLOY_QUICKSTART.md](DEPLOY_QUICKSTART.md)  
+**Documentação Completa**: Ver [docs/DEPLOY_GOOGLE_VM.md](docs/DEPLOY_GOOGLE_VM.md)
+
+#### Resumo do Deploy
+
+1. **Na máquina de desenvolvimento** (preparar código):
+```bash
+./scripts/deploy/prepare_production.sh
+```
+
+2. **Na Google VM** (primeira vez):
+```bash
+# Clonar branch production
+git clone -b production https://github.com/seu-usuario/ki-aikido-system.git /opt/ki-aikido-system
+cd /opt/ki-aikido-system
+
+# Instalar
+./scripts/deploy/install_vm.sh
+
+# Configurar Nginx e Supervisor
+sudo cp scripts/deploy/nginx.conf /etc/nginx/sites-available/ki-aikido
+sudo ln -s /etc/nginx/sites-available/ki-aikido /etc/nginx/sites-enabled/
+sudo cp scripts/deploy/supervisor.conf /etc/supervisor/conf.d/ki-aikido.conf
+sudo supervisorctl reread && sudo supervisorctl update
+sudo supervisorctl start ki-aikido
+```
+
+3. **Atualizações** (deploys subsequentes):
+```bash
+# Na VM
+cd /opt/ki-aikido-system
+./scripts/deploy/update_vm.sh
+```
+
+#### Scripts de Deploy Disponíveis
+
+- `install_vm.sh` - Instalação inicial na VM
+- `update_vm.sh` - Atualização do sistema (deploy)
+- `backup_db.sh` - Backup do banco de dados
+- `restore_db.sh` - Restaurar backup
+- `check_health.sh` - Verificar saúde do sistema
+- `prepare_production.sh` - Preparar código local para produção
+
+Ver documentação completa em `scripts/deploy/README.md`
+
 ## 💝 Contribuição
 
 1. Fork o projeto

@@ -3,7 +3,10 @@
 // =========================================
 
 // Configuração Global
-const API_BASE_URL = 'http://localhost:5000/api';
+// Detecta automaticamente se está em desenvolvimento ou produção
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'  // Desenvolvimento
+    : '/api';  // Produção (usa proxy reverso do Nginx)
 let authToken = null;
 let currentUser = null;
 let currentPage = { students: 1, members: 1 };

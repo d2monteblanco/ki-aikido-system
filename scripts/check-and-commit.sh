@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-ESTRUTURA DE DEPLOY - TESTE"
+feat: Guia Rápido no dashboard"
 
 if [ $? -eq 0 ]; then
     echo ""

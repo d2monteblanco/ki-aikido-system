@@ -52,8 +52,8 @@ echo -e "${GREEN}[5/8] Verificando migrações de banco de dados...${NC}"
 echo "Nenhuma migração necessária no momento."
 
 echo -e "${GREEN}[6/8] Limpando cache e arquivos temporários...${NC}"
-find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
 find . -type f -name "*.pyc" -delete 2>/dev/null || true
+find . -depth -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
 echo -e "${GREEN}[7/8] Reiniciando aplicação...${NC}"
 cd ..

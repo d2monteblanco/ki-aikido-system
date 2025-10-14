@@ -82,7 +82,7 @@ def create_graduation_by_student():
             examination_date=datetime.strptime(data['examination_date'], '%Y-%m-%d').date() if data.get('examination_date') else None,
             certificate_number=data.get('certificate_number'),
             certificate_status=data.get('certificate_status', 'pending'),
-            is_current=data.get('is_current', True)  # Por padrão, nova graduação é atual
+            is_current=False  # Será determinado automaticamente
         )
         
         # Definir rank_level automaticamente
@@ -91,24 +91,37 @@ def create_graduation_by_student():
         )
         
         db.session.add(graduation)
+        db.session.flush()  # Flush para obter o ID antes de atualizar current
         
-        # Se marcada como atual, desmarcar outras da mesma disciplina
-        if graduation.is_current:
-            other_grads = MemberGraduation.query.filter_by(
-                member_status_id=member_status.id,
-                discipline=graduation.discipline
-            ).all()
-            
-            for grad in other_grads:
-                grad.is_current = False
+        # Atualizar a graduação atual para a disciplina (maior rank_level)
+        update_current_graduation(member_status.id, graduation.discipline)
         
         db.session.commit()
+        
+        # Recarregar para obter o estado atualizado de is_current
+        db.session.refresh(graduation)
         
         return jsonify(graduation.to_dict()), 201
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Erro ao criar graduação: {str(e)}'}), 500
+
+def update_current_graduation(member_status_id, discipline):
+    """Atualiza a graduação atual para uma disciplina, marcando a de maior nível"""
+    # Buscar todas as graduações da disciplina
+    graduations = MemberGraduation.query.filter_by(
+        member_status_id=member_status_id,
+        discipline=discipline
+    ).order_by(MemberGraduation.rank_level.desc()).all()
+    
+    # Desmarcar todas
+    for grad in graduations:
+        grad.is_current = False
+    
+    # Marcar a de maior nível como atual
+    if graduations:
+        graduations[0].is_current = True
 
 @member_graduations_bp.route('/member-status/<int:member_status_id>/graduations', methods=['POST'])
 @login_required
@@ -133,7 +146,7 @@ def create_graduation(member_status_id):
             examination_date=datetime.strptime(data['examination_date'], '%Y-%m-%d').date() if data.get('examination_date') else None,
             certificate_number=data.get('certificate_number'),
             certificate_status=data.get('certificate_status', 'pending'),
-            is_current=data.get('is_current', False)
+            is_current=False  # Será determinado automaticamente
         )
         
         # Definir rank_level automaticamente
@@ -142,18 +155,15 @@ def create_graduation(member_status_id):
         )
         
         db.session.add(graduation)
+        db.session.flush()  # Flush para obter o ID antes de atualizar current
         
-        # Se marcada como atual, desmarcar outras da mesma disciplina
-        if graduation.is_current:
-            other_grads = MemberGraduation.query.filter_by(
-                member_status_id=member_status_id,
-                discipline=graduation.discipline
-            ).all()
-            
-            for grad in other_grads:
-                grad.is_current = False
+        # Atualizar a graduação atual para a disciplina (maior rank_level)
+        update_current_graduation(member_status_id, graduation.discipline)
         
         db.session.commit()
+        
+        # Recarregar para obter o estado atualizado de is_current
+        db.session.refresh(graduation)
         
         return jsonify(graduation.to_dict()), 201
         
@@ -184,6 +194,8 @@ def update_graduation(id):
     data = request.get_json()
     
     try:
+        discipline_changed = False
+        
         # Atualizar campos
         if 'rank_name' in data:
             graduation.rank_name = data['rank_name']
@@ -200,20 +212,15 @@ def update_graduation(id):
         if 'certificate_status' in data:
             graduation.certificate_status = data['certificate_status']
         
-        if 'is_current' in data:
-            graduation.is_current = data['is_current']
-            
-            # Se marcada como atual, desmarcar outras da mesma disciplina
-            if graduation.is_current:
-                other_grads = MemberGraduation.query.filter_by(
-                    member_status_id=graduation.member_status_id,
-                    discipline=graduation.discipline
-                ).filter(MemberGraduation.id != graduation.id).all()
-                
-                for grad in other_grads:
-                    grad.is_current = False
+        db.session.flush()
+        
+        # Atualizar a graduação atual para a disciplina (maior rank_level)
+        update_current_graduation(graduation.member_status_id, graduation.discipline)
         
         db.session.commit()
+        
+        # Recarregar para obter o estado atualizado
+        db.session.refresh(graduation)
         
         return jsonify(graduation.to_dict())
         
@@ -231,7 +238,15 @@ def delete_graduation(id):
         return jsonify({'error': 'Acesso negado'}), 403
     
     try:
+        member_status_id = graduation.member_status_id
+        discipline = graduation.discipline
+        
         db.session.delete(graduation)
+        db.session.flush()
+        
+        # Atualizar a graduação atual para a disciplina após deletar
+        update_current_graduation(member_status_id, discipline)
+        
         db.session.commit()
         return jsonify({'message': 'Graduação removida com sucesso'})
         
@@ -242,14 +257,20 @@ def delete_graduation(id):
 @member_graduations_bp.route('/graduations/<int:id>/set-current', methods=['POST'])
 @login_required
 def set_graduation_as_current(id):
-    """Define uma graduação como atual"""
+    """Define uma graduação como atual (endpoint mantido para compatibilidade, mas usa lógica automática)"""
     graduation = MemberGraduation.query.get_or_404(id)
     
     if not check_member_access(graduation.member_status_id):
         return jsonify({'error': 'Acesso negado'}), 403
     
     try:
-        graduation.set_as_current()
+        # Atualizar a graduação atual para a disciplina (usa lógica automática baseada em rank_level)
+        update_current_graduation(graduation.member_status_id, graduation.discipline)
+        db.session.commit()
+        
+        # Recarregar para obter o estado atualizado
+        db.session.refresh(graduation)
+        
         return jsonify(graduation.to_dict())
         
     except Exception as e:

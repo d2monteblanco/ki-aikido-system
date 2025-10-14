@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-fix: update do Guia Rápido no dashboard"
+feat: graduação atual selecionada automaticamente"
 
 if [ $? -eq 0 ]; then
     echo ""

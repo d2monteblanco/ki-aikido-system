@@ -2253,7 +2253,6 @@ async function openGraduationModal(graduationId = null) {
         }
     } else {
         title.innerHTML = '<i class="fas fa-medal mr-2"></i>Nova Graduação';
-        document.getElementById('graduationIsCurrent').checked = true;
         document.getElementById('graduationCertificateStatus').value = 'pending';
         
         // Inicializar uploader sem certificado existente
@@ -2283,7 +2282,6 @@ async function loadGraduationForEdit(graduationId) {
         document.getElementById('graduationExamDate').value = grad.examination_date || '';
         document.getElementById('graduationCertificateNumber').value = grad.certificate_number || '';
         document.getElementById('graduationCertificateStatus').value = grad.certificate_status;
-        document.getElementById('graduationIsCurrent').checked = grad.is_current;
         
     } catch (error) {
         showNotification('Erro ao carregar graduação: ' + error.message, 'error');
@@ -2372,8 +2370,7 @@ document.getElementById('graduationForm').addEventListener('submit', async (e) =
         rank_name: document.getElementById('graduationRankName').value,
         examination_date: document.getElementById('graduationExamDate').value || null,
         certificate_number: document.getElementById('graduationCertificateNumber').value || null,
-        certificate_status: document.getElementById('graduationCertificateStatus').value,
-        is_current: document.getElementById('graduationIsCurrent').checked
+        certificate_status: document.getElementById('graduationCertificateStatus').value
     };
     
     showLoading();

@@ -1120,7 +1120,7 @@ function renderMembersTable(members) {
         
         // Avatar/foto do membro - usando thumbnail small para tabela
         const avatarHtml = member.has_photo 
-            ? `<img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/small?token=${encodeURIComponent(authToken)}" 
+            ? `<img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/small?token=${encodeURIComponent(authToken)}&t=${Date.now()}" 
                     class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 member-avatar" 
                     alt="${member.student_name}"
                     onerror="this.onerror=null; loadAuthenticatedImage(this, '${member.photo_path}');">`
@@ -1321,12 +1321,7 @@ async function openMemberModal(memberId = null) {
 function closeMemberModal() {
     document.getElementById('memberModal').classList.add('hidden');
     
-    // Se o modal de detalhes do membro estiver aberto, recarregar os dados
-    const memberDetailsModal = document.getElementById('memberDetailsModal');
-    if (!memberDetailsModal.classList.contains('hidden') && currentMemberStatusId) {
-        refreshMemberDetails(currentMemberStatusId);
-    }
-    
+    // Limpar currentMemberStatusId ao fechar
     currentMemberStatusId = null;
 }
 
@@ -1443,6 +1438,24 @@ function updateMemberDetailsContent(member, student, graduations, qualifications
     selectedMember = member;
     console.log('selectedMember updated to:', selectedMember);
     
+    // Atualizar foto do membro - usando thumbnail medium no modal
+    const photoContainer = document.getElementById('detailMemberPhotoContainer');
+    if (member.has_photo) {
+        photoContainer.innerHTML = `
+            <img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/medium?token=${encodeURIComponent(authToken)}&t=${Date.now()}" 
+                 class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity member-photo-large" 
+                 alt="${student.name}"
+                 onclick="openAuthenticatedDocument('${member.photo_path}')"
+                 onerror="this.onerror=null; loadAuthenticatedImage(this, '${member.photo_path}');">
+        `;
+    } else {
+        photoContainer.innerHTML = `
+            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white text-5xl font-bold">
+                ${student.name ? student.name.charAt(0).toUpperCase() : '?'}
+            </div>
+        `;
+    }
+    
     // Atualizar informações básicas do estudante
     document.getElementById('detailMemberStudentName').textContent = student.name || 'N/A';
     document.getElementById('detailMemberStudentDojo').textContent = student.dojo_name || 'N/A';
@@ -1476,7 +1489,7 @@ function openMemberDetailsModal(member, student, graduations, qualifications) {
     const photoContainer = document.getElementById('detailMemberPhotoContainer');
     if (member.has_photo) {
         photoContainer.innerHTML = `
-            <img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/medium?token=${encodeURIComponent(authToken)}" 
+            <img src="${API_BASE_URL}/documents/by-path/${member.photo_path}/thumbnail/medium?token=${encodeURIComponent(authToken)}&t=${Date.now()}" 
                  class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity member-photo-large" 
                  alt="${student.name}"
                  onclick="openAuthenticatedDocument('${member.photo_path}')"
@@ -1809,7 +1822,15 @@ document.getElementById('memberForm').addEventListener('submit', async (e) => {
         
         // Não fechar o modal se estiver criando, para permitir adicionar graduações/qualificações
         if (memberId) {
+            // Salvar o ID antes de fechar para garantir que o refresh funcione
+            const memberIdForRefresh = savedMemberId;
             closeMemberModal();
+            
+            // Se o modal de detalhes estiver aberto, forçar atualização após fechar modal de edição
+            const memberDetailsModal = document.getElementById('memberDetailsModal');
+            if (!memberDetailsModal.classList.contains('hidden') && selectedMember) {
+                await refreshMemberDetails(memberIdForRefresh);
+            }
         } else {
             // Recarregar o membro recém-criado
             await openMemberModal(currentMemberStatusId);

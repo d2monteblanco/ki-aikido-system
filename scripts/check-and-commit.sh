@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-feat: graduação atual selecionada automaticamente"
+fix: refresh do modal de detalhes"
 
 if [ $? -eq 0 ]; then
     echo ""

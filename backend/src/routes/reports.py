@@ -42,7 +42,8 @@ def get_pending_documents():
         'student_id': m.student_id,
         'student_name': m.student.name if m.student else 'N/A',
         'registered_number': m.registered_number,
-        'member_type': m.member_type_display
+        'member_type': m.member_type,
+        'member_type_display': MemberStatus.MEMBER_TYPES.get(m.member_type, m.member_type)
     } for m in members_without_photo]
     
     # Graduações sem certificado
@@ -62,7 +63,8 @@ def get_pending_documents():
         'member_status_id': g.member_status_id,
         'student_name': g.member_status.student.name if g.member_status and g.member_status.student else 'N/A',
         'discipline': g.discipline,
-        'rank_name': g.rank_display,
+        'rank_name': g.rank_name,
+        'rank_display': MemberGraduation.get_rank_display(g.discipline, g.rank_name),
         'examination_date': g.examination_date.isoformat() if g.examination_date else None
     } for g in graduations_without_cert]
     
@@ -82,7 +84,8 @@ def get_pending_documents():
         'id': q.id,
         'member_status_id': q.member_status_id,
         'student_name': q.member_status.student.name if q.member_status and q.member_status.student else 'N/A',
-        'qualification_type': q.qualification_type_display,
+        'qualification_type': q.qualification_type,
+        'qualification_type_display': MemberQualification.QUALIFICATION_TYPES.get(q.qualification_type, q.qualification_type),
         'qualification_level': q.qualification_level,
         'date_obtained': q.date_obtained.isoformat() if q.date_obtained else None
     } for q in qualifications_without_cert]

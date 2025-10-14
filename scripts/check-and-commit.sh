@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-fix: refresh do modal de detalhes"
+fix: bugfix"
 
 if [ $? -eq 0 ]; then
     echo ""

@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-feat: Guia Rápido no dashboard"
+fix: update do Guia Rápido no dashboard"
 
 if [ $? -eq 0 ]; then
     echo ""

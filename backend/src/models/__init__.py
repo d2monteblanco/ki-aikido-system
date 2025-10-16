@@ -5,6 +5,7 @@ from src.models.member_status import MemberStatus
 from src.models.member_graduation import MemberGraduation
 from src.models.member_qualification import MemberQualification
 from src.models.document_attachment import DocumentAttachment
+from src.models.event import Event, EventReminder, EventOccurrence
 
-__all__ = ['db', 'User', 'Dojo', 'Student', 'MemberStatus', 'MemberGraduation', 'MemberQualification', 'DocumentAttachment']
+__all__ = ['db', 'User', 'Dojo', 'Student', 'MemberStatus', 'MemberGraduation', 'MemberQualification', 'DocumentAttachment', 'Event', 'EventReminder', 'EventOccurrence']
 

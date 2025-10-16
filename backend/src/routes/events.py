@@ -7,6 +7,114 @@ import uuid
 events_bp = Blueprint('events', __name__)
 
 
+def generate_recurring_occurrences(event):
+    """Gera as ocorrências de um evento recorrente"""
+    if not event.is_recurring:
+        return
+    
+    # Limpar ocorrências existentes
+    EventOccurrence.query.filter_by(event_id=event.id).delete()
+    
+    occurrences = []
+    current_date = event.start_datetime
+    duration = event.end_datetime - event.start_datetime
+    
+    # Definir limite máximo de ocorrências se não houver recurrence_count
+    max_occurrences = event.recurrence_count if event.recurrence_count else 100
+    occurrence_counter = 0
+    
+    # Data limite
+    end_limit = event.recurrence_end_date if event.recurrence_end_date else (current_date + timedelta(days=365))
+    
+    # Para recorrência semanal com dias específicos, precisamos de lógica especial
+    if event.recurrence_pattern == 'weekly' and event.recurrence_days:
+        allowed_days = [int(d) for d in event.recurrence_days.split(',')]
+        
+        # Começar da data inicial e iterar dia por dia
+        current_date = event.start_datetime.replace(hour=event.start_datetime.hour, minute=event.start_datetime.minute)
+        
+        while occurrence_counter < max_occurrences and current_date <= end_limit:
+            if current_date.weekday() in allowed_days:
+                occurrence = EventOccurrence(
+                    event_id=event.id,
+                    series_id=event.series_id,
+                    occurrence_date=current_date,
+                    end_datetime=current_date + duration,
+                    status='active'
+                )
+                occurrences.append(occurrence)
+                occurrence_counter += 1
+            
+            # Avançar 1 dia
+            current_date += timedelta(days=1)
+            
+            # Se já temos ocorrências suficientes ou passamos da data limite, parar
+            if occurrence_counter >= max_occurrences or current_date > end_limit:
+                break
+    else:
+        # Lógica para outros padrões de recorrência
+        while occurrence_counter < max_occurrences and current_date <= end_limit:
+            # Verificar se esta data deve ser incluída baseado no padrão
+            should_include = False
+            
+            if event.recurrence_pattern == 'daily':
+                should_include = True
+            
+            elif event.recurrence_pattern == 'weekly':
+                # Sem dias específicos, usar o dia da semana do evento original
+                if current_date.weekday() == event.start_datetime.weekday():
+                    should_include = True
+            
+            elif event.recurrence_pattern == 'monthly':
+                # Mesmo dia do mês
+                if current_date.day == event.start_datetime.day:
+                    should_include = True
+            
+            elif event.recurrence_pattern == 'yearly':
+                # Mesmo dia e mês
+                if current_date.month == event.start_datetime.month and current_date.day == event.start_datetime.day:
+                    should_include = True
+            
+            if should_include:
+                occurrence = EventOccurrence(
+                    event_id=event.id,
+                    series_id=event.series_id,
+                    occurrence_date=current_date,
+                    end_datetime=current_date + duration,
+                    status='active'
+                )
+                occurrences.append(occurrence)
+                occurrence_counter += 1
+            
+            # Avançar para próxima data baseado no intervalo e padrão
+            if event.recurrence_pattern == 'daily':
+                current_date += timedelta(days=event.recurrence_interval)
+            elif event.recurrence_pattern == 'weekly':
+                current_date += timedelta(weeks=event.recurrence_interval)
+            elif event.recurrence_pattern == 'monthly':
+                # Adicionar meses (aproximado)
+                month = current_date.month + event.recurrence_interval
+                year = current_date.year
+                while month > 12:
+                    month -= 12
+                    year += 1
+                try:
+                    current_date = current_date.replace(year=year, month=month)
+                except ValueError:
+                    # Se o dia não existe no mês (ex: 31 de fevereiro), usar último dia do mês
+                    import calendar
+                    last_day = calendar.monthrange(year, month)[1]
+                    current_date = current_date.replace(year=year, month=month, day=last_day)
+            elif event.recurrence_pattern == 'yearly':
+                current_date = current_date.replace(year=current_date.year + event.recurrence_interval)
+    
+    # Adicionar todas as ocorrências ao banco
+    for occurrence in occurrences:
+        db.session.add(occurrence)
+    
+    return len(occurrences)
+
+
 def can_edit_event(user, event):
     """Verifica se o usuário pode editar o evento"""
     # Admin pode editar tudo
@@ -100,8 +208,30 @@ def get_events():
         pagination = query.paginate(page=page, per_page=per_page, error_out=False)
         events = pagination.items
         
+        # Se solicitado, expandir eventos recorrentes com suas ocorrências
+        expand_occurrences = request.args.get('expand_occurrences', 'false').lower() == 'true'
+        
+        events_data = []
+        for event in events:
+            event_dict = event.to_dict()
+            
+            if expand_occurrences and event.is_recurring:
+                # Buscar ocorrências futuras (próximos 90 dias)
+                today = datetime.utcnow()
+                future_limit = today + timedelta(days=90)
+                
+                occurrences = EventOccurrence.query.filter(
+                    EventOccurrence.event_id == event.id,
+                    EventOccurrence.occurrence_date >= today,
+                    EventOccurrence.occurrence_date <= future_limit
+                ).order_by(EventOccurrence.occurrence_date.asc()).limit(20).all()
+                
+                event_dict['upcoming_occurrences'] = [occ.to_dict() for occ in occurrences]
+            
+            events_data.append(event_dict)
+        
         return jsonify({
-            'events': [event.to_dict() for event in events],
+            'events': events_data,
             'total': pagination.total,
             'pages': pagination.pages,
             'current_page': page,
@@ -217,12 +347,23 @@ def create_event():
                 )
                 db.session.add(reminder)
         
+        # Gerar ocorrências para eventos recorrentes
+        occurrences_count = 0
+        if event.is_recurring:
+            occurrences_count = generate_recurring_occurrences(event)
+        
         db.session.commit()
         
-        return jsonify({
+        response_data = {
             'message': 'Evento criado com sucesso',
             'event': event.to_dict()
-        }), 201
+        }
+        
+        if occurrences_count > 0:
+            response_data['message'] += f' ({occurrences_count} ocorrências geradas)'
+            response_data['occurrences_count'] = occurrences_count
+        
+        return jsonify(response_data), 201
         
     except Exception as e:
         db.session.rollback()
@@ -273,14 +414,43 @@ def update_event(event_id):
         if 'suspension_reason' in data:
             event.suspension_reason = data['suspension_reason']
         
+        # Atualizar recorrência se necessário
+        recurrence_changed = False
+        if 'recurrence_pattern' in data:
+            event.recurrence_pattern = data['recurrence_pattern']
+            recurrence_changed = True
+        if 'recurrence_interval' in data:
+            event.recurrence_interval = data['recurrence_interval']
+            recurrence_changed = True
+        if 'recurrence_days' in data:
+            event.recurrence_days = data['recurrence_days']
+            recurrence_changed = True
+        if 'recurrence_end_date' in data:
+            event.recurrence_end_date = datetime.fromisoformat(data['recurrence_end_date']) if data['recurrence_end_date'] else None
+            recurrence_changed = True
+        if 'recurrence_count' in data:
+            event.recurrence_count = data['recurrence_count']
+            recurrence_changed = True
+        
         event.updated_at = datetime.utcnow()
+        
+        # Regenerar ocorrências se evento recorrente foi modificado
+        occurrences_count = 0
+        if event.is_recurring and (recurrence_changed or 'start_datetime' in data or 'end_datetime' in data):
+            occurrences_count = generate_recurring_occurrences(event)
         
         db.session.commit()
         
-        return jsonify({
+        response_data = {
             'message': 'Evento atualizado com sucesso',
             'event': event.to_dict()
-        }), 200
+        }
+        
+        if occurrences_count > 0:
+            response_data['message'] += f' ({occurrences_count} ocorrências regeneradas)'
+            response_data['occurrences_count'] = occurrences_count
+        
+        return jsonify(response_data), 200
         
     except Exception as e:
         db.session.rollback()
@@ -437,6 +607,59 @@ def create_reminder(event_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@events_bp.route('/events/<int:event_id>/occurrences', methods=['GET'])
+@login_required
+def get_event_occurrences(event_id):
+    """Lista as ocorrências de um evento recorrente"""
+    try:
+        event = Event.query.get(event_id)
+        
+        if not event:
+            return jsonify({'error': 'Evento não encontrado'}), 404
+        
+        if not event.is_recurring:
+            return jsonify({'error': 'Este evento não é recorrente'}), 400
+        
+        # Filtros opcionais
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        status = request.args.get('status')
+        
+        query = EventOccurrence.query.filter_by(event_id=event_id)
+        
+        if start_date:
+            start_dt = datetime.fromisoformat(start_date)
+            query = query.filter(EventOccurrence.occurrence_date >= start_dt)
+        
+        if end_date:
+            end_dt = datetime.fromisoformat(end_date)
+            query = query.filter(EventOccurrence.occurrence_date <= end_dt)
+        
+        if status:
+            query = query.filter(EventOccurrence.status == status)
+        
+        query = query.order_by(EventOccurrence.occurrence_date.asc())
+        
+        occurrences = query.all()
+        
+        # Combinar dados do evento pai com cada ocorrência
+        occurrences_data = []
+        for occ in occurrences:
+            occ_dict = occ.to_dict()
+            occ_dict['event'] = event.to_dict()
+            occurrences_data.append(occ_dict)
+        
+        return jsonify({
+            'event_id': event_id,
+            'event_title': event.title,
+            'total_occurrences': len(occurrences),
+            'occurrences': occurrences_data
+        }), 200
+        
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 

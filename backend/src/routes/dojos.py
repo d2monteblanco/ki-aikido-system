@@ -7,21 +7,14 @@ dojos_bp = Blueprint('dojos', __name__)
 @dojos_bp.route('/dojos', methods=['GET'])
 @login_required
 def get_dojos():
-    """Lista dojos - admin vê todos, usuário vê apenas o seu"""
+    """Lista dojos - todos os usuários autenticados podem ver todos os dojos"""
     try:
         current_user = get_current_user()
         if not current_user:
             return jsonify({'error': 'User not found'}), 404
         
-        if current_user.is_admin():
-            # Admin vê todos os dojos
-            dojos = Dojo.query.filter_by(is_active=True).order_by(Dojo.name.asc()).all()
-        else:
-            # Usuário vê apenas seu dojo
-            if not current_user.dojo_id:
-                return jsonify({'dojos': []}), 200
-            dojo = Dojo.query.get(current_user.dojo_id)
-            dojos = [dojo] if dojo and dojo.is_active else []
+        # Todos os usuários autenticados podem ver a lista de dojos
+        dojos = Dojo.query.filter_by(is_active=True).order_by(Dojo.name.asc()).all()
         
         return jsonify({
             'dojos': [dojo.to_dict() for dojo in dojos]

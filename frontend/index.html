@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="css/design-tokens.css">
     
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=20251016-3">
 </head>
 <body class="bg-gray-50">
 
@@ -153,6 +153,11 @@
                             <i class="fas fa-id-card w-6 mr-3"></i>
                             <span>Membros</span>
                         </div>
+                        <div class="sidebar-item px-4 py-3 rounded-lg relative" onclick="showSection('calendar')">
+                            <i class="fas fa-calendar-alt w-6 mr-3"></i>
+                            <span>Calendário</span>
+                            <span id="calendarBadge" class="hidden absolute top-2 right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center pulse-animation">0</span>
+                        </div>
                         <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('users')" id="sidebarUsers">
                             <i class="fas fa-users-cog w-6 mr-3"></i>
                             <span>Usuários</span>
@@ -160,11 +165,6 @@
                         <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('dojos')" id="sidebarDojos">
                             <i class="fas fa-building w-6 mr-3"></i>
                             <span>Dojos</span>
-                        </div>
-                        <div class="sidebar-item px-4 py-3 rounded-lg relative" onclick="showSection('calendar')">
-                            <i class="fas fa-calendar-alt w-6 mr-3"></i>
-                            <span>Calendário</span>
-                            <span id="calendarBadge" class="hidden absolute top-2 right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center pulse-animation">0</span>
                         </div>
                         <div class="sidebar-item px-4 py-3 rounded-lg" onclick="showSection('reports')">
                             <i class="fas fa-file-alt w-6 mr-3"></i>
@@ -263,6 +263,17 @@
 				        <p>• Os botões de ação no cabeçalho da janela permitem editar as informações </p>
                                     </div>
                                 </div>
+
+                                <div class="border-t pt-3">
+                                    <p class="font-semibold text-blue-700 mb-2">📅 Calendário de Eventos</p>
+                                    <div class="text-sm space-y-1">
+                                        <p><strong>Criar Evento:</strong> Calendário → <i class="fas fa-plus text-xs"></i> Novo Evento</p>
+                                        <p><strong>Aulas Regulares:</strong> Marque "Evento recorrente" e selecione dias da semana</p>
+                                        <p><strong>Suspender Aula:</strong> Clique no evento → Suspender (mantém histórico)</p>
+                                        <p><strong>Filtros:</strong> Use o painel lateral para buscar eventos específicos</p>
+                                        <p><strong>Avisos:</strong> Badge vermelho indica notificações importantes</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -290,7 +301,12 @@
                                 </div>
 
                                 <div class="bg-orange-50 p-3 rounded-lg">
-                                    <p class="font-semibold text-orange-900 mb-1">Preciso de ajuda?</p>
+                                    <p class="font-semibold text-orange-900 mb-1">Como gerenciar aulas regulares?</p>
+                                    <p class="text-gray-700">Use eventos recorrentes no Calendário! Crie um evento marcando "Evento recorrente", selecione o padrão "Semanalmente" e escolha os dias (ex: Ter+Qui). O sistema criará automaticamente todas as ocorrências. Para cancelar uma aula específica, use "Suspender" em vez de deletar.</p>
+                                </div>
+
+                                <div class="bg-red-50 p-3 rounded-lg">
+                                    <p class="font-semibold text-red-900 mb-1">Preciso de ajuda?</p>
                                     <p class="text-gray-700">Entre em contato com o administrador do sistema ou consulte o manual completo.</p>
                                 </div>
                             </div>
@@ -500,123 +516,118 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <!-- Painel de Filtros -->
-                        <div class="lg:col-span-1">
-                            <div class="card p-6 sticky top-6">
-                                <h3 class="text-lg font-bold text-gray-800 mb-4">
-                                    <i class="fas fa-filter mr-2"></i>Filtros
-                                </h3>
-                                
-                                <div class="space-y-4">
-                                    <!-- Visualização -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Visualização</label>
-                                        <select id="calendarView" onchange="changeCalendarView()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                            <option value="month">Mês</option>
-                                            <option value="week">Semana</option>
-                                            <option value="list">Lista</option>
-                                        </select>
-                                    </div>
+                    <!-- Painel de Filtros -->
+                    <div class="card p-6 mb-6">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <!-- Visualização -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Visualização</label>
+                                <select id="calendarView" onchange="changeCalendarView()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                                    <option value="month">Mês</option>
+                                    <option value="week">Semana</option>
+                                    <option value="year">Ano</option>
+                                </select>
+                            </div>
 
-                                    <!-- Tipo de Evento -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                                        <select id="filterEventType" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                            <option value="">Todos</option>
-                                            <option value="admin">Administrativo</option>
-                                            <option value="dojo">Dojo</option>
-                                        </select>
-                                    </div>
+                            <!-- Tipo de Evento -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                                <select id="filterEventType" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                                    <option value="">Todos</option>
+                                    <option value="admin">Administrativo</option>
+                                    <option value="dojo">Dojo</option>
+                                </select>
+                            </div>
 
-                                    <!-- Categoria -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
-                                        <select id="filterCategory" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                            <option value="">Todas</option>
-                                            <option value="exame">Exame</option>
-                                            <option value="seminario">Seminário</option>
-                                            <option value="aula_especial">Aula Especial</option>
-                                            <option value="aula_regular">Aula Regular</option>
-                                            <option value="evento_social">Evento Social</option>
-                                            <option value="aviso">Aviso</option>
-                                            <option value="outro">Outro</option>
-                                        </select>
-                                    </div>
+                            <!-- Categoria -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                                <select id="filterCategory" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                                    <option value="">Todas</option>
+                                    <option value="exame">Exame</option>
+                                    <option value="seminario">Seminário</option>
+                                    <option value="aula_especial">Aula Especial</option>
+                                    <option value="aula_regular">Aula Regular</option>
+                                    <option value="evento_social">Evento Social</option>
+                                    <option value="aviso">Aviso</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
 
-                                    <!-- Status -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                        <select id="filterStatus" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                            <option value="">Todos</option>
-                                            <option value="active">Ativo</option>
-                                            <option value="suspended">Suspenso</option>
-                                            <option value="cancelled">Cancelado</option>
-                                            <option value="completed">Concluído</option>
-                                        </select>
-                                    </div>
+                            <!-- Status -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select id="filterStatus" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                                    <option value="">Todos</option>
+                                    <option value="active">Ativo</option>
+                                    <option value="suspended">Suspenso</option>
+                                    <option value="cancelled">Cancelado</option>
+                                    <option value="completed">Concluído</option>
+                                </select>
+                            </div>
 
-                                    <!-- Recorrência -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Recorrência</label>
-                                        <select id="filterRecurring" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                            <option value="">Todos</option>
-                                            <option value="true">Recorrente</option>
-                                            <option value="false">Único</option>
-                                        </select>
-                                    </div>
+                            <!-- Recorrência -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Recorrência</label>
+                                <select id="filterRecurring" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                                    <option value="">Todos</option>
+                                    <option value="true">Recorrente</option>
+                                    <option value="false">Único</option>
+                                </select>
+                            </div>
 
-                                    <!-- Dojo (admin only) -->
-                                    <div id="filterDojoDiv">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Dojo</label>
-                                        <select id="filterDojo" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                            <option value="">Todos</option>
-                                        </select>
-                                    </div>
+                            <!-- Dojo -->
+                            <div id="filterDojoDiv">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Dojo</label>
+                                <select id="filterDojo" onchange="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
 
-                                    <!-- Busca -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                                        <input type="text" id="filterSearch" placeholder="Título ou descrição..." onkeyup="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
-                                    </div>
+                            <!-- Busca -->
+                            <div class="md:col-span-2 lg:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                <input type="text" id="filterSearch" placeholder="Título ou descrição..." onkeyup="applyEventFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-field focus:outline-none text-sm">
+                            </div>
 
-                                    <!-- Botão Limpar Filtros -->
-                                    <button onclick="clearEventFilters()" class="w-full btn-secondary text-gray-700 px-4 py-2 rounded-lg font-medium text-sm">
-                                        <i class="fas fa-times mr-2"></i>Limpar Filtros
-                                    </button>
-                                </div>
+                            <!-- Botão Limpar Filtros -->
+                            <div class="flex items-end">
+                                <button onclick="clearEventFilters()" class="w-full btn-secondary text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                    <i class="fas fa-times mr-2"></i>Limpar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Área do Calendário -->
+                    <div>
+                        <!-- Controles de Navegação -->
+                        <div class="card p-4 mb-4">
+                            <div class="flex items-center justify-between">
+                                <button onclick="previousPeriod()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                                    <i class="fas fa-chevron-left mr-2"></i>Anterior
+                                </button>
+                                <h3 id="calendarPeriodTitle" class="text-xl font-bold text-gray-800"></h3>
+                                <button onclick="nextPeriod()" class="btn-secondary text-white px-4 py-2 rounded-lg font-medium">
+                                    Próximo<i class="fas fa-chevron-right ml-2"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Área do Calendário -->
-                        <div class="lg:col-span-3">
-                            <!-- Controles de Navegação -->
-                            <div class="card p-4 mb-4">
-                                <div class="flex items-center justify-between">
-                                    <button onclick="previousPeriod()" class="btn-secondary text-gray-700 px-4 py-2 rounded-lg font-medium">
-                                        <i class="fas fa-chevron-left mr-2"></i>Anterior
-                                    </button>
-                                    <h3 id="calendarPeriodTitle" class="text-xl font-bold text-gray-800"></h3>
-                                    <button onclick="nextPeriod()" class="btn-secondary text-gray-700 px-4 py-2 rounded-lg font-medium">
-                                        Próximo<i class="fas fa-chevron-right ml-2"></i>
-                                    </button>
-                                </div>
-                            </div>
+                        <!-- Visualização Mensal -->
+                        <div id="calendarMonthView" class="card p-6">
+                            <div id="monthCalendarGrid" class="calendar-month-grid"></div>
+                        </div>
 
-                            <!-- Visualização Mensal -->
-                            <div id="calendarMonthView" class="card p-6">
-                                <div id="monthCalendarGrid" class="calendar-month-grid"></div>
-                            </div>
+                        <!-- Visualização Semanal -->
+                        <div id="calendarWeekView" class="card p-6 hidden">
+                            <div id="weekCalendarGrid" class="calendar-week-grid"></div>
+                        </div>
 
-                            <!-- Visualização Semanal -->
-                            <div id="calendarWeekView" class="card p-6 hidden">
-                                <div id="weekCalendarGrid" class="calendar-week-grid"></div>
-                            </div>
-
-                            <!-- Visualização em Lista -->
-                            <div id="calendarListView" class="hidden">
-                                <div id="eventsListContainer"></div>
-                            </div>
+                        <!-- Visualização em Lista -->
+                        <div id="calendarListView" class="hidden">
+                            <div id="eventsListContainer"></div>
                         </div>
                     </div>
                 </section>
@@ -1827,7 +1838,7 @@
                         <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg font-medium flex-1">
                             <i class="fas fa-save mr-2"></i><span id="eventSaveButtonText">Salvar</span>
                         </button>
-                        <button type="button" onclick="closeEventModal()" class="btn-secondary text-gray-700 px-6 py-2 rounded-lg font-medium">
+                        <button type="button" onclick="closeEventModal()" class="btn-secondary text-white px-6 py-2 rounded-lg font-medium">
                             <i class="fas fa-times mr-2"></i>Cancelar
                         </button>
                     </div>
@@ -1899,7 +1910,7 @@
                         <button type="submit" class="btn-warning text-white px-6 py-2 rounded-lg font-medium flex-1">
                             <i class="fas fa-pause mr-2"></i>Suspender
                         </button>
-                        <button type="button" onclick="closeSuspendEventModal()" class="btn-secondary text-gray-700 px-6 py-2 rounded-lg font-medium">
+                        <button type="button" onclick="closeSuspendEventModal()" class="btn-secondary text-white px-6 py-2 rounded-lg font-medium">
                             <i class="fas fa-times mr-2"></i>Cancelar
                         </button>
                     </div>
@@ -1936,7 +1947,7 @@
 
     <!-- Script Principal -->
     <script src="document-uploader.js?v=20251007225643"></script>
-    <script src="calendar.js?v=20251016"></script>
+    <script src="calendar.js?v=20251016-6"></script>
     <script src="app.js?v=20251007225643"></script>
 </body>
 </html>

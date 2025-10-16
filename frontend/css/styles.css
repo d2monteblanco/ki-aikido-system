@@ -159,6 +159,15 @@ small {
   background: var(--ki-danger-dark);
 }
 
+.btn-warning {
+  background: var(--ki-warning);
+  color: white;
+}
+
+.btn-warning:hover {
+  background: var(--ki-warning-dark);
+}
+
 .btn-icon {
   width: 36px;
   height: 36px;
@@ -761,15 +770,37 @@ img[src*="documents"] {
 
 .calendar-day {
     background-color: white;
-    min-height: 100px;
+    min-height: 80px;
+    max-height: 120px;
     padding: 0.5rem;
     cursor: pointer;
     transition: background-color 0.2s;
     position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .calendar-day:hover {
     background-color: #f3f4f6;
+}
+
+/* Barra de rolagem personalizada para as células do calendário */
+.calendar-day::-webkit-scrollbar {
+    width: 4px;
+}
+
+.calendar-day::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.calendar-day::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.calendar-day::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 .calendar-day.other-month {
@@ -1051,17 +1082,25 @@ img[src*="documents"] {
     }
     
     .calendar-day {
-        min-height: 80px;
+        min-height: 60px;
+        max-height: 90px;
         padding: 0.25rem;
-    }
-    
-    .calendar-day-number {
         font-size: 0.75rem;
     }
     
+    .calendar-day-header {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .calendar-day-number {
+        font-size: 0.7rem;
+    }
+    
     .calendar-event {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         padding: 0.125rem 0.25rem;
+        margin-bottom: 0.125rem;
     }
     
     .event-list-date {
@@ -1071,6 +1110,20 @@ img[src*="documents"] {
     
     .event-list-day {
         font-size: 1.25rem;
+    }
+}
+
+/* Responsivo - Telas médias (tablets) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .calendar-day {
+        min-height: 70px;
+        max-height: 100px;
+        padding: 0.35rem;
+    }
+    
+    .calendar-event {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.35rem;
     }
 }
 

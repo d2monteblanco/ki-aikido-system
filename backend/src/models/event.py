@@ -144,7 +144,7 @@ class EventOccurrence(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relacionamento
-    event = db.relationship('Event', backref='cached_occurrences')
+    event = db.relationship('Event', backref=db.backref('cached_occurrences', cascade='all, delete-orphan'))
     
     def to_dict(self):
         """Converte a ocorrência para dicionário"""

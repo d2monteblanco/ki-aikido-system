@@ -15,10 +15,11 @@ let selectedEventId = null;
 
 async function initializeCalendar() {
     // Load dojos for filter
+    const dojoSelect = document.getElementById('filterDojo');
+    const eventDojoSelect = document.getElementById('eventDojo');
+    
     if (currentUser && currentUser.role === 'admin') {
-        const dojoSelect = document.getElementById('filterDojo');
-        const eventDojoSelect = document.getElementById('eventDojo');
-        
+        // Admin sees all dojos
         allDojos.forEach(dojo => {
             const option1 = document.createElement('option');
             option1.value = dojo.id;
@@ -31,9 +32,22 @@ async function initializeCalendar() {
             eventDojoSelect.appendChild(option2);
         });
     } else if (currentUser && currentUser.dojo_id) {
-        // For dojo users, set their dojo as default
-        document.getElementById('eventDojo').value = currentUser.dojo_id;
-        document.getElementById('filterDojoDiv').style.display = 'none';
+        // Dojo users see all dojos but their dojo is pre-selected
+        allDojos.forEach(dojo => {
+            const option1 = document.createElement('option');
+            option1.value = dojo.id;
+            option1.textContent = dojo.name;
+            dojoSelect.appendChild(option1);
+            
+            const option2 = document.createElement('option');
+            option2.value = dojo.id;
+            option2.textContent = dojo.name;
+            eventDojoSelect.appendChild(option2);
+        });
+        
+        // Set user's dojo as default in both selects
+        dojoSelect.value = currentUser.dojo_id;
+        eventDojoSelect.value = currentUser.dojo_id;
     }
     
     // Load events
@@ -95,10 +109,10 @@ function renderCalendar() {
             renderCalendarMonth();
             break;
         case 'week':
-            renderCalendarWeek();
+            renderWeekList();
             break;
-        case 'list':
-            renderEventsList();
+        case 'year':
+            renderYearList();
             break;
     }
     
@@ -185,16 +199,7 @@ function renderCalendarMonth() {
     }
 }
 
-function renderCalendarWeek() {
-    document.getElementById('calendarMonthView').classList.add('hidden');
-    document.getElementById('calendarWeekView').classList.remove('hidden');
-    document.getElementById('calendarListView').classList.add('hidden');
-    
-    // Simplified week view - just show as list for now
-    renderEventsList();
-}
-
-function renderEventsList() {
+function renderWeekList() {
     document.getElementById('calendarMonthView').classList.add('hidden');
     document.getElementById('calendarWeekView').classList.add('hidden');
     document.getElementById('calendarListView').classList.remove('hidden');
@@ -202,18 +207,36 @@ function renderEventsList() {
     const container = document.getElementById('eventsListContainer');
     container.innerHTML = '';
     
-    if (filteredEvents.length === 0) {
+    // Get current week range
+    const today = new Date(currentCalendarDate);
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    // Filter events for this week
+    const weekEvents = filteredEvents.filter(event => {
+        const eventDate = new Date(event.start_datetime);
+        return eventDate >= startOfWeek && eventDate < endOfWeek;
+    });
+    
+    if (weekEvents.length === 0) {
         container.innerHTML = `
             <div class="card p-8 text-center text-gray-500">
                 <i class="fas fa-calendar-times text-4xl mb-3"></i>
-                <p class="font-medium">Nenhum evento encontrado</p>
+                <p class="font-medium">Nenhum evento encontrado nesta semana</p>
+                <p class="text-sm mt-2">${formatDateRange(startOfWeek, endOfWeek)}</p>
             </div>
         `;
         return;
     }
     
     // Sort events by date
-    const sortedEvents = [...filteredEvents].sort((a, b) => 
+    const sortedEvents = [...weekEvents].sort((a, b) => 
         new Date(a.start_datetime) - new Date(b.start_datetime)
     );
     
@@ -221,6 +244,56 @@ function renderEventsList() {
         const eventDiv = createEventListItem(event);
         container.appendChild(eventDiv);
     });
+}
+
+function renderYearList() {
+    document.getElementById('calendarMonthView').classList.add('hidden');
+    document.getElementById('calendarWeekView').classList.add('hidden');
+    document.getElementById('calendarListView').classList.remove('hidden');
+    
+    const container = document.getElementById('eventsListContainer');
+    container.innerHTML = '';
+    
+    // Get current year range
+    const year = currentCalendarDate.getFullYear();
+    const startOfYear = new Date(year, 0, 1, 0, 0, 0, 0);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+    
+    // Filter events for this year
+    const yearEvents = filteredEvents.filter(event => {
+        const eventDate = new Date(event.start_datetime);
+        return eventDate >= startOfYear && eventDate <= endOfYear;
+    });
+    
+    if (yearEvents.length === 0) {
+        container.innerHTML = `
+            <div class="card p-8 text-center text-gray-500">
+                <i class="fas fa-calendar-times text-4xl mb-3"></i>
+                <p class="font-medium">Nenhum evento encontrado em ${year}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Sort events by date
+    const sortedEvents = [...yearEvents].sort((a, b) => 
+        new Date(a.start_datetime) - new Date(b.start_datetime)
+    );
+    
+    sortedEvents.forEach(event => {
+        const eventDiv = createEventListItem(event);
+        container.appendChild(eventDiv);
+    });
+}
+
+function renderCalendarWeek() {
+    // This function is no longer used but kept for compatibility
+    renderWeekList();
+}
+
+function renderEventsList() {
+    // This function is deprecated, redirecting to year view
+    renderYearList();
 }
 
 // =========================================
@@ -312,12 +385,24 @@ function updateCalendarPeriodTitle() {
             titleEl.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
             break;
         case 'week':
-            titleEl.textContent = 'Semana';
+            const today = new Date(currentCalendarDate);
+            const dayOfWeek = today.getDay();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            titleEl.textContent = `Semana: ${startOfWeek.getDate()}/${startOfWeek.getMonth() + 1} - ${endOfWeek.getDate()}/${endOfWeek.getMonth() + 1}/${endOfWeek.getFullYear()}`;
             break;
-        case 'list':
-            titleEl.textContent = 'Lista de Eventos';
+        case 'year':
+            titleEl.textContent = `Ano: ${currentCalendarDate.getFullYear()}`;
             break;
     }
+}
+
+function formatDateRange(start, end) {
+    const startStr = start.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const endStr = end.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return `${startStr} - ${endStr}`;
 }
 
 // =========================================
@@ -334,6 +419,8 @@ function previousPeriod() {
         currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
     } else if (currentCalendarView === 'week') {
         currentCalendarDate.setDate(currentCalendarDate.getDate() - 7);
+    } else if (currentCalendarView === 'year') {
+        currentCalendarDate.setFullYear(currentCalendarDate.getFullYear() - 1);
     }
     renderCalendar();
 }
@@ -343,6 +430,8 @@ function nextPeriod() {
         currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
     } else if (currentCalendarView === 'week') {
         currentCalendarDate.setDate(currentCalendarDate.getDate() + 7);
+    } else if (currentCalendarView === 'year') {
+        currentCalendarDate.setFullYear(currentCalendarDate.getFullYear() + 1);
     }
     renderCalendar();
 }
@@ -389,13 +478,22 @@ function openEventModal(date = null) {
         document.getElementById('eventEndDate').value = endDate.toISOString().slice(0, 16);
     }
     
-    // Set default type based on user
+    // Set default type based on user and hide/show fields accordingly
+    const eventTypeDiv = document.getElementById('eventType').parentElement;
+    const eventTypeSelect = document.getElementById('eventType');
+    const eventDojoDiv = document.getElementById('eventDojoDiv');
+    
     if (currentUser) {
         if (currentUser.role === 'admin') {
-            document.getElementById('eventType').value = '';
+            // Admin: show all fields
+            eventTypeDiv.classList.remove('hidden');
+            eventTypeSelect.required = true;
+            eventTypeSelect.value = '';
         } else {
-            document.getElementById('eventType').value = 'dojo';
-            document.getElementById('eventDojo').value = currentUser.dojo_id;
+            // Dojo user: hide type and dojo fields (values will be set on submit)
+            eventTypeDiv.classList.add('hidden');
+            eventDojoDiv.classList.add('hidden');
+            eventTypeSelect.required = false; // Remove required when hidden
         }
     }
     
@@ -450,7 +548,6 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
         const eventData = {
             title: document.getElementById('eventTitle').value,
             description: document.getElementById('eventDescription').value,
-            event_type: document.getElementById('eventType').value,
             category: document.getElementById('eventCategory').value,
             start_datetime: document.getElementById('eventStartDate').value,
             end_datetime: document.getElementById('eventEndDate').value,
@@ -460,8 +557,22 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
             create_default_reminders: document.getElementById('eventCreateReminders').checked
         };
         
-        if (eventData.event_type === 'dojo') {
-            eventData.dojo_id = parseInt(document.getElementById('eventDojo').value);
+        // Set event_type and dojo_id based on user role
+        if (currentUser) {
+            if (currentUser.role === 'admin') {
+                // Admin: use form values
+                eventData.event_type = document.getElementById('eventType').value;
+                if (eventData.event_type === 'dojo') {
+                    const dojoId = document.getElementById('eventDojo').value;
+                    if (dojoId) {
+                        eventData.dojo_id = parseInt(dojoId);
+                    }
+                }
+            } else {
+                // Dojo user: force values
+                eventData.event_type = 'dojo';
+                eventData.dojo_id = currentUser.dojo_id;
+            }
         }
         
         // Recurrence data
@@ -646,6 +757,25 @@ async function editEventFromDetails() {
         
         if (event.event_type === 'dojo' && event.dojo_id) {
             document.getElementById('eventDojo').value = event.dojo_id;
+        }
+        
+        // Control field visibility based on user role
+        const eventTypeDiv = document.getElementById('eventType').parentElement;
+        const eventTypeSelect = document.getElementById('eventType');
+        const eventDojoDiv = document.getElementById('eventDojoDiv');
+        
+        if (currentUser) {
+            if (currentUser.role === 'admin') {
+                // Admin: show all fields
+                eventTypeDiv.classList.remove('hidden');
+                eventDojoDiv.classList.remove('hidden');
+                eventTypeSelect.required = true;
+            } else {
+                // Dojo user: hide type and dojo fields
+                eventTypeDiv.classList.add('hidden');
+                eventDojoDiv.classList.add('hidden');
+                eventTypeSelect.required = false; // Remove required when hidden
+            }
         }
         
         toggleDojoField();

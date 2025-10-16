@@ -65,7 +65,7 @@ fi
 echo ""
 echo "💾 Fazendo commit..."
 git commit -m "
-fix: bugfix"
+feat: Sistema de calendarios para os dojos."
 
 if [ $? -eq 0 ]; then
     echo ""

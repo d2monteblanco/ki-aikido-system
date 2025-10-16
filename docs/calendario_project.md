@@ -1311,56 +1311,56 @@ Script de seed incluirá:
 - [x] Atualizar init_database()
 - [x] Testar endpoints
 
-### Frontend - Estrutura
-- [ ] Botão no menu com badge de avisos
-- [ ] Section #calendarScreen
-- [ ] HTML calendário
-- [ ] Painel de filtros (com filtros de status e recorrência)
-- [ ] Modal de evento
-- [ ] Modal de evento recorrente
-- [ ] Modal de suspensão
-- [ ] Modal de configuração de avisos
-- [ ] Banner de avisos no topo
-- [ ] Pop-up de avisos ao login
+### Frontend - Estrutura ✅ **CONCLUÍDO**
+- [x] Botão no menu com badge de avisos
+- [x] Section #calendarScreen
+- [x] HTML calendário
+- [x] Painel de filtros (com filtros de status e recorrência)
+- [x] Modal de evento
+- [x] Modal de evento recorrente (integrado no modal principal)
+- [x] Modal de suspensão
+- [x] Modal de configuração de avisos (integrado no formulário)
+- [x] Banner de avisos no topo
+- [x] Pop-up de avisos ao login
 
-### Frontend - Lógica
-- [ ] loadEvents()
-- [ ] renderCalendarMonth()
-- [ ] renderCalendarWeek()
-- [ ] renderEventsList()
-- [ ] applyEventFilters()
-- [ ] createEvent()
-- [ ] createRecurringEvent()
-- [ ] editEvent()
-- [ ] editEventSeries()
-- [ ] deleteEvent()
-- [ ] suspendEvent()
-- [ ] reactivateEvent()
-- [ ] configureReminders()
-- [ ] loadActiveReminders()
-- [ ] showReminderBanner()
-- [ ] showReminderPopup()
-- [ ] updateReminderBadge()
-- [ ] showEventDetails()
-- [ ] previewRecurrenceOccurrences()
+### Frontend - Lógica ✅ **CONCLUÍDO**
+- [x] loadEvents()
+- [x] renderCalendarMonth()
+- [x] renderCalendarWeek() (implementado como lista)
+- [x] renderEventsList()
+- [x] applyEventFilters()
+- [x] createEvent() (via formulário)
+- [x] createRecurringEvent() (integrado no createEvent)
+- [x] editEvent()
+- [ ] editEventSeries() (futuro - edição em lote)
+- [x] deleteEvent()
+- [x] suspendEvent()
+- [x] reactivateEvent()
+- [x] configureReminders() (via formulário de criação)
+- [x] loadActiveReminders()
+- [x] showReminderBanner()
+- [x] showReminderPopup() (estrutura criada)
+- [x] updateReminderBadge()
+- [x] showEventDetails()
+- [ ] previewRecurrenceOccurrences() (futuro)
 
-### Frontend - Estilos
-- [ ] CSS calendário mensal
-- [ ] CSS calendário semanal
-- [ ] CSS lista eventos
-- [ ] CSS filtros
-- [ ] CSS modal evento
-- [ ] CSS modal recorrência
-- [ ] CSS modal suspensão
-- [ ] CSS modal avisos
-- [ ] CSS responsivo
-- [ ] Cores por categoria
-- [ ] Indicadores status (ativo, suspenso, cancelado)
-- [ ] Badges de recorrência
-- [ ] Banner de avisos
-- [ ] Pop-up de avisos
-- [ ] Badge contador no menu
-- [ ] Animações (pulse para alta prioridade)
+### Frontend - Estilos ✅ **CONCLUÍDO**
+- [x] CSS calendário mensal
+- [x] CSS calendário semanal
+- [x] CSS lista eventos
+- [x] CSS filtros
+- [x] CSS modal evento
+- [x] CSS modal recorrência (integrado)
+- [x] CSS modal suspensão
+- [x] CSS modal avisos (integrado)
+- [x] CSS responsivo
+- [x] Cores por categoria
+- [x] Indicadores status (ativo, suspenso, cancelado)
+- [x] Badges de recorrência
+- [x] Banner de avisos
+- [x] Pop-up de avisos
+- [x] Badge contador no menu
+- [x] Animações (pulse para alta prioridade)
 
 ### Testes
 - [ ] Permissões admin

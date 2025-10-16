@@ -375,6 +375,7 @@ function showSection(section) {
         'dashboard': 'dashboardSection',
         'students': 'studentsSection',
         'members': 'membersSection',
+        'calendar': 'calendarSection',
         'dojos': 'dojosSection',
         'profile': 'profileSection',
         'users': 'usersSection',
@@ -392,6 +393,8 @@ function showSection(section) {
     } else if (section === 'members') {
         loadMembers();
     } else if (section === 'dojos') {
+    } else if (section === 'calendar') {
+        initializeCalendar();
         loadDojos();
     } else if (section === 'dashboard') {
         loadStats();

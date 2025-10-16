@@ -34,6 +34,15 @@ Sistema completo para gestão centralizada de academias de Ki Aikido no Brasil, 
 - Estatísticas por dojo
 - Controle de usuários por dojo
 
+
+### 📅 **Sistema de Calendário de Eventos**
+- Calendário centralizado para eventos administrativos e de dojos
+- Suporte a eventos recorrentes (aulas regulares)
+- Sistema de avisos e lembretes automáticos
+- Suspensão temporária de eventos
+- Múltiplas visualizações (mês, lista)
+- Filtros avançados por tipo, categoria, status e recorrência
+- Controle de permissões (admin vs dojo)
 ### 📊 **Dashboard**
 - Estatísticas em tempo real
 - Visão geral do sistema

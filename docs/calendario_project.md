@@ -1362,33 +1362,33 @@ Script de seed incluirá:
 - [x] Badge contador no menu
 - [x] Animações (pulse para alta prioridade)
 
-### Testes
-- [ ] Permissões admin
-- [ ] Permissões dojo
-- [ ] Filtros básicos
-- [ ] Filtros avançados (status, recorrência, avisos)
-- [ ] Validações
-- [ ] Criar evento recorrente
-- [ ] Editar evento individual
-- [ ] Editar série de eventos
-- [ ] Suspender evento
-- [ ] Suspender série
-- [ ] Reativar evento
-- [ ] Configurar avisos
-- [ ] Exibir avisos (banner, popup, badge)
-- [ ] Deletar evento/série
-- [ ] Visualizações
-- [ ] Responsivo
-- [ ] Integração completa
+### Testes ✅ **CONCLUÍDO**
+- [x] Permissões admin
+- [x] Permissões dojo
+- [x] Filtros básicos
+- [x] Filtros avançados (status, recorrência, avisos)
+- [x] Validações
+- [x] Criar evento recorrente
+- [x] Editar evento individual
+- [ ] Editar série de eventos (futuro)
+- [x] Suspender evento
+- [ ] Suspender série (futuro)
+- [x] Reativar evento
+- [x] Configurar avisos
+- [x] Exibir avisos (banner, popup, badge)
+- [x] Deletar evento/série
+- [x] Visualizações
+- [x] Responsivo
+- [x] Integração completa
 
-### Documentação
-- [ ] Atualizar API.md (novos endpoints)
-- [ ] Atualizar README (novos recursos)
-- [ ] Documentar padrões de recorrência
-- [ ] Documentar sistema de avisos
-- [ ] Documentar sistema de suspensão
-- [ ] Screenshots
-- [ ] Exemplos de uso
+### Documentação ✅ **CONCLUÍDO**
+- [x] Atualizar API.md (novos endpoints)
+- [x] Atualizar README (novos recursos)
+- [x] Documentar padrões de recorrência
+- [x] Documentar sistema de avisos
+- [x] Documentar sistema de suspensão
+- [ ] Screenshots (futuro)
+- [x] Exemplos de uso
 - [ ] Demo (opcional)
 
 ---

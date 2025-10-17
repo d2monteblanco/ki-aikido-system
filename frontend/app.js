@@ -1247,6 +1247,8 @@ async function openMemberModal(memberId = null) {
     const title = document.getElementById('memberModalTitle');
     
     form.reset();
+    // Limpar explicitamente o campo memberId
+    document.getElementById('memberId').value = '';
     
     // Carregar lista de Cadastros Básicos para seleção
     await loadStudentsForMemberSelect();
@@ -1324,8 +1326,11 @@ async function openMemberModal(memberId = null) {
 function closeMemberModal() {
     document.getElementById('memberModal').classList.add('hidden');
     
-    // Limpar currentMemberStatusId ao fechar
+    // Limpar dados do formulário
+    document.getElementById('memberForm').reset();
+    document.getElementById('memberId').value = '';
     currentMemberStatusId = null;
+    selectedMember = null;
 }
 
 async function openMemberModalForStudent(studentId, studentName) {
@@ -1752,6 +1757,13 @@ async function deleteMember(memberId = null) {
         await apiRequest(`/member-status/${id}`, { method: 'DELETE' });
         showNotification('Membro excluído com sucesso!', 'success');
         selectedMember = null;
+        
+        // Fechar modal de detalhes se estiver aberto
+        const memberDetailsModal = document.getElementById('memberDetailsModal');
+        if (memberDetailsModal && !memberDetailsModal.classList.contains('hidden')) {
+            memberDetailsModal.classList.add('hidden');
+        }
+        
         await loadMembers(currentPage.members);
         await loadStats();
     } catch (error) {
@@ -1823,20 +1835,16 @@ document.getElementById('memberForm').addEventListener('submit', async (e) => {
         await loadMembers(currentPage.members);
         await loadStats();
         
-        // Não fechar o modal se estiver criando, para permitir adicionar graduações/qualificações
+        // Fechar o modal após salvar
+        const memberIdForRefresh = savedMemberId;
+        closeMemberModal();
+        
+        // Se o modal de detalhes estiver aberto, forçar atualização após fechar modal de edição
         if (memberId) {
-            // Salvar o ID antes de fechar para garantir que o refresh funcione
-            const memberIdForRefresh = savedMemberId;
-            closeMemberModal();
-            
-            // Se o modal de detalhes estiver aberto, forçar atualização após fechar modal de edição
             const memberDetailsModal = document.getElementById('memberDetailsModal');
             if (!memberDetailsModal.classList.contains('hidden') && selectedMember) {
                 await refreshMemberDetails(memberIdForRefresh);
             }
-        } else {
-            // Recarregar o membro recém-criado
-            await openMemberModal(currentMemberStatusId);
         }
         
     } catch (error) {
@@ -3050,7 +3058,8 @@ async function loadDojosForUserForm() {
         const select = document.getElementById('userFormDojo');
         select.innerHTML = '<option value="">Selecione...</option>';
         
-        data.forEach(dojo => {
+        const dojos = data.dojos || [];
+        dojos.forEach(dojo => {
             const option = document.createElement('option');
             option.value = dojo.id;
             option.textContent = dojo.name;
